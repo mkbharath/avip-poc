@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply text-gray-900;
+  }
+}
+
+@layer components {
+  .kiosk-text-decision {
+    @apply text-decision font-extrabold tracking-tight;
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 bg-avip-info text-white font-semibold rounded-lg
+           hover:bg-opacity-90 active:scale-95 transition-all
+           min-h-[48px] min-w-[48px];
+  }
+
+  .btn-pass {
+    @apply px-6 py-3 bg-avip-pass text-white font-semibold rounded-lg
+           hover:bg-opacity-90 active:scale-95 transition-all
+           min-h-[48px] min-w-[48px];
+  }
+
+  .btn-fail {
+    @apply px-6 py-3 bg-avip-fail text-white font-semibold rounded-lg
+           hover:bg-opacity-90 active:scale-95 transition-all
+           min-h-[48px] min-w-[48px];
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-pass {
+    @apply badge bg-avip-pass-light text-avip-pass;
+  }
+
+  .badge-fail {
+    @apply badge bg-avip-fail-light text-avip-fail;
+  }
+
+  .badge-review {
+    @apply badge bg-avip-review-light text-avip-review;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6;
+  }
+
+  .kpi-tile {
+    @apply card flex flex-col items-center justify-center text-center;
+  }
+}
+
+@layer utilities {
+  @keyframes scanLine {
+    0% { top: 0; }
+    50% { top: 100%; }
+    100% { top: 0; }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}

@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.egg
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# App data (generated at runtime)
+backend/data/
+
+# Environment
+.env
+.env.local
+
+# ONNX models (large binary files - regenerate with scripts)
+backend/ai_models/patchcore/model.onnx
+backend/ai_models/yolov8/defect_detector.onnx

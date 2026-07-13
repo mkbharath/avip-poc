@@ -81,79 +81,71 @@ const NAV_ITEMS = [
 export function AppLayout() {
   const location = useLocation();
 
-  // Get current user from localStorage
   const userStr = localStorage.getItem("avip_user");
   const user = userStr ? JSON.parse(userStr) : { name: "Operator", role: "Operator" };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Top header bar */}
-      <header className="h-14 bg-lam-navy flex items-center justify-between px-4 flex-shrink-0 z-20">
-        <div className="flex items-center gap-3">
-          <LamResearchLogo variant="light" className="h-8" />
-          <div className="w-px h-6 bg-white/20" />
-          <span className="text-white/70 text-sm font-medium hidden sm:block">
-            AI Vision Inspection Platform
-          </span>
+    <div className="min-h-screen flex bg-gray-50">
+      {/* Dark navy sidebar */}
+      <aside className="w-60 bg-lam-navy flex flex-col flex-shrink-0">
+        {/* Logo area */}
+        <div className="px-5 pt-5 pb-4">
+          <LamResearchLogo variant="light" className="h-9" />
+          <p className="text-white/40 text-[10px] mt-1.5 tracking-wide">AI Vision Inspection Platform</p>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-white/50 text-xs hidden md:block">STN-LIV-01 • Online</span>
-          <div className="w-px h-5 bg-white/20" />
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-lam-green/20 flex items-center justify-center">
+
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+          {NAV_ITEMS.map((item, idx) => {
+            if ("type" in item && item.type === "divider") {
+              return <div key={idx} className="my-3 border-t border-white/10" />;
+            }
+            const navItem = item as { label: string; to: string; icon: React.ReactNode };
+            const isActive = location.pathname === navItem.to ||
+              location.pathname.startsWith(navItem.to + "/");
+            return (
+              <NavLink
+                key={navItem.to}
+                to={navItem.to}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-white/10 text-white"
+                    : "text-white/60 hover:bg-white/5 hover:text-white/90"
+                }`}
+              >
+                <span className={isActive ? "text-lam-green" : "text-white/40"}>
+                  {navItem.icon}
+                </span>
+                {navItem.label}
+              </NavLink>
+            );
+          })}
+        </nav>
+
+        {/* User + powered by footer */}
+        <div className="p-4 border-t border-white/10">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-full bg-lam-green/20 flex items-center justify-center">
               <span className="text-lam-green text-xs font-bold">
                 {user.name?.charAt(0) || "O"}
               </span>
             </div>
-            <span className="text-white/70 text-xs hidden md:block">{user.name}</span>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left sidebar */}
-        <aside className="w-56 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
-          <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-            {NAV_ITEMS.map((item, idx) => {
-              if ("type" in item && item.type === "divider") {
-                return <div key={idx} className="my-3 border-t border-gray-100" />;
-              }
-              const navItem = item as { label: string; to: string; icon: React.ReactNode };
-              const isActive = location.pathname === navItem.to ||
-                location.pathname.startsWith(navItem.to + "/");
-              return (
-                <NavLink
-                  key={navItem.to}
-                  to={navItem.to}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-lam-navy/10 text-lam-navy border-l-3 border-lam-navy"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
-                >
-                  <span className={isActive ? "text-lam-navy" : "text-gray-400"}>
-                    {navItem.icon}
-                  </span>
-                  {navItem.label}
-                </NavLink>
-              );
-            })}
-          </nav>
-
-          {/* Powered by footer */}
-          <div className="p-4 border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-400 text-[10px]">Powered by</span>
-              <IdeyaLabsLogo variant="dark" className="h-4" />
+            <div>
+              <p className="text-white/90 text-xs font-medium">{user.name}</p>
+              <p className="text-white/40 text-[10px]">{user.role} • STN-LIV-01</p>
             </div>
           </div>
-        </aside>
+          <div className="flex items-center gap-2">
+            <span className="text-white/30 text-[9px]">Powered by</span>
+            <IdeyaLabsLogo variant="light" className="h-3.5" />
+          </div>
+        </div>
+      </aside>
 
-        {/* Main content area */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
-          <Outlet />
-        </main>
-      </div>
+      {/* Main content area */}
+      <main className="flex-1 overflow-y-auto">
+        <Outlet />
+      </main>
     </div>
   );
 }

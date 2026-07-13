@@ -71,7 +71,7 @@ export function ScanScreen() {
   };
 
   return (
-    <div className="page-content flex flex-col items-center justify-center min-h-[calc(100vh-56px)]">
+    <div className="page-content flex flex-col items-center justify-center min-h-screen">
       {!partInfo && !error && (
         <div className="flex flex-col items-center">
           <div className="mb-8">

@@ -105,7 +105,7 @@ export function CaptureScreen() {
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="flex h-[calc(100vh-56px)]">
+    <div className="flex h-screen">
       {/* Left: Camera Grid (dark — image viewer area) */}
       <div className="flex-1 bg-gray-900 p-6 flex flex-col">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">

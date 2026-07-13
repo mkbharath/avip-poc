@@ -41,7 +41,7 @@ export function ResultScreen() {
 
   if (!inspection || !decisionResult) {
     return (
-      <div className="page-content flex flex-col items-center justify-center min-h-[calc(100vh-56px)]">
+      <div className="page-content flex flex-col items-center justify-center min-h-screen">
         <div className="animate-spin w-8 h-8 border-4 border-lam-navy border-t-transparent rounded-full" />
         <p className="text-gray-500 mt-4 text-sm">Loading inspection result...</p>
       </div>
@@ -49,7 +49,7 @@ export function ResultScreen() {
   }
 
   return (
-    <div className="page-content flex flex-col items-center justify-center min-h-[calc(100vh-56px)]">
+    <div className="page-content flex flex-col items-center justify-center min-h-screen">
       <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${
         decisionResult === "PASS" ? "bg-avip-pass" :
         decisionResult === "FAIL" ? "bg-avip-fail" : "bg-avip-review"

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { lookupPart, createInspection } from "../../api/inspections";
 import { OcrCaptureModal } from "./OcrCaptureModal";
-import { LamResearchLogo, IdeyaLabsLogo } from "../common/Logo";
 
 export function ScanScreen() {
   const [barcode, setBarcode] = useState("");
@@ -21,7 +20,6 @@ export function ScanScreen() {
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  // Auto-focus the input on mount
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
@@ -42,8 +40,6 @@ export function ScanScreen() {
         family_name: part.family.display_name,
         supplier: part.supplier,
       });
-
-      // Create inspection and auto-advance after 2 seconds
       const inspection = await createInspection(part.part_number);
       setTimeout(() => {
         navigate(`/kiosk/capture/${inspection.id}`);
@@ -75,37 +71,11 @@ export function ScanScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-8 relative">
-      {/* Status bar with Lam branding */}
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-3 bg-lam-navy">
-        <div className="flex items-center gap-4">
-          <LamResearchLogo variant="light" />
-          <div className="w-px h-5 bg-white/20" />
-          <span className="text-white/70 text-xs font-medium">AI Vision Inspection Platform</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-white/50 text-xs">STN-LIV-01</span>
-          <span className="badge bg-lam-green/20 text-lam-green">● Online</span>
-          <div className="w-px h-4 bg-white/10" />
-          <div className="flex items-center gap-1.5">
-            <span className="text-white/30 text-[10px]">Powered by</span>
-            <IdeyaLabsLogo variant="light" className="h-4" />
-          </div>
-          <a href="/dashboard" className="text-white/40 hover:text-white/70 text-xs">
-            Dashboard
-          </a>
-          <a href="/demo" className="text-white/40 hover:text-white/70 text-xs">
-            Demo
-          </a>
-        </div>
-      </div>
-
-      {/* Main content */}
+    <div className="page-content flex flex-col items-center justify-center min-h-[calc(100vh-56px)]">
       {!partInfo && !error && (
-        <div className="flex flex-col items-center animate-pulse-slow">
-          {/* Barcode icon */}
+        <div className="flex flex-col items-center">
           <div className="mb-8">
-            <svg className="w-24 h-24 text-avip-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-24 h-24 text-lam-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                 d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -113,8 +83,8 @@ export function ScanScreen() {
             </svg>
           </div>
 
-          <h1 className="text-3xl font-bold text-white mb-2">Scan Part Barcode</h1>
-          <p className="text-gray-400 mb-8">Position barcode under scanner or type part number below</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Scan Part Barcode</h1>
+          <p className="text-gray-500 mb-8">Position barcode under scanner or type part number below</p>
 
           <form onSubmit={handleSubmit} className="w-full max-w-md">
             <input
@@ -123,9 +93,9 @@ export function ScanScreen() {
               value={barcode}
               onChange={(e) => setBarcode(e.target.value)}
               placeholder="Part number (e.g., 839-041322-001)"
-              className="w-full px-6 py-4 text-xl text-center bg-gray-800 border-2 border-gray-600 
-                         rounded-xl text-white placeholder-gray-500 focus:border-avip-info 
-                         focus:outline-none transition-colors"
+              className="w-full px-6 py-4 text-xl text-center bg-white border-2 border-gray-300
+                         rounded-xl text-gray-900 placeholder:text-gray-400 focus:border-lam-navy
+                         focus:ring-2 focus:ring-lam-navy/10 focus:outline-none transition-colors"
               autoComplete="off"
             />
             <button
@@ -137,50 +107,48 @@ export function ScanScreen() {
             </button>
           </form>
 
-          {/* Fallback actions */}
           <div className="flex gap-4 mt-8">
             <button
               onClick={() => setOcrOpen(true)}
-              className="px-4 py-3 min-h-[48px] bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
+              className="px-4 py-3 min-h-[48px] bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
             >
               OCR Capture
             </button>
-            <button className="px-4 py-3 min-h-[48px] bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors">
+            <button className="px-4 py-3 min-h-[48px] bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
               Manual Entry
             </button>
           </div>
         </div>
       )}
 
-      {/* Part identified - success state */}
       {partInfo && (
-        <div className="flex flex-col items-center animate-fade-in">
+        <div className="flex flex-col items-center">
           <div className="w-16 h-16 bg-avip-pass rounded-full flex items-center justify-center mb-6">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-1">Part Identified</h2>
-          <p className="text-gray-400 mb-6">Loading inspection configuration...</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Part Identified</h2>
+          <p className="text-gray-500 mb-6">Loading inspection configuration...</p>
 
-          <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md border border-gray-700">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md border border-gray-200 shadow-sm">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="text-gray-400">Part Number</div>
-              <div className="text-white font-mono font-bold">{partInfo.part_number}</div>
-              <div className="text-gray-400">Revision</div>
-              <div className="text-white">{partInfo.revision}</div>
-              <div className="text-gray-400">Description</div>
-              <div className="text-white">{partInfo.description}</div>
-              <div className="text-gray-400">Family</div>
-              <div className="text-white">{partInfo.family_name}</div>
-              <div className="text-gray-400">Material</div>
-              <div className="text-white">{partInfo.material}</div>
-              <div className="text-gray-400">Supplier</div>
-              <div className="text-white">{partInfo.supplier}</div>
+              <div className="text-gray-500">Part Number</div>
+              <div className="text-gray-900 font-mono font-bold">{partInfo.part_number}</div>
+              <div className="text-gray-500">Revision</div>
+              <div className="text-gray-900">{partInfo.revision}</div>
+              <div className="text-gray-500">Description</div>
+              <div className="text-gray-900">{partInfo.description}</div>
+              <div className="text-gray-500">Family</div>
+              <div className="text-gray-900">{partInfo.family_name}</div>
+              <div className="text-gray-500">Material</div>
+              <div className="text-gray-900">{partInfo.material}</div>
+              <div className="text-gray-500">Supplier</div>
+              <div className="text-gray-900">{partInfo.supplier}</div>
             </div>
           </div>
 
-          <div className="mt-6 flex items-center gap-2 text-avip-info">
+          <div className="mt-6 flex items-center gap-2 text-lam-navy">
             <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -190,27 +158,23 @@ export function ScanScreen() {
         </div>
       )}
 
-      {/* Error state - unidentified part */}
       {error && (
-        <div className="flex flex-col items-center animate-fade-in">
+        <div className="flex flex-col items-center">
           <div className="w-16 h-16 bg-avip-review rounded-full flex items-center justify-center mb-6">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01M12 3l9.5 16.5H2.5L12 3z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Unidentified Part</h2>
-          <p className="text-gray-400 mb-6">{error}</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Unidentified Part</h2>
+          <p className="text-gray-500 mb-6">{error}</p>
 
           <div className="flex gap-4">
-            <button
-              onClick={handleRouteToIQA}
-              className="btn-fail text-lg"
-            >
+            <button onClick={handleRouteToIQA} className="btn-fail text-lg">
               Route to IQA
             </button>
             <button
               onClick={() => { setError(null); setBarcode(""); inputRef.current?.focus(); }}
-              className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              className="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
             >
               Try Again
             </button>
@@ -218,7 +182,6 @@ export function ScanScreen() {
         </div>
       )}
 
-      {/* OCR Capture Modal */}
       <OcrCaptureModal
         isOpen={ocrOpen}
         onClose={() => setOcrOpen(false)}

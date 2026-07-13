@@ -1,11 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { LoginScreen } from "./components/auth/LoginScreen";
+import { AppLayout } from "./components/common/AppLayout";
 import { ScanScreen } from "./components/kiosk/ScanScreen";
 import { CaptureScreen } from "./components/kiosk/CaptureScreen";
 import { ResultScreen } from "./components/kiosk/ResultScreen";
 import { ReviewQueue } from "./components/review/ReviewQueue";
 import { ReviewWorkbench } from "./components/review/ReviewWorkbench";
-import { DashboardLayout } from "./components/dashboard/DashboardLayout";
 import { InspectionDashboard } from "./components/dashboard/InspectionDashboard";
 import { DefectDashboard } from "./components/dashboard/DefectDashboard";
 import { SupplierDashboard } from "./components/dashboard/SupplierDashboard";
@@ -17,19 +17,21 @@ function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginScreen />} />
-      <Route path="/kiosk" element={<ScanScreen />} />
-      <Route path="/kiosk/capture/:id" element={<CaptureScreen />} />
-      <Route path="/kiosk/result/:id" element={<ResultScreen />} />
-      <Route path="/review" element={<ReviewQueue />} />
-      <Route path="/review/:id" element={<ReviewWorkbench />} />
-      <Route path="/dashboard" element={<DashboardLayout />}>
-        <Route index element={<InspectionDashboard />} />
-        <Route path="inspection" element={<InspectionDashboard />} />
-        <Route path="defects" element={<DefectDashboard />} />
-        <Route path="suppliers" element={<SupplierDashboard />} />
-        <Route path="ai" element={<AIPerformanceDashboard />} />
+
+      {/* All app screens share the AppLayout (header + sidebar + content) */}
+      <Route element={<AppLayout />}>
+        <Route path="/kiosk" element={<ScanScreen />} />
+        <Route path="/kiosk/capture/:id" element={<CaptureScreen />} />
+        <Route path="/kiosk/result/:id" element={<ResultScreen />} />
+        <Route path="/review" element={<ReviewQueue />} />
+        <Route path="/review/:id" element={<ReviewWorkbench />} />
+        <Route path="/dashboard/inspection" element={<InspectionDashboard />} />
+        <Route path="/dashboard/defects" element={<DefectDashboard />} />
+        <Route path="/dashboard/suppliers" element={<SupplierDashboard />} />
+        <Route path="/dashboard/ai" element={<AIPerformanceDashboard />} />
+        <Route path="/dashboard" element={<Navigate to="/dashboard/inspection" replace />} />
+        <Route path="/demo" element={<PresenterPanel />} />
       </Route>
-      <Route path="/demo" element={<PresenterPanel />} />
     </Routes>
   );
 }

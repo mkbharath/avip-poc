@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { simulateCapture, runInspection, getInspection } from "../../api/inspections";
-import { LamResearchLogo } from "../common/Logo";
 
 type CameraState = "waiting" | "capturing" | "passed" | "failed";
 
@@ -45,7 +44,7 @@ export function CaptureScreen() {
   });
 
   // Determine the image folder from the part family
-  const familyName = (inspection as Record<string, unknown>)?.family_name as string || "";
+  const familyName = (inspection as unknown as Record<string, unknown>)?.family_name as string || "";
   const imageFolder = FAMILY_TO_FOLDER[familyName] || "metal_plate";
   const imageFolderRef = useRef(imageFolder);
   imageFolderRef.current = imageFolder;
@@ -106,20 +105,9 @@ export function CaptureScreen() {
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-      {/* Branded header */}
-      <div className="flex items-center justify-between px-6 py-3 bg-lam-navy border-b border-white/10">
-        <div className="flex items-center gap-4">
-          <LamResearchLogo variant="light" className="h-8" />
-          <div className="w-px h-5 bg-white/20" />
-          <span className="text-white/60 text-xs font-medium">AI Vision Inspection Platform</span>
-        </div>
-        <span className="text-white/40 text-xs">STN-LIV-01</span>
-      </div>
-
-      <div className="flex-1 flex">
-      {/* Left: Camera Grid (70%) */}
-      <div className="flex-1 p-6 flex flex-col">
+    <div className="flex h-[calc(100vh-56px)]">
+      {/* Left: Camera Grid (dark — image viewer area) */}
+      <div className="flex-1 bg-gray-900 p-6 flex flex-col">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <svg className="w-5 h-5 text-avip-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -221,18 +209,18 @@ export function CaptureScreen() {
         </div>
       </div>
 
-      {/* Right: Part Info & Progress (30%) */}
-      <div className="w-80 bg-gray-800 border-l border-gray-700 p-6 flex flex-col">
+      {/* Right: Part Info & Progress (white side panel) */}
+      <div className="w-80 bg-white border-l border-gray-200 p-6 flex flex-col">
         {/* Part card */}
-        <div className="bg-gray-700/50 rounded-lg p-4 mb-6">
-          <h3 className="text-sm font-medium text-gray-400 mb-2">Part Identified</h3>
-          <p className="text-white font-mono font-bold text-lg">839-041322-001</p>
-          <p className="text-gray-400 text-sm">Rev C • Machined Aluminum Plate</p>
+        <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-6">
+          <h3 className="text-sm font-medium text-gray-500 mb-2">Part Identified</h3>
+          <p className="text-gray-900 font-mono font-bold text-lg">839-041322-001</p>
+          <p className="text-gray-500 text-sm">Rev C • Machined Aluminum Plate</p>
         </div>
 
         {/* Progress stepper */}
         <div className="flex-1">
-          <h3 className="text-sm font-medium text-gray-400 mb-4">Inspection Progress</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-4">Inspection Progress</h3>
           <div className="space-y-4">
             <StepItem label="Identify" state="complete" />
             <StepItem
@@ -253,19 +241,18 @@ export function CaptureScreen() {
         </div>
 
         {/* Capture status summary */}
-        <div className="mt-auto pt-4 border-t border-gray-700">
+        <div className="mt-auto pt-4 border-t border-gray-200">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Cameras</span>
-            <span className="text-white">
+            <span className="text-gray-500">Cameras</span>
+            <span className="text-gray-900">
               {cameras.filter((c) => c.state === "passed").length}/{cameras.length}
             </span>
           </div>
           <div className="flex justify-between text-sm mt-1">
-            <span className="text-gray-400">Quality</span>
-            <span className="text-avip-pass">All passed</span>
+            <span className="text-gray-500">Quality</span>
+            <span className="text-avip-pass font-medium">All passed</span>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
@@ -279,8 +266,8 @@ function StepItem({ label, state, detail }: { label: string; state: "pending" | 
           state === "complete"
             ? "bg-avip-pass"
             : state === "active"
-            ? "bg-avip-info animate-pulse"
-            : "bg-gray-700"
+            ? "bg-lam-navy animate-pulse"
+            : "bg-gray-200"
         }`}
       >
         {state === "complete" ? (
@@ -290,14 +277,14 @@ function StepItem({ label, state, detail }: { label: string; state: "pending" | 
         ) : state === "active" ? (
           <div className="w-2.5 h-2.5 bg-white rounded-full" />
         ) : (
-          <div className="w-2.5 h-2.5 bg-gray-500 rounded-full" />
+          <div className="w-2.5 h-2.5 bg-gray-400 rounded-full" />
         )}
       </div>
       <div>
-        <span className={`text-sm font-medium ${state === "pending" ? "text-gray-500" : "text-white"}`}>
+        <span className={`text-sm font-medium ${state === "pending" ? "text-gray-400" : "text-gray-900"}`}>
           {label}
         </span>
-        {detail && <p className="text-xs text-gray-400">{detail}</p>}
+        {detail && <p className="text-xs text-gray-500">{detail}</p>}
       </div>
     </div>
   );

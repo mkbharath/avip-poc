@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getInspection, overrideDecision, confirmDecision } from "../../api/inspections";
-import { LamResearchLogo } from "../common/Logo";
 import { OVERRIDE_REASONS } from "../../types";
 
 type OverlayType = "bbox" | "heatmap" | "golden";
@@ -32,13 +31,13 @@ export function ReviewWorkbench() {
 
   if (isLoading || !inspection) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-avip-info border-t-transparent rounded-full" />
+      <div className="page-content flex items-center justify-center min-h-[calc(100vh-56px)]">
+        <div className="animate-spin w-8 h-8 border-4 border-lam-navy border-t-transparent rounded-full" />
       </div>
     );
   }
 
-  const data = inspection as Record<string, unknown>;
+  const data = inspection as unknown as Record<string, unknown>;
   const images = (data.images as Array<Record<string, unknown>>) || [];
   const findings = (data.findings as Array<Record<string, unknown>>) || [];
   const decision = data.decision as Record<string, unknown> | null;
@@ -56,46 +55,43 @@ export function ReviewWorkbench() {
   const isReviewable = status === "in_review" || status === "failed";
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-      {/* Header */}
-      <header className="bg-lam-navy px-6 py-3 flex items-center justify-between">
+    <div className="flex flex-col h-[calc(100vh-56px)]">
+      {/* Subheader with part info */}
+      <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200">
         <div className="flex items-center gap-4">
-          <LamResearchLogo variant="light" className="h-8" />
-          <div className="w-px h-5 bg-white/20" />
-          <span className="text-white/60 text-xs font-medium">AI Vision Inspection Platform</span>
-          <div className="w-px h-5 bg-white/10" />
-          <Link to="/review" className="text-white/50 hover:text-white text-sm">
-            ← Queue
+          <Link to="/review" className="text-lam-navy hover:underline text-sm">
+            &larr; Queue
           </Link>
+          <div className="w-px h-5 bg-gray-200" />
           <div>
-            <h1 className="text-sm font-bold text-white">
+            <h1 className="text-sm font-bold text-gray-900">
               Review: {data.part_number as string} Rev {data.revision as string}
             </h1>
-            <p className="text-xs text-white/50">
-              {data.family_name as string} • {data.supplier as string}
+            <p className="text-xs text-gray-500">
+              {data.family_name as string} &bull; {data.supplier as string}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {decision && (
             <span className={`badge text-sm ${
-              (decision.result as string) === "FAIL" ? "bg-avip-fail/20 text-avip-fail" : "bg-avip-review/20 text-avip-review"
+              (decision.result as string) === "FAIL" ? "badge-fail" : "badge-review"
             }`}>
               AI Decision: {decision.result as string}
             </span>
           )}
           {decision && (
-            <span className="badge bg-white/10 text-white/60 text-sm">
+            <span className="badge bg-gray-100 text-gray-600 border border-gray-200 text-sm">
               Rule: {decision.fusion_rule as string}
             </span>
           )}
         </div>
-      </header>
+      </div>
 
       {/* Three-pane layout */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Image viewer (55%) */}
-        <div className="flex-1 flex flex-col p-4 min-w-0">
+        {/* Left: Image viewer (dark canvas) */}
+        <div className="flex-1 flex flex-col p-4 bg-gray-100 min-w-0">
           {/* Filmstrip */}
           <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
             {images.map((img, idx) => (
@@ -104,8 +100,8 @@ export function ReviewWorkbench() {
                 onClick={() => setActiveImage(idx)}
                 className={`flex-shrink-0 w-20 h-16 rounded-lg border-2 overflow-hidden transition-all relative ${
                   idx === activeImage
-                    ? "border-avip-info ring-2 ring-avip-info/30"
-                    : "border-gray-600 hover:border-gray-500"
+                    ? "border-lam-navy ring-2 ring-lam-navy/20"
+                    : "border-gray-300 hover:border-gray-400"
                 }`}
               >
                 {(img.thumbnail_url || img.file_url) ? (
@@ -115,7 +111,7 @@ export function ReviewWorkbench() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gray-300" />
+                  <div className="w-full h-full bg-gray-200" />
                 )}
                 <span className="absolute bottom-0 left-0 right-0 text-[10px] font-medium text-white bg-black/60 text-center py-0.5">
                   {(img.camera_angle as string).toUpperCase()}
@@ -124,9 +120,8 @@ export function ReviewWorkbench() {
             ))}
           </div>
 
-          {/* Main canvas */}
+          {/* Main canvas (stays dark for image viewing) */}
           <div className="flex-1 bg-gray-900 rounded-xl relative overflow-hidden flex items-center justify-center min-h-[400px]">
-            {/* Part image */}
             <div className="w-full h-full relative flex items-center justify-center">
               {images[activeImage] && (images[activeImage].file_url as string) ? (
                 <img
@@ -176,16 +171,16 @@ export function ReviewWorkbench() {
             <OverlayToggle label="XAI Heatmap" active={overlays.has("heatmap")} onClick={() => toggleOverlay("heatmap")} />
             <OverlayToggle label="Golden Diff" active={overlays.has("golden")} onClick={() => toggleOverlay("golden")} />
             <div className="ml-auto flex gap-2">
-              <button className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Fit</button>
-              <button className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">1:1</button>
+              <button className="text-xs px-2 py-1 bg-white border border-gray-200 text-gray-600 rounded hover:bg-gray-50">Fit</button>
+              <button className="text-xs px-2 py-1 bg-white border border-gray-200 text-gray-600 rounded hover:bg-gray-50">1:1</button>
             </div>
           </div>
         </div>
 
-        {/* Center-bottom: Findings list (25%) */}
-        <div className="w-80 border-l border-gray-700 bg-gray-800 flex flex-col">
-          <div className="px-4 py-3 border-b border-gray-700">
-            <h3 className="text-sm font-semibold text-white">
+        {/* Right: Findings panel (white) */}
+        <div className="w-80 border-l border-gray-200 bg-white flex flex-col">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-900">
               Findings ({findings.length})
             </h3>
           </div>
@@ -194,48 +189,48 @@ export function ReviewWorkbench() {
               <button
                 key={i}
                 onClick={() => setSelectedFinding(i)}
-                className={`w-full text-left px-4 py-3 border-b border-gray-700 hover:bg-gray-700/50 transition-colors ${
-                  selectedFinding === i ? "bg-gray-700 border-l-4 border-l-avip-info" : ""
+                className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                  selectedFinding === i ? "bg-gray-50 border-l-4 border-l-lam-navy" : ""
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <DefectIcon defectClass={f.defect_class as string} />
-                  <span className="text-sm font-medium text-white">{f.defect_class as string}</span>
+                  <span className="text-sm font-medium text-gray-900">{f.defect_class as string}</span>
                   <SeverityBadge severity={f.severity as string} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-500">
                     {Math.round((f.confidence as number) * 100)}% confidence
                   </span>
                   <ApproachBadge approach={f.approach as string} />
                 </div>
-                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{f.description as string}</p>
+                <p className="text-xs text-gray-400 mt-1 line-clamp-2">{f.description as string}</p>
               </button>
             ))}
           </div>
 
           {/* Context panel */}
-          <div className="border-t border-gray-700 p-4 bg-gray-900">
+          <div className="border-t border-gray-200 p-4 bg-gray-50">
             <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Part Context</h4>
             <div className="space-y-1 text-xs">
               <div className="flex justify-between">
                 <span className="text-gray-500">Material</span>
-                <span className="text-gray-300">{data.material as string}</span>
+                <span className="text-gray-900">{data.material as string}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Family</span>
-                <span className="text-gray-300">{data.family_name as string}</span>
+                <span className="text-gray-900">{data.family_name as string}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Supplier</span>
-                <span className="text-gray-300">{data.supplier as string}</span>
+                <span className="text-gray-900">{data.supplier as string}</span>
               </div>
             </div>
           </div>
 
           {/* Action bar */}
           {isReviewable && (
-            <div className="border-t border-gray-700 p-4 flex gap-2">
+            <div className="border-t border-gray-200 p-4 flex gap-2">
               <button
                 onClick={() => confirmMutation.mutate()}
                 className="btn-fail flex-1 text-sm py-2"
@@ -247,7 +242,7 @@ export function ReviewWorkbench() {
                 onClick={() => setShowOverrideModal(true)}
                 className="btn-pass flex-1 text-sm py-2"
               >
-                Override → PASS
+                Override &rarr; PASS
               </button>
             </div>
           )}
@@ -299,7 +294,7 @@ function OverrideModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-1">Override Decision → PASS</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-1">Override Decision &rarr; PASS</h2>
         <p className="text-sm text-gray-500 mb-6">
           Provide a reason and comment to override the AI FAIL decision.
         </p>
@@ -312,7 +307,7 @@ function OverrideModal({
             <select
               value={reasonCode}
               onChange={(e) => setReasonCode(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-avip-info focus:outline-none"
+              className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-lam-navy focus:ring-2 focus:ring-lam-navy/10 focus:outline-none"
             >
               <option value="">Select reason...</option>
               {OVERRIDE_REASONS.map((r) => (
@@ -333,7 +328,7 @@ function OverrideModal({
               onChange={(e) => setComment(e.target.value)}
               rows={3}
               placeholder="Explain why this override is appropriate..."
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-avip-info focus:outline-none resize-none"
+              className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-lam-navy focus:ring-2 focus:ring-lam-navy/10 focus:outline-none resize-none"
             />
           </div>
 
@@ -343,7 +338,7 @@ function OverrideModal({
               type="text"
               value={reviewer}
               onChange={(e) => setReviewer(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-avip-info focus:outline-none"
+              className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-lam-navy focus:ring-2 focus:ring-lam-navy/10 focus:outline-none"
             />
           </div>
         </div>
@@ -360,7 +355,7 @@ function OverrideModal({
             disabled={!canSubmit || mutation.isPending}
             className="flex-1 btn-pass text-sm py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {mutation.isPending ? "Submitting..." : "Confirm Override → PASS"}
+            {mutation.isPending ? "Submitting..." : "Confirm Override \u2192 PASS"}
           </button>
         </div>
       </div>
@@ -373,12 +368,12 @@ function OverlayToggle({ label, active, onClick }: { label: string; active: bool
     <button
       onClick={onClick}
       className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-colors ${
-        active ? "bg-avip-info text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+        active ? "bg-lam-navy text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
       }`}
     >
-      <div className={`w-3 h-3 rounded border ${active ? "bg-white border-white" : "border-gray-500"}`}>
+      <div className={`w-3 h-3 rounded border ${active ? "bg-white border-white" : "border-gray-400"}`}>
         {active && (
-          <svg className="w-3 h-3 text-avip-info" fill="currentColor" viewBox="0 0 12 12">
+          <svg className="w-3 h-3 text-lam-navy" fill="currentColor" viewBox="0 0 12 12">
             <path d="M10 3L4.5 8.5 2 6" stroke="currentColor" fill="none" strokeWidth="2" />
           </svg>
         )}
@@ -390,14 +385,14 @@ function OverlayToggle({ label, active, onClick }: { label: string; active: bool
 
 function DefectIcon({ defectClass }: { defectClass: string }) {
   const icons: Record<string, string> = {
-    scratch: "⸻",
-    dent: "◯",
-    contamination: "◆",
-    missing_component: "⊘",
-    crack: "⚡",
-    surface_anomaly: "◇",
+    scratch: "\u2E3B",
+    dent: "\u25EF",
+    contamination: "\u25C6",
+    missing_component: "\u2298",
+    crack: "\u26A1",
+    surface_anomaly: "\u25C7",
   };
-  return <span className="text-sm">{icons[defectClass] || "●"}</span>;
+  return <span className="text-sm">{icons[defectClass] || "\u25CF"}</span>;
 }
 
 function SeverityBadge({ severity }: { severity: string }) {

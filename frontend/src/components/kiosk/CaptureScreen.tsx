@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { simulateCapture, runInspection, getInspection } from "../../api/inspections";
+import { LamResearchLogo } from "../common/Logo";
 
 type CameraState = "waiting" | "capturing" | "passed" | "failed";
 
@@ -88,7 +89,7 @@ export function CaptureScreen() {
         setCameras((prev) =>
           prev.map((cam, idx) =>
             idx === i
-              ? { ...cam, state: "passed", imageUrl: `/static/demo-images/${folder}/${cam.angle}.jpg` }
+              ? { ...cam, state: "passed", imageUrl: `/static/demo-images/${folder}/clean/${cam.angle}.jpg` }
               : cam
           )
         );
@@ -105,7 +106,18 @@ export function CaptureScreen() {
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="min-h-screen bg-gray-900 flex">
+    <div className="min-h-screen bg-gray-900 flex flex-col">
+      {/* Branded header */}
+      <div className="flex items-center justify-between px-6 py-3 bg-lam-navy border-b border-white/10">
+        <div className="flex items-center gap-4">
+          <LamResearchLogo variant="light" className="h-8" />
+          <div className="w-px h-5 bg-white/20" />
+          <span className="text-white/60 text-xs font-medium">AI Vision Inspection Platform</span>
+        </div>
+        <span className="text-white/40 text-xs">STN-LIV-01</span>
+      </div>
+
+      <div className="flex-1 flex">
       {/* Left: Camera Grid (70%) */}
       <div className="flex-1 p-6 flex flex-col">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -253,6 +265,7 @@ export function CaptureScreen() {
             <span className="text-avip-pass">All passed</span>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

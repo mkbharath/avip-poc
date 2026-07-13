@@ -118,6 +118,12 @@ async def simulate_capture(inspection_id: str):
             folder = val
             break
 
+    # Determine if this inspection is a defective scenario
+    scenario_id = insp["scenario_id"] if "scenario_id" in insp.keys() else None
+    # Scenarios 2-10 are defective; scenario 1 and non-scenario kiosk flow use clean
+    pass_scenarios = {"scenario-01", None}
+    variant = "clean" if scenario_id in pass_scenarios else "defective"
+
     # Generate simulated images using demo_data images
     images = []
     for angle in cameras:
@@ -126,8 +132,8 @@ async def simulate_capture(inspection_id: str):
             passed=True, checks={"focus": True, "exposure": True, "glare": False}, failure_reason=None
         )
 
-        file_url = f"/static/demo-images/{folder}/{angle}.jpg"
-        thumb_url = f"/static/demo-images/{folder}/{angle}_thumb.jpg"
+        file_url = f"/static/demo-images/{folder}/{variant}/{angle}.jpg"
+        thumb_url = f"/static/demo-images/{folder}/{variant}/{angle}_thumb.jpg"
 
         await db.execute(
             """INSERT INTO images (id, inspection_id, camera_angle, file_path, thumbnail_path, quality_result)

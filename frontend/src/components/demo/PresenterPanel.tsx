@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { getScenarios, runScenario, resetDemo } from "../../api/demo";
+import { LamResearchLogo, IdeyaLabsLogo } from "../common/Logo";
 import type { DemoScenario } from "../../types";
 
 export function PresenterPanel() {
@@ -51,11 +52,15 @@ export function PresenterPanel() {
     <div className="min-h-screen bg-gray-900 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">AVIP Demo — Presenter Panel</h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Run pre-built scenarios to demonstrate platform capabilities
-          </p>
+        <div className="flex items-center gap-4">
+          <LamResearchLogo variant="light" />
+          <div className="w-px h-6 bg-white/20" />
+          <div>
+            <h1 className="text-lg font-bold text-white">AVIP Demo — Presenter Panel</h1>
+            <p className="text-xs text-gray-400">
+              Run pre-built scenarios to demonstrate platform capabilities
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <Link to="/kiosk" className="text-sm text-gray-400 hover:text-white">Station</Link>
@@ -68,6 +73,11 @@ export function PresenterPanel() {
           >
             {resetMutation.isPending ? "Resetting..." : "Reset All Data"}
           </button>
+          <div className="w-px h-4 bg-white/10" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-white/30 text-[10px]">Powered by</span>
+            <IdeyaLabsLogo variant="light" className="h-4" />
+          </div>
         </div>
       </div>
 

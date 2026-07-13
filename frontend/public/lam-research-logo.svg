@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 40" fill="none">
+  <!-- Lam Research wordmark in brand navy -->
+  <text x="0" y="30" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700" fill="#1B2A4A" letter-spacing="-0.5">Lam</text>
+  <text x="62" y="30" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="300" fill="#1B2A4A" letter-spacing="-0.5">Research</text>
+  <!-- Green accent bar -->
+  <rect x="0" y="36" width="50" height="3" rx="1.5" fill="#00A651"/>
+</svg>

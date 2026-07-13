@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getInspection, overrideDecision, confirmDecision } from "../../api/inspections";
+import { LamResearchLogo } from "../common/Logo";
 import { OVERRIDE_REASONS } from "../../types";
 
 type OverlayType = "bbox" | "heatmap" | "golden";
@@ -55,18 +56,22 @@ export function ReviewWorkbench() {
   const isReviewable = status === "in_review" || status === "failed";
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gray-900 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+      <header className="bg-lam-navy px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link to="/review" className="text-gray-500 hover:text-gray-700">
+          <LamResearchLogo variant="light" className="h-8" />
+          <div className="w-px h-5 bg-white/20" />
+          <span className="text-white/60 text-xs font-medium">AI Vision Inspection Platform</span>
+          <div className="w-px h-5 bg-white/10" />
+          <Link to="/review" className="text-white/50 hover:text-white text-sm">
             ← Queue
           </Link>
           <div>
-            <h1 className="text-lg font-bold text-gray-900">
+            <h1 className="text-sm font-bold text-white">
               Review: {data.part_number as string} Rev {data.revision as string}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs text-white/50">
               {data.family_name as string} • {data.supplier as string}
             </p>
           </div>
@@ -74,13 +79,13 @@ export function ReviewWorkbench() {
         <div className="flex items-center gap-2">
           {decision && (
             <span className={`badge text-sm ${
-              (decision.result as string) === "FAIL" ? "badge-fail" : "badge-review"
+              (decision.result as string) === "FAIL" ? "bg-avip-fail/20 text-avip-fail" : "bg-avip-review/20 text-avip-review"
             }`}>
               AI Decision: {decision.result as string}
             </span>
           )}
           {decision && (
-            <span className="badge bg-gray-100 text-gray-600 text-sm">
+            <span className="badge bg-white/10 text-white/60 text-sm">
               Rule: {decision.fusion_rule as string}
             </span>
           )}
@@ -100,7 +105,7 @@ export function ReviewWorkbench() {
                 className={`flex-shrink-0 w-20 h-16 rounded-lg border-2 overflow-hidden transition-all relative ${
                   idx === activeImage
                     ? "border-avip-info ring-2 ring-avip-info/30"
-                    : "border-gray-300 hover:border-gray-400"
+                    : "border-gray-600 hover:border-gray-500"
                 }`}
               >
                 {(img.thumbnail_url || img.file_url) ? (
@@ -171,16 +176,16 @@ export function ReviewWorkbench() {
             <OverlayToggle label="XAI Heatmap" active={overlays.has("heatmap")} onClick={() => toggleOverlay("heatmap")} />
             <OverlayToggle label="Golden Diff" active={overlays.has("golden")} onClick={() => toggleOverlay("golden")} />
             <div className="ml-auto flex gap-2">
-              <button className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">Fit</button>
-              <button className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">1:1</button>
+              <button className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Fit</button>
+              <button className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">1:1</button>
             </div>
           </div>
         </div>
 
         {/* Center-bottom: Findings list (25%) */}
-        <div className="w-80 border-l border-gray-200 bg-white flex flex-col">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700">
+        <div className="w-80 border-l border-gray-700 bg-gray-800 flex flex-col">
+          <div className="px-4 py-3 border-b border-gray-700">
+            <h3 className="text-sm font-semibold text-white">
               Findings ({findings.length})
             </h3>
           </div>
@@ -189,48 +194,48 @@ export function ReviewWorkbench() {
               <button
                 key={i}
                 onClick={() => setSelectedFinding(i)}
-                className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                  selectedFinding === i ? "bg-blue-50 border-l-4 border-l-avip-info" : ""
+                className={`w-full text-left px-4 py-3 border-b border-gray-700 hover:bg-gray-700/50 transition-colors ${
+                  selectedFinding === i ? "bg-gray-700 border-l-4 border-l-avip-info" : ""
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <DefectIcon defectClass={f.defect_class as string} />
-                  <span className="text-sm font-medium text-gray-900">{f.defect_class as string}</span>
+                  <span className="text-sm font-medium text-white">{f.defect_class as string}</span>
                   <SeverityBadge severity={f.severity as string} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-400">
                     {Math.round((f.confidence as number) * 100)}% confidence
                   </span>
                   <ApproachBadge approach={f.approach as string} />
                 </div>
-                <p className="text-xs text-gray-400 mt-1 line-clamp-2">{f.description as string}</p>
+                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{f.description as string}</p>
               </button>
             ))}
           </div>
 
           {/* Context panel */}
-          <div className="border-t border-gray-200 p-4 bg-gray-50">
+          <div className="border-t border-gray-700 p-4 bg-gray-900">
             <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Part Context</h4>
             <div className="space-y-1 text-xs">
               <div className="flex justify-between">
                 <span className="text-gray-500">Material</span>
-                <span className="text-gray-700">{data.material as string}</span>
+                <span className="text-gray-300">{data.material as string}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Family</span>
-                <span className="text-gray-700">{data.family_name as string}</span>
+                <span className="text-gray-300">{data.family_name as string}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Supplier</span>
-                <span className="text-gray-700">{data.supplier as string}</span>
+                <span className="text-gray-300">{data.supplier as string}</span>
               </div>
             </div>
           </div>
 
           {/* Action bar */}
           {isReviewable && (
-            <div className="border-t border-gray-200 p-4 flex gap-2">
+            <div className="border-t border-gray-700 p-4 flex gap-2">
               <button
                 onClick={() => confirmMutation.mutate()}
                 className="btn-fail flex-1 text-sm py-2"
@@ -368,10 +373,10 @@ function OverlayToggle({ label, active, onClick }: { label: string; active: bool
     <button
       onClick={onClick}
       className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-colors ${
-        active ? "bg-avip-info text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+        active ? "bg-avip-info text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
       }`}
     >
-      <div className={`w-3 h-3 rounded border ${active ? "bg-white border-white" : "border-gray-400"}`}>
+      <div className={`w-3 h-3 rounded border ${active ? "bg-white border-white" : "border-gray-500"}`}>
         {active && (
           <svg className="w-3 h-3 text-avip-info" fill="currentColor" viewBox="0 0 12 12">
             <path d="M10 3L4.5 8.5 2 6" stroke="currentColor" fill="none" strokeWidth="2" />

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { lookupPart, createInspection } from "../../api/inspections";
 import { OcrCaptureModal } from "./OcrCaptureModal";
+import { LamResearchLogo, IdeyaLabsLogo } from "../common/Logo";
 
 export function ScanScreen() {
   const [barcode, setBarcode] = useState("");
@@ -75,16 +76,26 @@ export function ScanScreen() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-8 relative">
-      {/* Status bar */}
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-3 bg-gray-800">
-        <div className="flex items-center gap-3">
-          <span className="text-gray-400 text-sm font-medium">STN-LIV-01</span>
-          <span className="badge bg-green-900 text-green-300">● Online</span>
+      {/* Status bar with Lam branding */}
+      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-3 bg-lam-navy">
+        <div className="flex items-center gap-4">
+          <LamResearchLogo variant="light" />
+          <div className="w-px h-5 bg-white/20" />
+          <span className="text-white/70 text-xs font-medium">AI Vision Inspection Platform</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="badge bg-blue-900 text-blue-300">Calibrated</span>
-          <a href="/dashboard" className="text-gray-500 hover:text-gray-300 text-sm">
-            Dashboard →
+          <span className="text-white/50 text-xs">STN-LIV-01</span>
+          <span className="badge bg-lam-green/20 text-lam-green">● Online</span>
+          <div className="w-px h-4 bg-white/10" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-white/30 text-[10px]">Powered by</span>
+            <IdeyaLabsLogo variant="light" className="h-4" />
+          </div>
+          <a href="/dashboard" className="text-white/40 hover:text-white/70 text-xs">
+            Dashboard
+          </a>
+          <a href="/demo" className="text-white/40 hover:text-white/70 text-xs">
+            Demo
           </a>
         </div>
       </div>

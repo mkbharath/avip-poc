@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getInspection } from "../../api/inspections";
+import { LamResearchLogo } from "../common/Logo";
 import type { DecisionResult } from "../../types";
 
 export function ResultScreen() {
@@ -65,123 +66,111 @@ export function ResultScreen() {
   }
 
   return (
-    <div
-      className={`min-h-screen flex flex-col items-center justify-center transition-colors duration-500 ${
-        decisionResult === "PASS"
-          ? "bg-avip-pass"
-          : decisionResult === "FAIL"
-          ? "bg-avip-fail"
-          : "bg-avip-review"
-      }`}
-    >
-      {/* Decision text */}
-      <div className="text-center">
+    <div className="min-h-screen flex flex-col bg-gray-900">
+      {/* Branded header */}
+      <div className="flex items-center justify-between px-6 py-3 bg-lam-navy">
+        <div className="flex items-center gap-4">
+          <LamResearchLogo variant="light" className="h-8" />
+          <div className="w-px h-5 bg-white/20" />
+          <span className="text-white/60 text-xs font-medium">AI Vision Inspection Platform</span>
+        </div>
+        <span className="text-white/50 text-xs">STN-LIV-01 • Inspection Complete</span>
+      </div>
+
+      {/* Decision content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6">
+        {/* Decision badge */}
+        <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${
+          decisionResult === "PASS" ? "bg-avip-pass" :
+          decisionResult === "FAIL" ? "bg-avip-fail" : "bg-avip-review"
+        }`}>
+          {decisionResult === "PASS" && (
+            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+          {decisionResult === "FAIL" && (
+            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          )}
+          {decisionResult === "REVIEW" && (
+            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01" />
+            </svg>
+          )}
+        </div>
+
+        {/* Decision text */}
+        <h1 className={`text-6xl font-extrabold tracking-tight ${
+          decisionResult === "PASS" ? "text-avip-pass" :
+          decisionResult === "FAIL" ? "text-avip-fail" : "text-avip-review"
+        }`}>{decisionResult}</h1>
+
+        {/* Part info */}
+        <p className="text-xl text-white/80 mt-4 font-medium font-mono">
+          {partNumber} Rev {revision}
+        </p>
+        <p className="text-white/50 mt-2">
+          {decisionResult === "PASS" ? "Route to Staging → Bay 4A" :
+           decisionResult === "FAIL" ? "Route to IQA → Quarantine Bin Q3" :
+           "Routed to IQA Review Queue"}
+        </p>
+
+        {/* Findings card (FAIL/REVIEW only) */}
+        {decisionResult !== "PASS" && findings.length > 0 && (
+          <div className="mt-8 bg-gray-800 rounded-xl px-6 py-4 border border-gray-700 max-w-md w-full">
+            <p className="text-white/50 text-xs uppercase tracking-wide mb-3">
+              Findings ({findings.length})
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              {findings.map((f, i) => (
+                <span key={i} className={`badge text-xs ${
+                  (f.severity as string) === "critical" ? "bg-avip-fail/20 text-avip-fail" :
+                  (f.severity as string) === "major" ? "bg-avip-review/20 text-avip-review" :
+                  "bg-gray-700 text-gray-300"
+                }`}>
+                  {f.defect_class as string}
+                  <span className="ml-1 opacity-60">{Math.round((f.confidence as number) * 100)}%</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Certificate (PASS only) */}
         {decisionResult === "PASS" && (
-          <>
-            <div className="mb-4">
-              <svg className="w-24 h-24 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h1 className="kiosk-text-decision text-white">PASS</h1>
-            <p className="text-2xl text-white/80 mt-4 font-medium">
-              {partNumber} Rev {revision}
-            </p>
-            <p className="text-xl text-white/60 mt-2">Route to Staging → Bay 4A</p>
-            <div className="mt-8 bg-white/20 rounded-xl px-6 py-3 inline-block">
-              <p className="text-white/70 text-sm">Certificate ID</p>
-              <p className="text-white font-mono text-lg">{(id || "").slice(0, 8).toUpperCase()}</p>
-            </div>
-            <p className="mt-8 text-white/50 text-sm">
-              Auto-dismiss in {countdown}s
-            </p>
-          </>
+          <div className="mt-8 bg-gray-800 rounded-xl px-6 py-4 border border-avip-pass/30">
+            <p className="text-white/50 text-xs uppercase tracking-wide mb-1">Certificate ID</p>
+            <p className="text-avip-pass font-mono text-lg font-bold">{(id || "").slice(0, 8).toUpperCase()}</p>
+          </div>
         )}
 
-        {decisionResult === "FAIL" && (
-          <>
-            <div className="mb-4">
-              <svg className="w-24 h-24 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
-                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h1 className="kiosk-text-decision text-white">FAIL</h1>
-            <p className="text-2xl text-white/80 mt-4 font-medium">
-              {partNumber} Rev {revision}
-            </p>
-            <p className="text-xl text-white/60 mt-2">Route to IQA → Quarantine Bin Q3</p>
+        {/* Actions */}
+        <div className="mt-10 flex gap-4">
+          {decisionResult !== "PASS" && (
+            <Link
+              to={`/review/${id}`}
+              className={`px-6 py-3 min-h-[48px] font-semibold rounded-lg transition-colors ${
+                decisionResult === "FAIL"
+                  ? "bg-avip-fail text-white hover:bg-avip-fail/80"
+                  : "bg-avip-review text-white hover:bg-avip-review/80"
+              }`}
+            >
+              View Findings
+            </Link>
+          )}
+          <button
+            onClick={() => navigate("/kiosk")}
+            className="px-6 py-3 min-h-[48px] bg-gray-700 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors"
+          >
+            Next Part
+          </button>
+        </div>
 
-            <div className="mt-6 bg-white/10 rounded-xl px-6 py-4 inline-block">
-              <p className="text-white/70 text-sm mb-1">Findings</p>
-              <div className="flex gap-2 flex-wrap justify-center">
-                {findings.map((f, i) => (
-                  <span key={i} className="badge bg-white/20 text-white">
-                    {f.defect_class as string}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-8 flex gap-4 justify-center">
-              <Link
-                to={`/review/${id}`}
-                className="px-6 py-3 min-h-[48px] bg-white text-avip-fail font-semibold rounded-lg hover:bg-white/90 transition-colors"
-              >
-                View Findings
-              </Link>
-              <button
-                onClick={() => navigate("/kiosk")}
-                className="px-6 py-3 min-h-[48px] bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors"
-              >
-                Next Part
-              </button>
-            </div>
-          </>
-        )}
-
-        {decisionResult === "REVIEW" && (
-          <>
-            <div className="mb-4">
-              <svg className="w-24 h-24 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <h1 className="kiosk-text-decision text-white">REVIEW</h1>
-            <p className="text-2xl text-white/80 mt-4 font-medium">
-              {partNumber} Rev {revision}
-            </p>
-            <p className="text-xl text-white/60 mt-2">Routed to IQA Review Queue</p>
-            <p className="text-lg text-white/50 mt-1">Human decision required</p>
-
-            <div className="mt-6 bg-white/10 rounded-xl px-6 py-4 inline-block">
-              <p className="text-white/70 text-sm mb-1">Findings requiring review</p>
-              <div className="flex gap-2 flex-wrap justify-center">
-                {findings.map((f, i) => (
-                  <span key={i} className="badge bg-white/20 text-white">
-                    {f.defect_class as string} ({Math.round((f.confidence as number) * 100)}%)
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-8 flex gap-4 justify-center">
-              <Link
-                to={`/review/${id}`}
-                className="px-6 py-3 min-h-[48px] bg-white text-avip-review font-semibold rounded-lg hover:bg-white/90 transition-colors"
-              >
-                Open in Review
-              </Link>
-              <button
-                onClick={() => navigate("/kiosk")}
-                className="px-6 py-3 min-h-[48px] bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors"
-              >
-                Next Part
-              </button>
-            </div>
-          </>
+        {/* Auto-dismiss countdown (PASS only) */}
+        {decisionResult === "PASS" && (
+          <p className="mt-6 text-white/30 text-sm">Auto-dismiss in {countdown}s</p>
         )}
       </div>
     </div>

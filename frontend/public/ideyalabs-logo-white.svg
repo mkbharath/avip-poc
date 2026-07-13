@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 28" fill="none">
+  <!-- ideyaLabs logo mark (stylized 'i' bulb) - white variant -->
+  <circle cx="8" cy="6" r="4" fill="#00A651"/>
+  <rect x="6" y="12" width="4" height="12" rx="2" fill="#FFFFFF"/>
+  <!-- ideyaLabs wordmark -->
+  <text x="18" y="22" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#FFFFFF" letter-spacing="-0.3">ideya</text>
+  <text x="72" y="22" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="300" fill="#FFFFFF" letter-spacing="-0.3">Labs</text>
+</svg>

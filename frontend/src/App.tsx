@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { LoginScreen } from "./components/auth/LoginScreen";
 import { ScanScreen } from "./components/kiosk/ScanScreen";
 import { CaptureScreen } from "./components/kiosk/CaptureScreen";
 import { ResultScreen } from "./components/kiosk/ResultScreen";
@@ -14,7 +15,8 @@ import { PresenterPanel } from "./components/demo/PresenterPanel";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/kiosk" replace />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/login" element={<LoginScreen />} />
       <Route path="/kiosk" element={<ScanScreen />} />
       <Route path="/kiosk/capture/:id" element={<CaptureScreen />} />
       <Route path="/kiosk/result/:id" element={<ResultScreen />} />

@@ -235,13 +235,13 @@ export function DefectDashboard() {
                   className="p-4 rounded-xl text-center transition-all hover:scale-[1.02]"
                   style={{ backgroundColor: `rgb(${bgR}, ${bgG}, ${bgB})` }}
                 >
-                  <p className={`text-xs font-semibold uppercase tracking-wide ${isHigh ? "text-white/90" : "text-foreground/80"}`}>
+                  <p className={`text-[11px] font-bold uppercase tracking-wider ${isHigh ? "text-white" : "text-foreground/80"}`}>
                     {f.family}
                   </p>
-                  <p className={`text-2xl font-bold mt-1.5 ${isHigh ? "text-white" : "text-foreground"}`}>
+                  <p className={`text-3xl font-bold mt-2 ${isHigh ? "text-white" : "text-foreground"}`}>
                     {(f.density * 100).toFixed(0)}%
                   </p>
-                  <p className={`text-xs mt-1 ${isHigh ? "text-white/80" : "text-muted-foreground"}`}>
+                  <p className={`text-sm font-medium mt-1.5 ${isHigh ? "text-white" : "text-foreground/80"}`}>
                     {toTitleCase(f.top_defect)}
                   </p>
                 </div>

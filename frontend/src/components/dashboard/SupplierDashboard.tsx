@@ -31,7 +31,41 @@ export function SupplierDashboard() {
   const breached = data.suppliers.filter((s) => s.threshold_breached);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 lg:p-8 space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-xl font-semibold text-foreground tracking-tight">Supplier Quality</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">DPPM performance, threshold monitoring, and supplier ranking</p>
+      </div>
+
+      {/* Summary KPIs — moved to top */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card className="text-center">
+          <CardContent className="pt-5 pb-5">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Suppliers</p>
+            <p className="text-3xl font-bold text-foreground mt-2">{data.suppliers.length}</p>
+          </CardContent>
+        </Card>
+        <Card className="text-center relative overflow-hidden">
+          <CardContent className="pt-5 pb-5 relative z-10">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Avg DPPM</p>
+            <p className="text-3xl font-bold text-avip-review mt-2">
+              {Math.round(data.suppliers.reduce((s, v) => s + v.dppm, 0) / data.suppliers.length).toLocaleString()}
+            </p>
+          </CardContent>
+          <div className="absolute inset-0 bg-avip-review opacity-[0.04]" />
+        </Card>
+        <Card className="text-center relative overflow-hidden">
+          <CardContent className="pt-5 pb-5 relative z-10">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Threshold Breaches</p>
+            <p className={`text-3xl font-bold mt-2 ${breached.length > 0 ? "text-avip-fail" : "text-avip-pass"}`}>
+              {breached.length}
+            </p>
+          </CardContent>
+          {breached.length > 0 && <div className="absolute inset-0 bg-avip-fail opacity-[0.04]" />}
+        </Card>
+      </div>
+
       {/* Threshold breach banner */}
       {breached.length > 0 && (
         <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 flex items-center gap-3">
@@ -88,7 +122,7 @@ export function SupplierDashboard() {
                       {supplier.volume}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-xs">{supplier.top_defect}</Badge>
+                      <Badge variant="outline" className="text-xs capitalize">{supplier.top_defect.replace(/_/g, " ")}</Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       {supplier.threshold_breached ? (
@@ -104,31 +138,6 @@ export function SupplierDashboard() {
         </CardContent>
       </Card>
 
-      {/* Summary KPIs */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="text-center">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Total Suppliers</p>
-            <p className="text-2xl font-bold text-foreground mt-1">{data.suppliers.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="text-center">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Avg DPPM</p>
-            <p className="text-2xl font-bold text-avip-review mt-1">
-              {Math.round(data.suppliers.reduce((s, v) => s + v.dppm, 0) / data.suppliers.length).toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="text-center">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Threshold Breaches</p>
-            <p className={`text-2xl font-bold mt-1 ${breached.length > 0 ? "text-avip-fail" : "text-avip-pass"}`}>
-              {breached.length}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }

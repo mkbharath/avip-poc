@@ -157,6 +157,34 @@ export function ReviewWorkbench() {
                 </div>
               )}
 
+              {/* Overlay: XAI Heatmap */}
+              {overlays.has("heatmap") && images[activeImage] && (() => {
+                const fileUrl = images[activeImage].file_url as string;
+                const baseDir = fileUrl.substring(0, fileUrl.lastIndexOf("/"));
+                return (
+                  <img
+                    src={`${baseDir}/heatmap.png?v=${Date.now()}`}
+                    alt="XAI Heatmap"
+                    className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
+                );
+              })()}
+
+              {/* Overlay: Golden Diff */}
+              {overlays.has("golden") && images[activeImage] && (() => {
+                const fileUrl = images[activeImage].file_url as string;
+                const baseDir = fileUrl.substring(0, fileUrl.lastIndexOf("/"));
+                return (
+                  <img
+                    src={`${baseDir}/golden_diff.png?v=${Date.now()}`}
+                    alt="Golden Comparison Diff"
+                    className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
+                );
+              })()}
+
               {/* Overlay: Bounding boxes — percentages relative to displayed image */}
               {overlays.has("bbox") && findings.map((f, i) => {
                 const bbox = f.bbox as { x: number; y: number; width: number; height: number } | null;

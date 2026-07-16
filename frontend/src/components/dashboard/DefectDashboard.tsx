@@ -23,16 +23,19 @@ const SEVERITY_COLORS: Record<string, string> = {
   critical: "#ef4444",
 };
 
+const toTitleCase = (str: string) =>
+  str.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-card border border-border rounded-lg shadow-elevated px-3 py-2 text-xs">
-      <p className="font-medium text-foreground mb-1">{label}</p>
+    <div className="bg-card border border-border rounded-lg shadow-elevated px-4 py-3 text-sm">
+      <p className="font-semibold text-foreground mb-1.5">{label}</p>
       {payload.map((entry, i) => (
-        <div key={i} className="flex items-center gap-2 py-0.5">
-          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-          <span className="text-muted-foreground capitalize">{entry.name.replace(/_/g, " ")}</span>
-          <span className="ml-auto font-semibold text-foreground">{entry.value}</span>
+        <div key={i} className="flex items-center gap-2.5 py-0.5">
+          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+          <span className="text-muted-foreground">{toTitleCase(entry.name)}</span>
+          <span className="ml-auto font-bold text-foreground">{entry.value}</span>
         </div>
       ))}
     </div>
@@ -92,15 +95,15 @@ export function DefectDashboard() {
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={paretoData} layout="vertical" margin={{ left: 10, right: 20, top: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={true} vertical={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                <XAxis type="number" tick={{ fontSize: 13, fill: "#374151" }} axisLine={false} tickLine={false} />
                 <YAxis
                   type="category"
                   dataKey="defect_class"
-                  tick={{ fontSize: 11, fill: "#374151" }}
-                  width={115}
+                  tick={{ fontSize: 13, fill: "#1f2937" }}
+                  width={130}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(val: string) => val.replace(/_/g, " ")}
+                  tickFormatter={(val: string) => toTitleCase(val)}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(0,0,0,0.03)" }} />
                 <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={24}>
@@ -146,8 +149,8 @@ export function DefectDashboard() {
                       if (!active || !payload?.length) return null;
                       const d = payload[0].payload;
                       return (
-                        <div className="bg-card border border-border rounded-lg shadow-elevated px-3 py-2 text-xs">
-                          <span className="font-semibold capitalize">{d.severity}</span>
+                        <div className="bg-card border border-border rounded-lg shadow-elevated px-4 py-2.5 text-sm">
+                          <span className="font-semibold">{toTitleCase(d.severity)}</span>
                           <span className="ml-2 text-muted-foreground">{d.count} defects</span>
                         </div>
                       );
@@ -155,9 +158,9 @@ export function DefectDashboard() {
                   />
                   <Legend
                     verticalAlign="bottom"
-                    height={36}
+                    height={40}
                     formatter={(value: string) => (
-                      <span className="text-xs text-foreground capitalize">{value}</span>
+                      <span className="text-sm text-foreground">{toTitleCase(value)}</span>
                     )}
                   />
                 </PieChart>
@@ -185,14 +188,14 @@ export function DefectDashboard() {
                 ))}
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 13, fill: "#374151" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 13, fill: "#374151" }} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
               <Legend
                 verticalAlign="top"
-                height={36}
+                height={40}
                 formatter={(value: string) => (
-                  <span className="text-xs text-foreground capitalize">{value.replace(/_/g, " ")}</span>
+                  <span className="text-sm text-foreground">{toTitleCase(value)}</span>
                 )}
               />
               {trendClasses.map((cls) => (
@@ -232,14 +235,14 @@ export function DefectDashboard() {
                   className="p-4 rounded-xl text-center transition-all hover:scale-[1.02]"
                   style={{ backgroundColor: `rgb(${bgR}, ${bgG}, ${bgB})` }}
                 >
-                  <p className={`text-[11px] font-medium uppercase tracking-wide ${isHigh ? "text-white/90" : "text-foreground/70"}`}>
+                  <p className={`text-xs font-semibold uppercase tracking-wide ${isHigh ? "text-white/90" : "text-foreground/80"}`}>
                     {f.family}
                   </p>
                   <p className={`text-2xl font-bold mt-1.5 ${isHigh ? "text-white" : "text-foreground"}`}>
                     {(f.density * 100).toFixed(0)}%
                   </p>
-                  <p className={`text-[10px] mt-1 capitalize ${isHigh ? "text-white/70" : "text-muted-foreground"}`}>
-                    {f.top_defect.replace(/_/g, " ")}
+                  <p className={`text-xs mt-1 ${isHigh ? "text-white/80" : "text-muted-foreground"}`}>
+                    {toTitleCase(f.top_defect)}
                   </p>
                 </div>
               );

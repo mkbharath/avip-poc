@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAIPerformanceDashboard } from "../../api/dashboard";
 import {
-  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -175,9 +175,10 @@ export function AIPerformanceDashboard() {
               />
               <ReferenceLine x={10} stroke="#f59e0b" strokeDasharray="5 5" />
               <Bar dataKey="override_rate" radius={[0, 6, 6, 0]} barSize={22}>
-                {data.override_by_class.map((entry) => (
-                  <BarCell key={entry.defect_class} overrideRate={entry.override_rate} />
-                ))}
+                {data.override_by_class.map((entry) => {
+                  const fill = entry.override_rate > 15 ? "#ef4444" : entry.override_rate > 8 ? "#f59e0b" : "#3b82f6";
+                  return <Cell key={entry.defect_class} fill={fill} />;
+                })}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -209,8 +210,3 @@ export function AIPerformanceDashboard() {
   );
 }
 
-// Helper component for conditional bar coloring
-function BarCell({ overrideRate }: { overrideRate: number }) {
-  const fill = overrideRate > 15 ? "#ef4444" : overrideRate > 8 ? "#f59e0b" : "#3b82f6";
-  return <rect fill={fill} />;
-}

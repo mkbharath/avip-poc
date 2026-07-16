@@ -68,7 +68,7 @@ export function DefectDashboard() {
   }
   const trendData = Object.entries(trendByDate).map(([date, classes]) => {
     const d = new Date(date + "T00:00:00");
-    const formatted = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const formatted = d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
     return { date: formatted, ...classes };
   });
   const trendClasses = [...new Set(data.trends.map((t) => t.defect_class))];

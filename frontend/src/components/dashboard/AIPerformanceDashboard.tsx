@@ -28,7 +28,7 @@ export function AIPerformanceDashboard() {
   // Format dates for FPR/FNR trend
   const ratesTrend = data.fpr_trend.map((fp, i) => {
     const d = new Date(fp.date + "T00:00:00");
-    const formatted = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const formatted = d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
     return { date: formatted, FPR: fp.value, FNR: data.fnr_trend[i]?.value || 0 };
   });
 
@@ -46,7 +46,7 @@ export function AIPerformanceDashboard() {
           <CardContent className="pt-5 pb-5 relative z-10">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Overall Accuracy</p>
             <p className="text-3xl font-bold text-avip-pass mt-2">{data.accuracy}%</p>
-            <p className="text-xs text-muted-foreground mt-1">Target: ≥97%</p>
+            <p className="text-sm text-foreground/70 mt-1">Target: ≥97%</p>
           </CardContent>
           <div className="absolute inset-0 bg-avip-pass opacity-[0.04]" />
         </Card>
@@ -56,7 +56,7 @@ export function AIPerformanceDashboard() {
             <p className={`text-3xl font-bold mt-2 ${data.fpr <= 5 ? "text-avip-pass" : "text-avip-review"}`}>
               {data.fpr}%
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Target: ≤5%</p>
+            <p className="text-sm text-foreground/70 mt-1">Target: ≤5%</p>
           </CardContent>
         </Card>
         <Card className="text-center relative overflow-hidden">
@@ -65,14 +65,14 @@ export function AIPerformanceDashboard() {
             <p className={`text-3xl font-bold mt-2 ${data.fnr <= 1 ? "text-avip-pass" : "text-avip-fail"}`}>
               {data.fnr}%
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Target: ≤1%</p>
+            <p className="text-sm text-foreground/70 mt-1">Target: ≤1%</p>
           </CardContent>
         </Card>
         <Card className="text-center">
           <CardContent className="pt-5 pb-5">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Model Version</p>
             <p className="text-xl font-bold text-foreground mt-2">{data.model_info.version}</p>
-            <p className="text-xs text-muted-foreground mt-1">Updated: {data.model_info.last_updated}</p>
+            <p className="text-sm text-foreground/70 mt-1">Updated: {new Date(data.model_info.last_updated).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
           </CardContent>
         </Card>
       </div>

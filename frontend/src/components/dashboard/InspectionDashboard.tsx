@@ -128,7 +128,7 @@ export function InspectionDashboard() {
                     <span className="text-sm font-mono font-medium text-foreground">{d.part_number}</span>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    {d.timestamp ? new Date(d.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
+                    {d.timestamp ? new Date(d.timestamp).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) + ", " + new Date(d.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
                   </span>
                 </div>
               ))}

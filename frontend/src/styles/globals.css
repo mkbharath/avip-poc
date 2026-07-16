@@ -1,153 +1,73 @@
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Content area — crisp white with warm gray tones */
+    --background: #f5f6f8;
+    --foreground: #111827;
+    --card: #ffffff;
+    --card-foreground: #111827;
+    --popover: #ffffff;
+    --popover-foreground: #111827;
+    --primary: #1B2A4A;
+    --primary-foreground: #ffffff;
+    --secondary: #eef1f5;
+    --secondary-foreground: #1f2937;
+    --muted: #f1f3f7;
+    --muted-foreground: #64748b;
+    --accent: #e8ecf4;
+    --accent-foreground: #1B2A4A;
+    --destructive: #dc2626;
+    --border: #e5e7eb;
+    --input: #e5e7eb;
+    --ring: #3b82f6;
+
+    /* Radius */
+    --radius: 0.5rem;
+
+    /* Sidebar — deep blue-black with subtle warmth */
+    --sidebar: #0c1222;
+    --sidebar-foreground: #cbd5e1;
+    --sidebar-primary: #22c55e;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #162033;
+    --sidebar-accent-foreground: #f1f5f9;
+    --sidebar-border: rgba(255, 255, 255, 0.06);
+    --sidebar-ring: #3b82f6;
+  }
+
+  * {
+    @apply border-border;
+    outline-color: var(--ring);
+  }
+
+  html {
+    @apply font-sans;
+  }
+
   body {
     @apply antialiased bg-background text-foreground;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  }
-  .theme {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
-  }
-  :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-  }
-  .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
-  }
-  * {
-    @apply border-border outline-ring/50;
-  }
-  html {
-    @apply font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
 @layer components {
-  /* Decision text for kiosk result screen */
-  .kiosk-text-decision {
-    @apply text-6xl font-extrabold tracking-tight;
-  }
-
-  /* Buttons */
-  .btn-primary {
-    @apply px-5 py-2.5 bg-lam-navy text-white font-medium rounded-lg
-           hover:bg-lam-navy-light active:scale-[0.98] transition-all
-           min-h-[40px] text-sm;
-  }
-
-  .btn-pass {
-    @apply px-5 py-2.5 bg-avip-pass text-white font-medium rounded-lg
-           hover:opacity-90 active:scale-[0.98] transition-all
-           min-h-[40px] text-sm;
-  }
-
-  .btn-fail {
-    @apply px-5 py-2.5 bg-avip-fail text-white font-medium rounded-lg
-           hover:opacity-90 active:scale-[0.98] transition-all
-           min-h-[40px] text-sm;
-  }
-
-  /* Badges */
-  .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
-  }
-
-  .badge-pass {
-    @apply badge bg-emerald-50 text-emerald-700 border border-emerald-200;
-  }
-
-  .badge-fail {
-    @apply badge bg-red-50 text-red-700 border border-red-200;
-  }
-
-  .badge-review {
-    @apply badge bg-amber-50 text-amber-700 border border-amber-200;
-  }
-
-  /* Cards */
-  .card {
-    @apply bg-white rounded-xl border border-gray-200 p-5 shadow-sm;
-  }
-
-  /* Page content wrapper (used inside AppLayout) */
   .page-content {
-    @apply p-6;
+    @apply p-6 lg:p-8;
   }
 
-  /* Page title */
   .page-title {
-    @apply text-xl font-bold text-gray-900 tracking-tight;
+    @apply text-xl font-semibold text-foreground tracking-tight;
   }
 
   .page-subtitle {
-    @apply text-sm text-gray-500 mt-0.5;
+    @apply text-sm text-muted-foreground mt-0.5;
   }
 }
 

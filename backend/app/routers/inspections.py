@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException
 
 from app.db.database import get_db
+from app.config import settings
 from app.models.inspection import (
     CreateInspectionRequest,
     Decision,
@@ -118,11 +119,24 @@ async def simulate_capture(inspection_id: str):
             folder = val
             break
 
-    # Determine if this inspection is a defective scenario
+    # Determine if this inspection is a demo scenario
     scenario_id = insp["scenario_id"] if "scenario_id" in insp.keys() else None
-    # Scenarios 2-10 are defective; scenario 1 and non-scenario kiosk flow use clean
-    pass_scenarios = {"scenario-01", None}
-    variant = "clean" if scenario_id in pass_scenarios else "defective"
+    # Scenarios use scenario-specific image folders; non-scenario kiosk flow checks for part-specific images
+    if scenario_id:
+        # Use scenario-specific images
+        image_base = f"scenarios/{scenario_id}"
+    else:
+        # Kiosk flow: check if part-specific images exist, otherwise use family clean
+        # Get part number for kiosk-specific image lookup
+        cursor2 = await db.execute("SELECT part_number FROM parts WHERE id = ?", (insp["part_id"],))
+        part_row = await cursor2.fetchone()
+        part_number = part_row["part_number"] if part_row else None
+        
+        kiosk_image_dir = settings.demo_data_dir / "images" / "kiosk" / (part_number or "")
+        if part_number and kiosk_image_dir.exists():
+            image_base = f"kiosk/{part_number}"
+        else:
+            image_base = f"{folder}/clean"
 
     # Generate simulated images using demo_data images
     images = []
@@ -132,8 +146,8 @@ async def simulate_capture(inspection_id: str):
             passed=True, checks={"focus": True, "exposure": True, "glare": False}, failure_reason=None
         )
 
-        file_url = f"/static/demo-images/{folder}/{variant}/{angle}.jpg"
-        thumb_url = f"/static/demo-images/{folder}/{variant}/{angle}_thumb.jpg"
+        file_url = f"/static/demo-images/{image_base}/{angle}.jpg?v={int(datetime.now(timezone.utc).timestamp())}"
+        thumb_url = f"/static/demo-images/{image_base}/{angle}_thumb.jpg?v={int(datetime.now(timezone.utc).timestamp())}"
 
         await db.execute(
             """INSERT INTO images (id, inspection_id, camera_angle, file_path, thumbnail_path, quality_result)

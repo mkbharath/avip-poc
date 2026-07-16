@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
 import { getInspection } from "../../api/inspections";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import type { DecisionResult } from "../../types";
 
 export function ResultScreen() {
@@ -41,89 +45,88 @@ export function ResultScreen() {
 
   if (!inspection || !decisionResult) {
     return (
-      <div className="page-content flex flex-col items-center justify-center min-h-screen">
-        <div className="animate-spin w-8 h-8 border-4 border-lam-navy border-t-transparent rounded-full" />
-        <p className="text-gray-500 mt-4 text-sm">Loading inspection result...</p>
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-3rem)] p-6">
+        <Loader2 className="w-8 h-8 text-lam-navy animate-spin" />
+        <p className="text-muted-foreground mt-4 text-sm">Loading inspection result...</p>
       </div>
     );
   }
 
+  const resultConfig = {
+    PASS: { icon: CheckCircle2, color: "bg-avip-pass", textColor: "text-avip-pass" },
+    FAIL: { icon: XCircle, color: "bg-avip-fail", textColor: "text-avip-fail" },
+    REVIEW: { icon: AlertCircle, color: "bg-avip-review", textColor: "text-avip-review" },
+  }[decisionResult] || { icon: AlertCircle, color: "bg-muted", textColor: "text-muted-foreground" };
+
+  const ResultIcon = resultConfig.icon;
+
   return (
-    <div className="page-content flex flex-col items-center justify-center min-h-screen">
-      <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${
-        decisionResult === "PASS" ? "bg-avip-pass" :
-        decisionResult === "FAIL" ? "bg-avip-fail" : "bg-avip-review"
-      }`}>
-        {decisionResult === "PASS" && (
-          <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-          </svg>
-        )}
-        {decisionResult === "FAIL" && (
-          <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        )}
-        {decisionResult === "REVIEW" && (
-          <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01" />
-          </svg>
-        )}
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-3rem)] p-6">
+      <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${resultConfig.color}`}>
+        <ResultIcon className="w-10 h-10 text-white" />
       </div>
 
-      <h1 className={`text-6xl font-extrabold tracking-tight ${
-        decisionResult === "PASS" ? "text-avip-pass" :
-        decisionResult === "FAIL" ? "text-avip-fail" : "text-avip-review"
-      }`}>{decisionResult}</h1>
+      <h1 className={`text-6xl font-extrabold tracking-tight ${resultConfig.textColor}`}>
+        {decisionResult}
+      </h1>
 
-      <p className="text-xl text-gray-900 mt-4 font-medium font-mono">{partNumber} Rev {revision}</p>
-      <p className="text-gray-500 mt-2">
+      <p className="text-xl text-foreground mt-4 font-medium font-mono">{partNumber} Rev {revision}</p>
+      <p className="text-muted-foreground mt-2">
         {decisionResult === "PASS" ? "Route to Staging \u2192 Bay 4A" :
          decisionResult === "FAIL" ? "Route to IQA \u2192 Quarantine Bin Q3" :
          "Routed to IQA Review Queue"}
       </p>
 
       {decisionResult !== "PASS" && findings.length > 0 && (
-        <div className="mt-8 bg-white rounded-xl px-6 py-4 border border-gray-200 shadow-sm max-w-md w-full">
-          <p className="text-gray-500 text-xs uppercase tracking-wide mb-3">Findings ({findings.length})</p>
-          <div className="flex gap-2 flex-wrap">
-            {findings.map((f, i) => (
-              <span key={i} className={`badge text-xs ${
-                (f.severity as string) === "critical" ? "badge-fail" :
-                (f.severity as string) === "major" ? "badge-review" :
-                "bg-gray-100 text-gray-600 border border-gray-200"
-              }`}>
-                {f.defect_class as string}
-                <span className="ml-1 opacity-60">{Math.round((f.confidence as number) * 100)}%</span>
-              </span>
-            ))}
-          </div>
-        </div>
+        <Card className="mt-8 max-w-md w-full">
+          <CardContent className="pt-4">
+            <p className="text-muted-foreground text-xs uppercase tracking-wide mb-3">
+              Findings ({findings.length})
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              {findings.map((f, i) => (
+                <Badge
+                  key={i}
+                  variant={(f.severity as string) === "critical" ? "destructive" : "secondary"}
+                  className="text-xs"
+                >
+                  {f.defect_class as string}
+                  <span className="ml-1 opacity-60">{Math.round((f.confidence as number) * 100)}%</span>
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {decisionResult === "PASS" && (
-        <div className="mt-8 bg-white rounded-xl px-6 py-4 border border-avip-pass/30 shadow-sm">
-          <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Certificate ID</p>
-          <p className="text-avip-pass font-mono text-lg font-bold">{(id || "").slice(0, 8).toUpperCase()}</p>
-        </div>
+        <Card className="mt-8 border-avip-pass/30">
+          <CardContent className="pt-4 text-center">
+            <p className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Certificate ID</p>
+            <p className="text-avip-pass font-mono text-lg font-bold">{(id || "").slice(0, 8).toUpperCase()}</p>
+          </CardContent>
+        </Card>
       )}
 
-      <div className="mt-10 flex gap-4">
+      <div className="mt-10 flex gap-3">
         {decisionResult !== "PASS" && (
-          <Link to={`/review/${id}`} className={`px-6 py-3 min-h-[48px] font-semibold rounded-lg transition-colors ${
-            decisionResult === "FAIL" ? "bg-avip-fail text-white hover:opacity-90" : "bg-avip-review text-white hover:opacity-90"
-          }`}>
+          <Button
+            size="lg"
+            className={`${
+              decisionResult === "FAIL" ? "bg-avip-fail hover:bg-avip-fail/90" : "bg-avip-review hover:bg-avip-review/90"
+            } text-white`}
+            render={<Link to={`/review/${id}`} />}
+          >
             View Findings
-          </Link>
+          </Button>
         )}
-        <button onClick={() => navigate("/kiosk")}
-          className="px-6 py-3 min-h-[48px] bg-white border border-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+        <Button variant="outline" size="lg" onClick={() => navigate("/kiosk")}>
           Next Part
-        </button>
+        </Button>
       </div>
 
       {decisionResult === "PASS" && (
-        <p className="mt-6 text-gray-400 text-sm">Auto-dismiss in {countdown}s</p>
+        <p className="mt-6 text-muted-foreground text-sm">Auto-dismiss in {countdown}s</p>
       )}
     </div>
   );

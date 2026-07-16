@@ -1,7 +1,26 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { CheckCircle2, X } from "lucide-react";
 import { getReviewQueue } from "../../api/inspections";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { ReviewQueueItem } from "../../types";
 
 export function ReviewQueue() {
@@ -26,51 +45,55 @@ export function ReviewQueue() {
   const allClasses = [...new Set(queue.flatMap((i) => i.defect_classes))];
 
   return (
-    <div className="page-content">
+    <div className="p-6 space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="page-title">IQA Review Queue</h1>
-          <p className="page-subtitle">{filtered.length} items pending review</p>
-        </div>
+      <div>
+        <h1 className="text-xl font-bold text-foreground tracking-tight">IQA Review Queue</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">{filtered.length} items pending review</p>
       </div>
 
       {/* Filters row */}
-      <div className="flex items-center gap-4 mb-6">
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Part Family</label>
-          <select
-            value={familyFilter}
-            onChange={(e) => setFamilyFilter(e.target.value)}
-            className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-lam-navy focus:ring-2 focus:ring-lam-navy/10"
-          >
-            <option value="">All families</option>
-            {families.map((f) => (
-              <option key={f} value={f}>{f}</option>
-            ))}
-          </select>
+      <div className="flex items-end gap-4">
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-muted-foreground">Part Family</label>
+          <Select value={familyFilter} onValueChange={(v) => setFamilyFilter(v ?? "")}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All families" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All families</SelectItem>
+              {families.map((f) => (
+                <SelectItem key={f} value={f}>{f}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Defect Class</label>
-          <select
-            value={classFilter}
-            onChange={(e) => setClassFilter(e.target.value)}
-            className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-lam-navy focus:ring-2 focus:ring-lam-navy/10"
-          >
-            <option value="">All classes</option>
-            {allClasses.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-muted-foreground">Defect Class</label>
+          <Select value={classFilter} onValueChange={(v) => setClassFilter(v ?? "")}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All classes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All classes</SelectItem>
+              {allClasses.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <button
-          onClick={() => { setFamilyFilter(""); setClassFilter(""); }}
-          className="text-sm text-lam-navy hover:underline mt-4"
-        >
-          Clear filters
-        </button>
+        {(familyFilter || classFilter) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setFamilyFilter(""); setClassFilter(""); }}
+          >
+            <X className="mr-1" />
+            Clear filters
+          </Button>
+        )}
       </div>
 
       {/* Queue table */}
@@ -80,36 +103,33 @@ export function ReviewQueue() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
-          <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <h3 className="text-lg font-medium text-gray-500">Queue is empty</h3>
-          <p className="text-sm text-gray-400 mt-1">All inspections have been reviewed</p>
+          <CheckCircle2 className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-muted-foreground">Queue is empty</h3>
+          <p className="text-sm text-muted-foreground/70 mt-1">All inspections have been reviewed</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Priority</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Age</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Part Number</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Family</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Supplier</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Defects</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Confidence</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Decision</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
+        <Card className="overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-xs uppercase">Priority</TableHead>
+                <TableHead className="text-xs uppercase">Age</TableHead>
+                <TableHead className="text-xs uppercase">Part Number</TableHead>
+                <TableHead className="text-xs uppercase">Family</TableHead>
+                <TableHead className="text-xs uppercase">Supplier</TableHead>
+                <TableHead className="text-xs uppercase">Defects</TableHead>
+                <TableHead className="text-xs uppercase">Confidence</TableHead>
+                <TableHead className="text-xs uppercase">Decision</TableHead>
+                <TableHead></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {filtered.map((item) => (
                 <QueueRow key={item.id} item={item} />
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Card>
       )}
     </div>
   );
@@ -119,52 +139,56 @@ function QueueRow({ item }: { item: ReviewQueueItem }) {
   const ageMinutes = Math.floor(item.age_seconds / 60);
   const ageDisplay = ageMinutes < 60 ? `${ageMinutes}m` : `${Math.floor(ageMinutes / 60)}h ${ageMinutes % 60}m`;
 
-  const ageSLA = ageMinutes > 240; // 4 hour SLA
+  const ageSLA = ageMinutes > 240;
   const ageWarning = ageMinutes > 120;
 
   return (
-    <tr className="hover:bg-gray-50 transition-colors cursor-pointer group">
-      <td className="px-4 py-3">
+    <TableRow className="group cursor-pointer">
+      <TableCell>
         <PriorityBadge priority={item.priority} />
-      </td>
-      <td className="px-4 py-3">
-        <span className={`text-sm font-medium ${ageSLA ? "text-avip-fail" : ageWarning ? "text-avip-review" : "text-gray-900"}`}>
+      </TableCell>
+      <TableCell>
+        <span className={`text-sm font-medium ${ageSLA ? "text-avip-fail" : ageWarning ? "text-avip-review" : "text-foreground"}`}>
           {ageDisplay}
         </span>
-      </td>
-      <td className="px-4 py-3">
-        <span className="text-sm font-mono font-bold text-gray-900">{item.part_number}</span>
-      </td>
-      <td className="px-4 py-3">
-        <span className="text-sm text-gray-500">{item.family_name}</span>
-      </td>
-      <td className="px-4 py-3">
-        <span className="text-sm text-gray-500">{item.supplier}</span>
-      </td>
-      <td className="px-4 py-3">
+      </TableCell>
+      <TableCell>
+        <span className="text-sm font-mono font-bold text-foreground">{item.part_number}</span>
+      </TableCell>
+      <TableCell>
+        <span className="text-sm text-muted-foreground">{item.family_name}</span>
+      </TableCell>
+      <TableCell>
+        <span className="text-sm text-muted-foreground">{item.supplier}</span>
+      </TableCell>
+      <TableCell>
         <div className="flex gap-1 flex-wrap">
           {item.defect_classes.map((dc) => (
-            <span key={dc} className="badge bg-gray-100 text-gray-600 border border-gray-200 text-xs">{dc}</span>
+            <Badge key={dc} variant="outline" className="text-xs">
+              {dc}
+            </Badge>
           ))}
         </div>
-      </td>
-      <td className="px-4 py-3">
+      </TableCell>
+      <TableCell>
         <ConfidenceBadge band={item.confidence_band} />
-      </td>
-      <td className="px-4 py-3">
-        <span className={`badge ${item.decision === "FAIL" ? "badge-fail" : "badge-review"}`}>
+      </TableCell>
+      <TableCell>
+        <Badge variant={item.decision === "FAIL" ? "destructive" : "secondary"} className="text-xs">
           {item.decision}
-        </span>
-      </td>
-      <td className="px-4 py-3">
-        <Link
-          to={`/review/${item.id}`}
-          className="opacity-0 group-hover:opacity-100 transition-opacity btn-primary text-xs px-3 py-1.5 min-h-0"
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <Button
+          variant="default"
+          size="xs"
+          className="opacity-0 group-hover:opacity-100 transition-opacity"
+          render={<Link to={`/review/${item.id}`} />}
         >
           Review
-        </Link>
-      </td>
-    </tr>
+        </Button>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -173,7 +197,7 @@ function PriorityBadge({ priority }: { priority: number }) {
   const colors = {
     high: "bg-red-100 text-red-700 border-red-200",
     medium: "bg-yellow-100 text-yellow-700 border-yellow-200",
-    low: "bg-gray-100 text-gray-600 border-gray-200",
+    low: "bg-muted text-muted-foreground border-border",
   };
 
   return (
@@ -184,15 +208,10 @@ function PriorityBadge({ priority }: { priority: number }) {
 }
 
 function ConfidenceBadge({ band }: { band: string }) {
-  const colors = {
-    high: "bg-red-50 text-red-700",
-    medium: "bg-yellow-50 text-yellow-700",
-    low: "bg-green-50 text-green-700",
-  };
-
+  const variant = band === "high" ? "destructive" : band === "medium" ? "secondary" : "outline";
   return (
-    <span className={`badge text-xs ${colors[band as keyof typeof colors] || colors.medium}`}>
+    <Badge variant={variant} className="text-xs">
       {band}
-    </span>
+    </Badge>
   );
 }

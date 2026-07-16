@@ -124,16 +124,15 @@ async def run_scenario(scenario_id: str):
     inspection_id = result["id"]
 
     # Simulate capture
-    await simulate_capture(inspection_id)
-
-    # Run inspection (AI pipeline will use scenario context)
-    # Store scenario_id on the inspection for the AI pipeline to use
+    # Store scenario_id on the inspection BEFORE capture so it picks the right image variant
     db = await get_db()
     await db.execute(
         "UPDATE inspections SET scenario_id = ? WHERE id = ?",
         (scenario_id, inspection_id),
     )
     await db.commit()
+
+    await simulate_capture(inspection_id)
 
     # Run the actual inspection
     inspect_result = await run_inspection(inspection_id)

@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
+import { RotateCcw } from "lucide-react";
 import { getScenarios, runScenario, resetDemo } from "../../api/demo";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import type { DemoScenario } from "../../types";
 
 export function PresenterPanel() {
@@ -47,54 +51,52 @@ export function PresenterPanel() {
   };
 
   return (
-    <div className="page-content">
+    <div className="p-6 space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-title">Demo &mdash; Presenter Panel</h1>
-          <p className="page-subtitle">Run pre-built scenarios to demonstrate platform capabilities</p>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">Demo — Presenter Panel</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Run pre-built scenarios to demonstrate platform capabilities</p>
         </div>
-        <button
+        <Button
+          variant="outline"
           onClick={() => resetMutation.mutate()}
           disabled={resetMutation.isPending}
-          className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50"
         >
+          <RotateCcw className="mr-1.5" />
           {resetMutation.isPending ? "Resetting..." : "Reset All Data"}
-        </button>
+        </Button>
       </div>
 
       {/* Last result banner */}
       {lastResult && (
-        <div className={`mb-6 rounded-xl p-4 flex items-center justify-between ${
-          lastResult.decision === "PASS" ? "bg-emerald-50 border border-emerald-200" :
-          lastResult.decision === "FAIL" ? "bg-red-50 border border-red-200" :
-          "bg-amber-50 border border-amber-200"
-        }`}>
-          <div>
-            <span className="text-sm text-gray-900 font-medium">Last: {lastResult.scenario}</span>
-            <span className={`ml-3 badge ${
-              lastResult.decision === "PASS" ? "badge-pass" : lastResult.decision === "FAIL" ? "badge-fail" : "badge-review"
-            }`}>
-              {lastResult.decision}
-            </span>
-          </div>
-          <div className="flex gap-2">
-            <Link
-              to={`/kiosk/result/${lastResult.inspectionId}`}
-              className="text-xs text-lam-navy bg-white border border-gray-200 px-3 py-1.5 rounded hover:bg-gray-50 shadow-sm"
-            >
-              View Result
-            </Link>
-            {lastResult.decision !== "PASS" && (
-              <Link
-                to={`/review/${lastResult.inspectionId}`}
-                className="text-xs text-lam-navy bg-white border border-gray-200 px-3 py-1.5 rounded hover:bg-gray-50 shadow-sm"
+        <Card className={
+          lastResult.decision === "PASS" ? "border-avip-pass/30 bg-emerald-50/50" :
+          lastResult.decision === "FAIL" ? "border-avip-fail/30 bg-red-50/50" :
+          "border-avip-review/30 bg-amber-50/50"
+        }>
+          <CardContent className="pt-4 pb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-foreground font-medium">Last: {lastResult.scenario}</span>
+              <Badge
+                variant={lastResult.decision === "PASS" ? "secondary" : lastResult.decision === "FAIL" ? "destructive" : "outline"}
+                className={lastResult.decision === "PASS" ? "bg-emerald-100 text-emerald-700" : ""}
               >
-                Open in Review
-              </Link>
-            )}
-          </div>
-        </div>
+                {lastResult.decision}
+              </Badge>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="xs" render={<Link to={`/kiosk/result/${lastResult.inspectionId}`} />}>
+                View Result
+              </Button>
+              {lastResult.decision !== "PASS" && (
+                <Button variant="outline" size="xs" render={<Link to={`/review/${lastResult.inspectionId}`} />}>
+                  Open in Review
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Scenario grid */}
@@ -111,10 +113,10 @@ export function PresenterPanel() {
       </div>
 
       {/* Quick links */}
-      <div className="mt-8 border-t border-gray-200 pt-6">
-        <h3 className="text-sm font-medium text-gray-500 mb-3">Demo Navigation</h3>
+      <div className="border-t pt-6">
+        <h3 className="text-sm font-medium text-muted-foreground mb-3">Demo Navigation</h3>
         <div className="grid grid-cols-4 gap-3">
-          <QuickLink to="/kiosk" label="Operator Kiosk" desc="Scan \u2192 Capture \u2192 Result flow" />
+          <QuickLink to="/kiosk" label="Operator Kiosk" desc="Scan → Capture → Result flow" />
           <QuickLink to="/review" label="IQA Review Queue" desc="Pending inspections for review" />
           <QuickLink to="/dashboard/inspection" label="Inspection Dashboard" desc="Real-time operations view" />
           <QuickLink to="/dashboard/defects" label="Defect Dashboard" desc="Pareto, trends, heatmap" />
@@ -135,57 +137,64 @@ function ScenarioCard({
   onRunAndShow: () => void;
   isRunning: boolean;
 }) {
-  const decisionColor = {
-    PASS: "border-emerald-200 bg-emerald-50/50",
-    FAIL: "border-red-200 bg-red-50/50",
-    REVIEW: "border-amber-200 bg-amber-50/50",
-  }[scenario.expected_decision] || "border-gray-200 bg-white";
-
-  const decisionBadge = {
-    PASS: "badge-pass",
-    FAIL: "badge-fail",
-    REVIEW: "badge-review",
-  }[scenario.expected_decision] || "bg-gray-100 text-gray-600";
+  const borderColor = {
+    PASS: "border-avip-pass/30",
+    FAIL: "border-avip-fail/30",
+    REVIEW: "border-avip-review/30",
+  }[scenario.expected_decision] || "border-border";
 
   return (
-    <div className={`rounded-xl border p-4 ${decisionColor} transition-all hover:shadow-md`}>
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <h4 className="text-sm font-bold text-gray-900">{scenario.name}</h4>
-          <p className="text-xs text-gray-500 mt-0.5">{scenario.family}</p>
+    <Card className={`${borderColor} hover:shadow-md transition-shadow`}>
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-sm">{scenario.name}</CardTitle>
+            <CardDescription className="text-xs mt-0.5">{scenario.family}</CardDescription>
+          </div>
+          <Badge
+            variant={scenario.expected_decision === "FAIL" ? "destructive" : scenario.expected_decision === "PASS" ? "secondary" : "outline"}
+            className={scenario.expected_decision === "PASS" ? "bg-emerald-50 text-emerald-700" : ""}
+          >
+            {scenario.expected_decision}
+          </Badge>
         </div>
-        <span className={`badge ${decisionBadge}`}>{scenario.expected_decision}</span>
-      </div>
-      <p className="text-xs text-gray-600 mb-3 line-clamp-2">{scenario.description}</p>
-      <p className="text-xs text-gray-400 italic mb-3">Demonstrates: {scenario.demonstrates}</p>
-      <div className="flex gap-2">
-        <button
-          onClick={onRun}
-          disabled={isRunning}
-          className="flex-1 px-3 py-2 min-h-[40px] text-xs font-medium bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
-        >
-          {isRunning ? "Running..." : "Run (background)"}
-        </button>
-        <button
-          onClick={onRunAndShow}
-          disabled={isRunning}
-          className="flex-1 px-3 py-2 min-h-[40px] text-xs font-medium btn-primary disabled:opacity-50"
-        >
-          Run & Show Result
-        </button>
-      </div>
-    </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-xs text-muted-foreground line-clamp-2">{scenario.description}</p>
+        <p className="text-xs text-muted-foreground/70 italic">Demonstrates: {scenario.demonstrates}</p>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={onRun}
+            disabled={isRunning}
+          >
+            {isRunning ? "Running..." : "Run (background)"}
+          </Button>
+          <Button
+            size="sm"
+            className="flex-1"
+            onClick={onRunAndShow}
+            disabled={isRunning}
+          >
+            Run & Show Result
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
 function QuickLink({ to, label, desc }: { to: string; label: string; desc: string }) {
   return (
-    <Link
-      to={to}
-      className="p-4 rounded-xl bg-white border border-gray-200 hover:border-lam-navy/30 hover:shadow-sm transition-colors"
-    >
-      <p className="text-sm font-medium text-gray-900">{label}</p>
-      <p className="text-xs text-gray-500 mt-1">{desc}</p>
-    </Link>
+    <Card className="hover:border-lam-navy/30 hover:shadow-sm transition-colors" size="sm">
+      <CardContent className="pt-3 pb-3">
+        <Link to={to} className="block">
+          <p className="text-sm font-medium text-foreground">{label}</p>
+          <p className="text-xs text-muted-foreground mt-1">{desc}</p>
+        </Link>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,80 +1,55 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
+import {
+  Camera,
+  ClipboardCheck,
+  BarChart3,
+  AlertTriangle,
+  Building2,
+  Cpu,
+  Play,
+  ChevronRight,
+} from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarSeparator,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 import { LamResearchLogo, IdeyaLabsLogo } from "./Logo";
 
-const NAV_ITEMS = [
+const NAV_GROUPS = [
   {
-    label: "Station",
-    to: "/kiosk",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
+    label: "Operations",
+    items: [
+      { label: "Station", to: "/kiosk", icon: Camera },
+      { label: "Review Queue", to: "/review", icon: ClipboardCheck },
+    ],
   },
   {
-    label: "Review Queue",
-    to: "/review",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-      </svg>
-    ),
-  },
-  { type: "divider" as const },
-  {
-    label: "Inspections",
-    to: "/dashboard/inspection",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
+    label: "Analytics",
+    items: [
+      { label: "Inspections", to: "/dashboard/inspection", icon: BarChart3 },
+      { label: "Defects", to: "/dashboard/defects", icon: AlertTriangle },
+      { label: "Suppliers", to: "/dashboard/suppliers", icon: Building2 },
+      { label: "AI Performance", to: "/dashboard/ai", icon: Cpu },
+    ],
   },
   {
-    label: "Defects",
-    to: "/dashboard/defects",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Suppliers",
-    to: "/dashboard/suppliers",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-      </svg>
-    ),
-  },
-  {
-    label: "AI Performance",
-    to: "/dashboard/ai",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  { type: "divider" as const },
-  {
-    label: "Demo Panel",
-    to: "/demo",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-          d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
+    label: "Tools",
+    items: [
+      { label: "Demo Panel", to: "/demo", icon: Play },
+    ],
   },
 ];
 
@@ -85,67 +60,121 @@ export function AppLayout() {
   const user = userStr ? JSON.parse(userStr) : { name: "Operator", role: "Operator" };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      {/* Dark navy sidebar */}
-      <aside className="w-60 bg-lam-navy flex flex-col flex-shrink-0">
-        {/* Logo area */}
-        <div className="px-5 pt-5 pb-4">
-          <LamResearchLogo variant="light" className="h-9" />
-          <p className="text-white/40 text-[10px] mt-1.5 tracking-wide">AI Vision Inspection Platform</p>
-        </div>
+    <SidebarProvider>
+      <Sidebar collapsible="icon" className="border-r-0 bg-sidebar-gradient">
+        {/* Logo */}
+        <SidebarHeader className="px-5 pt-6 pb-4">
+          <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
+            <LamResearchLogo variant="light" className="h-8 group-data-[collapsible=icon]:hidden" />
+            <div className="w-8 h-8 rounded-lg bg-lam-green/20 items-center justify-center hidden group-data-[collapsible=icon]:flex">
+              <span className="text-lam-green font-bold text-sm">L</span>
+            </div>
+          </div>
+          <div className="mt-3 group-data-[collapsible=icon]:hidden">
+            <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500 font-medium uppercase tracking-[0.15em]">
+              <span className="w-1.5 h-1.5 rounded-full bg-lam-green animate-pulse" />
+              AI Vision Platform
+            </span>
+          </div>
+        </SidebarHeader>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map((item, idx) => {
-            if ("type" in item && item.type === "divider") {
-              return <div key={idx} className="my-3 border-t border-white/10" />;
-            }
-            const navItem = item as { label: string; to: string; icon: React.ReactNode };
-            const isActive = location.pathname === navItem.to ||
-              location.pathname.startsWith(navItem.to + "/");
-            return (
-              <NavLink
-                key={navItem.to}
-                to={navItem.to}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-white/10 text-white"
-                    : "text-white/60 hover:bg-white/5 hover:text-white/90"
-                }`}
-              >
-                <span className={isActive ? "text-lam-green" : "text-white/40"}>
-                  {navItem.icon}
-                </span>
-                {navItem.label}
-              </NavLink>
-            );
-          })}
-        </nav>
+        <SidebarContent className="px-3 pt-1">
+          {NAV_GROUPS.map((group, groupIdx) => (
+            <SidebarGroup key={group.label} className={groupIdx > 0 ? "pt-4" : ""}>
+              <SidebarGroupLabel className="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-semibold px-3 mb-1.5">
+                {group.label}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => {
+                    const isActive =
+                      location.pathname === item.to ||
+                      location.pathname.startsWith(item.to + "/");
+                    return (
+                      <SidebarMenuItem key={item.to}>
+                        <SidebarMenuButton
+                          isActive={isActive}
+                          tooltip={item.label}
+                          className={
+                            isActive
+                              ? "bg-sidebar-accent text-white font-medium shadow-sm"
+                              : "text-slate-400 hover:text-white hover:bg-sidebar-accent"
+                          }
+                          render={<NavLink to={item.to} />}
+                        >
+                          <item.icon className={`w-[18px] h-[18px] ${isActive ? "text-lam-green" : "text-slate-500"}`} strokeWidth={isActive ? 2 : 1.5} />
+                          <span className="text-[13px]">{item.label}</span>
+                          {isActive && (
+                            <ChevronRight className="w-3.5 h-3.5 ml-auto opacity-50" />
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
+        </SidebarContent>
 
-        {/* User + powered by footer */}
-        <div className="p-4 border-t border-white/10">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-lam-green/20 flex items-center justify-center">
-              <span className="text-lam-green text-xs font-bold">
+        {/* Footer */}
+        <SidebarFooter className="px-4 pb-5 pt-3">
+          <SidebarSeparator className="opacity-30 mb-4" />
+          <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-lam-green to-lam-green-dark flex items-center justify-center flex-shrink-0 shadow-glow">
+              <span className="text-white text-sm font-semibold">
                 {user.name?.charAt(0) || "O"}
               </span>
             </div>
-            <div>
-              <p className="text-white/90 text-xs font-medium">{user.name}</p>
-              <p className="text-white/40 text-[10px]">{user.role} • STN-LIV-01</p>
+            <div className="group-data-[collapsible=icon]:hidden min-w-0">
+              <p className="text-slate-200 text-[13px] font-medium leading-tight truncate">{user.name}</p>
+              <p className="text-slate-500 text-[11px] leading-tight">{user.role}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-white/30 text-[9px]">Powered by</span>
-            <IdeyaLabsLogo variant="light" className="h-3.5" />
+          <div className="flex items-center gap-2 mt-4 group-data-[collapsible=icon]:hidden">
+            <span className="text-slate-600 text-[9px] uppercase tracking-widest">Powered by</span>
+            <IdeyaLabsLogo variant="light" className="h-3 opacity-40" />
           </div>
-        </div>
-      </aside>
+        </SidebarFooter>
+      </Sidebar>
 
-      {/* Main content area */}
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
-      </main>
-    </div>
+      <SidebarInset>
+        {/* Top bar */}
+        <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-border/50 bg-white/80 backdrop-blur-md px-6">
+          <SidebarTrigger className="-ml-2" />
+          <Separator orientation="vertical" className="h-5 bg-border/50" />
+          <nav className="flex items-center gap-1.5 text-sm">
+            <span className="font-medium text-foreground">{getPageTitle(location.pathname)}</span>
+          </nav>
+          {/* Right side — station indicator */}
+          <div className="ml-auto flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-md">
+              <span className="w-2 h-2 rounded-full bg-lam-green" />
+              STN-LIV-01
+            </span>
+          </div>
+        </header>
+
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
+}
+
+function getPageTitle(path: string): string {
+  if (path.startsWith("/kiosk/capture")) return "Capture";
+  if (path.startsWith("/kiosk/result")) return "Result";
+  if (path === "/kiosk") return "Station";
+  if (path.startsWith("/review/")) return "Review Workbench";
+  if (path === "/review") return "Review Queue";
+  if (path === "/dashboard/inspection") return "Inspections";
+  if (path === "/dashboard/defects") return "Defects";
+  if (path === "/dashboard/suppliers") return "Suppliers";
+  if (path === "/dashboard/ai") return "AI Performance";
+  if (path === "/demo") return "Demo Panel";
+  return "AVIP";
 }

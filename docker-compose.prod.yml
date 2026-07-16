@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  avip-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: avip-api
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    volumes:
+      - avip-data:/app/data
+      - ./backend/demo_data:/app/demo_data:ro
+      - ./backend/ai_models:/app/ai_models:ro
+    environment:
+      - AVIP_DATA_DIR=/app/data
+      - AVIP_DEMO_DATA_DIR=/app/demo_data
+      - AVIP_MODELS_DIR=/app/ai_models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - avip-net
+
+  avip-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: avip-frontend
+    restart: unless-stopped
+    ports:
+      - "5174:80"
+    depends_on:
+      avip-api:
+        condition: service_healthy
+    networks:
+      - avip-net
+
+volumes:
+  avip-data:
+
+networks:
+  avip-net:
+    driver: bridge

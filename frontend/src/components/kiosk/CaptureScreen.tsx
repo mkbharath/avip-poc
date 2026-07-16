@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Check, X, Loader2 } from "lucide-react";
 import { simulateCapture, runInspection, getInspection } from "../../api/inspections";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type CameraState = "waiting" | "capturing" | "passed" | "failed";
 
@@ -53,7 +55,18 @@ export function CaptureScreen() {
 
   const captureMutation = useMutation({
     mutationFn: () => simulateCapture(id!),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Update camera views with actual image URLs from the backend
+      const apiImages = data.images || [];
+      setCameras((prev) =>
+        prev.map((cam) => {
+          const match = apiImages.find((img: { camera_angle: string; file_url: string }) => img.camera_angle === cam.angle);
+          if (match) {
+            return { ...cam, state: "passed" as CameraState, imageUrl: match.file_url };
+          }
+          return cam;
+        })
+      );
       setStep("inspecting");
       inspectMutation.mutate();
     },
@@ -77,18 +90,16 @@ export function CaptureScreen() {
 
     const captureSequence = async () => {
       for (let i = 0; i < cameras.length; i++) {
-        // Set current camera to capturing
         setCameras((prev) =>
           prev.map((cam, idx) => (idx === i ? { ...cam, state: "capturing" } : cam))
         );
         await delay(600);
 
-        // Set it to passed with the image URL (shows immediately)
         const folder = imageFolderRef.current;
         setCameras((prev) =>
           prev.map((cam, idx) =>
             idx === i
-              ? { ...cam, state: "passed", imageUrl: `/static/demo-images/${folder}/clean/${cam.angle}.jpg` }
+              ? { ...cam, state: "passed", imageUrl: `/static/demo-images/${folder}/clean/${cam.angle}.jpg?v=${Date.now()}` }
               : cam
           )
         );
@@ -96,7 +107,6 @@ export function CaptureScreen() {
         await delay(300);
       }
 
-      // All captured — trigger API
       await delay(300);
       captureMutation.mutate();
     };
@@ -105,8 +115,8 @@ export function CaptureScreen() {
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="flex h-screen">
-      {/* Left: Camera Grid (dark — image viewer area) */}
+    <div className="flex h-[calc(100vh-3rem)]">
+      {/* Left: Camera Grid (dark canvas) */}
       <div className="flex-1 bg-gray-900 p-6 flex flex-col">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <svg className="w-5 h-5 text-avip-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +142,6 @@ export function CaptureScreen() {
                   : "border-avip-fail bg-gray-800"
               }`}
             >
-              {/* Background: show image if captured */}
               {cam.imageUrl && cam.state === "passed" ? (
                 <img
                   src={cam.imageUrl}
@@ -143,12 +152,10 @@ export function CaptureScreen() {
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-900 opacity-50" />
               )}
 
-              {/* Camera label */}
               <span className="absolute top-2 left-3 text-xs font-medium text-gray-300 bg-gray-900/80 px-2 py-0.5 rounded z-10">
                 {cam.label}
               </span>
 
-              {/* Status indicator */}
               <div className="relative z-10">
                 {cam.state === "waiting" && (
                   <div className="w-12 h-12 rounded-full border-2 border-gray-600 flex items-center justify-center">
@@ -156,30 +163,24 @@ export function CaptureScreen() {
                   </div>
                 )}
                 {cam.state === "capturing" && (
-                  <div className="w-12 h-12 rounded-full border-2 border-avip-info flex items-center justify-center animate-ping-slow">
+                  <div className="w-12 h-12 rounded-full border-2 border-avip-info flex items-center justify-center animate-pulse-slow">
                     <div className="w-4 h-4 bg-avip-info rounded-full" />
                   </div>
                 )}
                 {cam.state === "passed" && !cam.imageUrl && (
                   <div className="w-12 h-12 rounded-full bg-avip-pass flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
+                    <Check className="w-6 h-6 text-white" />
                   </div>
                 )}
                 {cam.state === "passed" && cam.imageUrl && (
                   <div className="w-8 h-8 rounded-full bg-avip-pass/90 flex items-center justify-center shadow-lg">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
+                    <Check className="w-4 h-4 text-white" />
                   </div>
                 )}
                 {cam.state === "failed" && (
                   <div className="flex flex-col items-center">
                     <div className="w-12 h-12 rounded-full bg-avip-fail flex items-center justify-center">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <X className="w-6 h-6 text-white" />
                     </div>
                     {cam.failReason && (
                       <span className="mt-2 text-xs text-avip-fail bg-avip-fail/10 px-2 py-1 rounded">
@@ -190,37 +191,36 @@ export function CaptureScreen() {
                 )}
               </div>
 
-              {/* Quality check badge (bottom-right) */}
               {cam.state === "passed" && cam.imageUrl && (
                 <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-gray-900/80 px-2 py-0.5 rounded text-[10px] text-avip-pass z-10">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <Check className="w-3 h-3" />
                   Quality OK
                 </div>
               )}
             </div>
           ))}
 
-          {/* Empty cell for 3x2 grid with 5 cameras */}
           <div className="rounded-xl border border-gray-800 bg-gray-900/50 flex items-center justify-center">
             <span className="text-gray-600 text-xs">Reserved</span>
           </div>
         </div>
       </div>
 
-      {/* Right: Part Info & Progress (white side panel) */}
-      <div className="w-80 bg-white border-l border-gray-200 p-6 flex flex-col">
-        {/* Part card */}
-        <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Part Identified</h3>
-          <p className="text-gray-900 font-mono font-bold text-lg">839-041322-001</p>
-          <p className="text-gray-500 text-sm">Rev C • Machined Aluminum Plate</p>
-        </div>
+      {/* Right: Part Info & Progress */}
+      <div className="w-80 bg-background border-l p-6 flex flex-col">
+        <Card size="sm" className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-xs text-muted-foreground uppercase tracking-wide">Part Identified</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-foreground font-mono font-bold text-lg">839-041322-001</p>
+            <p className="text-muted-foreground text-sm">Rev C • Machined Aluminum Plate</p>
+          </CardContent>
+        </Card>
 
         {/* Progress stepper */}
         <div className="flex-1">
-          <h3 className="text-sm font-medium text-gray-500 mb-4">Inspection Progress</h3>
+          <h3 className="text-sm font-medium text-muted-foreground mb-4">Inspection Progress</h3>
           <div className="space-y-4">
             <StepItem label="Identify" state="complete" />
             <StepItem
@@ -241,15 +241,15 @@ export function CaptureScreen() {
         </div>
 
         {/* Capture status summary */}
-        <div className="mt-auto pt-4 border-t border-gray-200">
+        <div className="mt-auto pt-4 border-t">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Cameras</span>
-            <span className="text-gray-900">
+            <span className="text-muted-foreground">Cameras</span>
+            <span className="text-foreground">
               {cameras.filter((c) => c.state === "passed").length}/{cameras.length}
             </span>
           </div>
           <div className="flex justify-between text-sm mt-1">
-            <span className="text-gray-500">Quality</span>
+            <span className="text-muted-foreground">Quality</span>
             <span className="text-avip-pass font-medium">All passed</span>
           </div>
         </div>
@@ -267,24 +267,22 @@ function StepItem({ label, state, detail }: { label: string; state: "pending" | 
             ? "bg-avip-pass"
             : state === "active"
             ? "bg-lam-navy animate-pulse"
-            : "bg-gray-200"
+            : "bg-muted"
         }`}
       >
         {state === "complete" ? (
-          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-          </svg>
+          <Check className="w-4 h-4 text-white" />
         ) : state === "active" ? (
-          <div className="w-2.5 h-2.5 bg-white rounded-full" />
+          <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
         ) : (
-          <div className="w-2.5 h-2.5 bg-gray-400 rounded-full" />
+          <div className="w-2.5 h-2.5 bg-muted-foreground/40 rounded-full" />
         )}
       </div>
       <div>
-        <span className={`text-sm font-medium ${state === "pending" ? "text-gray-400" : "text-gray-900"}`}>
+        <span className={`text-sm font-medium ${state === "pending" ? "text-muted-foreground" : "text-foreground"}`}>
           {label}
         </span>
-        {detail && <p className="text-xs text-gray-500">{detail}</p>}
+        {detail && <p className="text-xs text-muted-foreground">{detail}</p>}
       </div>
     </div>
   );

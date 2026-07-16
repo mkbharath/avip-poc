@@ -38,23 +38,17 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-02",
         "findings": [
             {"class": "scratch", "approach": "model", "confidence": 0.92, "severity": "major",
-             "desc": "Linear scratch detected on surface (12mm length, 0.3mm depth est.)",
-             "bbox": {"x": 120, "y": 85, "width": 180, "height": 25}},
-            {"class": "scratch", "approach": "anomaly", "confidence": 0.88, "severity": "major",
-             "desc": "Anomaly region correlating with surface discontinuity",
-             "bbox": {"x": 115, "y": 80, "width": 190, "height": 35}},
+             "desc": "Linear surface scratch detected — 12mm length, 0.3mm depth estimated. Exceeds surface finish tolerance.",
+             "bbox": {"x": 170, "y": 200, "width": 300, "height": 60}},
         ],
     },
     "scenario-03": {
         "decision": "FAIL",
         "fusion_rule": "F-04",
         "findings": [
-            {"class": "dent", "approach": "anomaly", "confidence": 0.87, "severity": "major",
-             "desc": "Surface depression detected by anomaly model (impact dent)",
-             "bbox": {"x": 200, "y": 150, "width": 60, "height": 55}},
-            {"class": "dent", "approach": "golden", "confidence": 0.91, "severity": "major",
-             "desc": "Golden comparison deviation exceeds tolerance in zone B3",
-             "bbox": {"x": 195, "y": 145, "width": 70, "height": 65}},
+            {"class": "dent", "approach": "anomaly", "confidence": 0.91, "severity": "major",
+             "desc": "Impact dent detected — circular depression 8mm diameter, depth exceeds 0.2mm tolerance.",
+             "bbox": {"x": 280, "y": 195, "width": 100, "height": 100}},
         ],
     },
     "scenario-04": {
@@ -62,11 +56,8 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-01",
         "findings": [
             {"class": "missing_component", "approach": "rule", "confidence": 1.0, "severity": "critical",
-             "desc": "Rule FAIL: Expected 8 fasteners, detected 7. Position #5 (NW) missing.",
-             "bbox": {"x": 80, "y": 60, "width": 40, "height": 40}},
-            {"class": "missing_component", "approach": "model", "confidence": 0.95, "severity": "critical",
-             "desc": "Object detection confirms absent fastener at grid position NW-5",
-             "bbox": {"x": 75, "y": 55, "width": 50, "height": 50}},
+             "desc": "Rule FAIL: Expected 8 fasteners, detected 7. Position #3 empty.",
+             "bbox": {"x": 370, "y": 140, "width": 40, "height": 40}},
         ],
     },
     "scenario-05": {
@@ -74,11 +65,8 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-02",
         "findings": [
             {"class": "contamination", "approach": "model", "confidence": 0.89, "severity": "major",
-             "desc": "Particulate contamination detected on electropolished surface (area: 8.2 mm²)",
-             "bbox": {"x": 150, "y": 200, "width": 90, "height": 70}},
-            {"class": "contamination", "approach": "anomaly", "confidence": 0.84, "severity": "major",
-             "desc": "Anomaly detection confirms foreign material presence",
-             "bbox": {"x": 145, "y": 195, "width": 100, "height": 80}},
+             "desc": "Particulate contamination on electropolished surface — area 8.2 mm², foreign material confirmed.",
+             "bbox": {"x": 270, "y": 190, "width": 100, "height": 80}},
         ],
     },
     "scenario-06": {
@@ -86,8 +74,8 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-03",
         "findings": [
             {"class": "surface_anomaly", "approach": "anomaly", "confidence": 0.62, "severity": "minor",
-             "desc": "Unknown surface irregularity detected — no matching supervised class. Requires human review.",
-             "bbox": {"x": 180, "y": 120, "width": 45, "height": 30}},
+             "desc": "Subtle surface discoloration detected — no matching defect class. Requires human review.",
+             "bbox": {"x": 280, "y": 210, "width": 100, "height": 70}},
         ],
     },
     "scenario-07": {
@@ -95,8 +83,8 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-03",
         "findings": [
             {"class": "surface_anomaly", "approach": "golden", "confidence": 0.58, "severity": "minor",
-             "desc": "Golden comparison shows subtle finish variation in zone C2 — within marginal tolerance band.",
-             "bbox": {"x": 100, "y": 180, "width": 120, "height": 80}},
+             "desc": "Golden comparison shows finish variation in zone C2 — within marginal tolerance band.",
+             "bbox": {"x": 280, "y": 210, "width": 100, "height": 70}},
         ],
     },
     "scenario-08": {
@@ -104,14 +92,11 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-02",
         "findings": [
             {"class": "missing_component", "approach": "model", "confidence": 0.96, "severity": "critical",
-             "desc": "Missing capacitor C14 (0805 package, position U3-adjacent)",
-             "bbox": {"x": 230, "y": 140, "width": 20, "height": 15}},
+             "desc": "Missing capacitor C14 (0805 package) — pad empty, component absent.",
+             "bbox": {"x": 335, "y": 190, "width": 30, "height": 20}},
             {"class": "crack", "approach": "model", "confidence": 0.88, "severity": "major",
-             "desc": "Solder bridge detected between pins 3-4 on U7 (QFP-48)",
-             "bbox": {"x": 310, "y": 90, "width": 15, "height": 20}},
-            {"class": "contamination", "approach": "anomaly", "confidence": 0.79, "severity": "minor",
-             "desc": "Board contamination / flux residue near J2 connector area",
-             "bbox": {"x": 50, "y": 250, "width": 60, "height": 40}},
+             "desc": "Solder crack detected on U7 pin 3 joint — intermittent connection risk.",
+             "bbox": {"x": 375, "y": 95, "width": 60, "height": 20}},
         ],
     },
     "scenario-09": {
@@ -119,8 +104,8 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-06",
         "findings": [
             {"class": "contamination", "approach": "model", "confidence": 0.57, "severity": "minor",
-             "desc": "Possible heat tint / discoloration near weld zone (confidence at decision boundary)",
-             "bbox": {"x": 160, "y": 130, "width": 80, "height": 50}},
+             "desc": "Possible heat tint / discoloration near weld zone — confidence at decision boundary.",
+             "bbox": {"x": 280, "y": 210, "width": 100, "height": 70}},
         ],
     },
     "scenario-10": {
@@ -128,9 +113,85 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-02",
         "findings": [
             {"class": "scratch", "approach": "model", "confidence": 0.86, "severity": "major",
-             "desc": "Apparent linear mark detected — likely ring-light reflection artifact on chamfer edge",
-             "bbox": {"x": 90, "y": 170, "width": 150, "height": 10}},
+             "desc": "Linear mark detected on chamfer edge — likely ring-light reflection artifact, not actual defect.",
+             "bbox": {"x": 170, "y": 200, "width": 300, "height": 60}},
         ],
+    },
+}
+
+# Part-number-based results for kiosk flow (manual barcode scans)
+# Gives each part a realistic, consistent outcome
+KIOSK_RESULTS: dict[str, dict] = {
+    "839-041322-001": {
+        # Chamber Lid Plate — PASS (clean part)
+        "decision": "PASS",
+        "fusion_rule": "F-05",
+        "findings": [],
+    },
+    "839-041322-002": {
+        # Gas Distribution Plate — FAIL (scratch)
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "scratch", "approach": "model", "confidence": 0.89, "severity": "major",
+             "desc": "Linear surface scratch on gas channel face — 15mm length, crosses critical seal area.",
+             "bbox": {"x": 30, "y": 90, "width": 320, "height": 50}},
+        ],
+    },
+    "715-098456-003": {
+        # RF Feed Assembly — FAIL (missing screw)
+        "decision": "FAIL",
+        "fusion_rule": "F-01",
+        "findings": [
+            {"class": "missing_component", "approach": "rule", "confidence": 1.0, "severity": "critical",
+             "desc": "Rule FAIL: Expected 8 fasteners, detected 7. Position #3 (NE) empty.",
+             "bbox": {"x": 370, "y": 140, "width": 40, "height": 40}},
+        ],
+    },
+    "622-073891-001": {
+        # Process Gas Manifold — REVIEW (subtle anomaly near weld)
+        "decision": "REVIEW",
+        "fusion_rule": "F-03",
+        "findings": [
+            {"class": "surface_anomaly", "approach": "anomaly", "confidence": 0.61, "severity": "minor",
+             "desc": "Subtle discoloration near weld HAZ — possible heat tint. Needs human verification.",
+             "bbox": {"x": 162, "y": 125, "width": 75, "height": 50}},
+        ],
+    },
+    "444-027654-002": {
+        # ESC Controller Board — FAIL (missing cap + crack)
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "missing_component", "approach": "model", "confidence": 0.96, "severity": "critical",
+             "desc": "Missing capacitor C14 (0805 package) — pad empty.",
+             "bbox": {"x": 335, "y": 190, "width": 30, "height": 20}},
+            {"class": "crack", "approach": "model", "confidence": 0.88, "severity": "major",
+             "desc": "Solder crack on U7 pin 3 joint — intermittent connection risk.",
+             "bbox": {"x": 375, "y": 95, "width": 60, "height": 20}},
+        ],
+    },
+    "839-055678-001": {
+        # Upper Electrode Housing — PASS
+        "decision": "PASS",
+        "fusion_rule": "F-05",
+        "findings": [],
+    },
+    "839-055678-003": {
+        # Lower Chamber Shield — REVIEW (golden comparison deviation)
+        "decision": "REVIEW",
+        "fusion_rule": "F-03",
+        "findings": [
+            {"class": "surface_anomaly", "approach": "golden", "confidence": 0.58, "severity": "minor",
+             "desc": "Golden comparison shows finish variation in anodize zone — within marginal tolerance.",
+             "bbox": {"x": 162, "y": 125, "width": 75, "height": 50}},
+        ],
+    },
+    "715-098456-007": {
+        # Showerhead Mounting Bracket — PASS
+        "decision": "PASS",
+        "fusion_rule": "F-05",
+        "findings": [],
     },
 }
 
@@ -164,8 +225,29 @@ class AIPipeline:
         if scenario_id and scenario_id in SCENARIO_RESULTS:
             return self._build_scenario_result(scenario_id)
 
-        # Non-scenario: run real inference pipeline
-        return await self._run_real_pipeline(inspection_id, family_name, thresholds)
+        # Non-scenario (kiosk flow): use part-number-based results for realistic demos
+        from app.db.database import get_db
+        db = await get_db()
+        cursor = await db.execute(
+            "SELECT p.part_number FROM inspections i JOIN parts p ON i.part_id = p.id WHERE i.id = ?",
+            (inspection_id,),
+        )
+        row = await cursor.fetchone()
+        part_number = row["part_number"] if row else None
+
+        if part_number and part_number in KIOSK_RESULTS:
+            return self._build_kiosk_result(part_number)
+
+        # Fallback: default PASS for unknown parts
+        return InspectionResult(
+            findings=[],
+            decision=Decision(
+                result=DecisionResult.PASS,
+                fusion_rule="F-05",
+                findings_count=0,
+                confidence_summary={"overall": 0.0, "max_finding": 0.0, "approaches_triggered": 0.0},
+            ),
+        )
 
     async def _run_real_pipeline(
         self,
@@ -285,9 +367,18 @@ class AIPipeline:
     def _build_scenario_result(self, scenario_id: str) -> InspectionResult:
         """Build inspection result from pre-defined scenario data."""
         scenario_data = SCENARIO_RESULTS[scenario_id]
+        return self._build_from_dict(scenario_data)
+
+    def _build_kiosk_result(self, part_number: str) -> InspectionResult:
+        """Build inspection result from part-number-based kiosk data."""
+        kiosk_data = KIOSK_RESULTS[part_number]
+        return self._build_from_dict(kiosk_data)
+
+    def _build_from_dict(self, data: dict) -> InspectionResult:
+        """Build InspectionResult from a findings dictionary."""
 
         findings = []
-        for f in scenario_data["findings"]:
+        for f in data["findings"]:
             finding = Finding(
                 id=str(uuid.uuid4()),
                 defect_class=f["class"],
@@ -295,7 +386,7 @@ class AIPipeline:
                 confidence=f["confidence"],
                 severity=Severity(f["severity"]),
                 bbox=BoundingBox(**f["bbox"]) if f.get("bbox") else None,
-                heatmap_url=None,  # Generated during real inference
+                heatmap_url=None,
                 mask_url=None,
                 description=f["desc"],
                 image_id=None,
@@ -306,8 +397,8 @@ class AIPipeline:
         approaches_triggered = len(set(f.approach.value for f in findings))
 
         decision = Decision(
-            result=DecisionResult(scenario_data["decision"]),
-            fusion_rule=scenario_data["fusion_rule"],
+            result=DecisionResult(data["decision"]),
+            fusion_rule=data["fusion_rule"],
             findings_count=len(findings),
             confidence_summary={
                 "overall": max_conf,

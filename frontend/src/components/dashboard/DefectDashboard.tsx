@@ -66,10 +66,11 @@ export function DefectDashboard() {
     if (!trendByDate[t.date]) trendByDate[t.date] = {};
     trendByDate[t.date][t.defect_class] = t.count;
   }
-  const trendData = Object.entries(trendByDate).map(([date, classes]) => ({
-    date: date.slice(5),
-    ...classes,
-  }));
+  const trendData = Object.entries(trendByDate).map(([date, classes]) => {
+    const d = new Date(date + "T00:00:00");
+    const formatted = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return { date: formatted, ...classes };
+  });
   const trendClasses = [...new Set(data.trends.map((t) => t.defect_class))];
 
   // Sort pareto data

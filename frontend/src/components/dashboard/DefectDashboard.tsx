@@ -189,8 +189,8 @@ export function DefectDashboard() {
                 ))}
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-              <XAxis dataKey="date" tick={{ fontSize: 13, fill: "#374151" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 13, fill: "#374151" }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 13, fill: "#374151" }} axisLine={false} tickLine={false} dy={10} />
+              <YAxis tick={{ fontSize: 13, fill: "#374151" }} axisLine={false} tickLine={false} dx={-10} />
               <Tooltip content={<CustomTooltip />} />
               <Legend
                 verticalAlign="top"

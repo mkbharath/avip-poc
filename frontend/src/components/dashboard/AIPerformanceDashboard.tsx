@@ -2,10 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { getAIPerformanceDashboard } from "../../api/dashboard";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceLine,
+  ResponsiveContainer, ReferenceLine, Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const toTitleCase = (str: string) =>
+  str.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 export function AIPerformanceDashboard() {
   const { data, isLoading } = useQuery({
@@ -16,52 +19,59 @@ export function AIPerformanceDashboard() {
 
   if (isLoading || !data) {
     return (
-      <div className="p-6">
-        <Card><CardContent className="pt-4"><Skeleton className="h-64 w-full" /></CardContent></Card>
+      <div className="p-6 lg:p-8">
+        <Card><CardContent className="pt-5"><Skeleton className="h-64 w-full rounded-lg" /></CardContent></Card>
       </div>
     );
   }
 
-  // Combine FPR/FNR trends for dual-line chart
-  const ratesTrend = data.fpr_trend.map((fp, i) => ({
-    date: fp.date.slice(5),
-    FPR: fp.value,
-    FNR: data.fnr_trend[i]?.value || 0,
-  }));
+  // Format dates for FPR/FNR trend
+  const ratesTrend = data.fpr_trend.map((fp, i) => {
+    const d = new Date(fp.date + "T00:00:00");
+    const formatted = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return { date: formatted, FPR: fp.value, FNR: data.fnr_trend[i]?.value || 0 };
+  });
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 lg:p-8 space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-xl font-semibold text-foreground tracking-tight">AI Performance</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">Model accuracy, error rates, and override analysis</p>
+      </div>
+
       {/* KPI Strip */}
       <div className="grid grid-cols-4 gap-4">
-        <Card className="text-center">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Overall Accuracy</p>
-            <p className="text-3xl font-bold text-avip-pass mt-1">{data.accuracy}%</p>
+        <Card className="text-center relative overflow-hidden">
+          <CardContent className="pt-5 pb-5 relative z-10">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Overall Accuracy</p>
+            <p className="text-3xl font-bold text-avip-pass mt-2">{data.accuracy}%</p>
             <p className="text-xs text-muted-foreground mt-1">Target: ≥97%</p>
           </CardContent>
+          <div className="absolute inset-0 bg-avip-pass opacity-[0.04]" />
         </Card>
-        <Card className="text-center">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs font-medium text-muted-foreground uppercase">False Positive Rate</p>
-            <p className={`text-3xl font-bold mt-1 ${data.fpr <= 5 ? "text-avip-pass" : "text-avip-review"}`}>
+        <Card className="text-center relative overflow-hidden">
+          <CardContent className="pt-5 pb-5 relative z-10">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">False Positive Rate</p>
+            <p className={`text-3xl font-bold mt-2 ${data.fpr <= 5 ? "text-avip-pass" : "text-avip-review"}`}>
               {data.fpr}%
             </p>
             <p className="text-xs text-muted-foreground mt-1">Target: ≤5%</p>
           </CardContent>
         </Card>
-        <Card className="text-center">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs font-medium text-muted-foreground uppercase">False Negative Rate</p>
-            <p className={`text-3xl font-bold mt-1 ${data.fnr <= 1 ? "text-avip-pass" : "text-avip-fail"}`}>
+        <Card className="text-center relative overflow-hidden">
+          <CardContent className="pt-5 pb-5 relative z-10">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">False Negative Rate</p>
+            <p className={`text-3xl font-bold mt-2 ${data.fnr <= 1 ? "text-avip-pass" : "text-avip-fail"}`}>
               {data.fnr}%
             </p>
             <p className="text-xs text-muted-foreground mt-1">Target: ≤1%</p>
           </CardContent>
         </Card>
         <Card className="text-center">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Model Version</p>
-            <p className="text-lg font-bold text-foreground mt-2">{data.model_info.version}</p>
+          <CardContent className="pt-5 pb-5">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Model Version</p>
+            <p className="text-xl font-bold text-foreground mt-2">{data.model_info.version}</p>
             <p className="text-xs text-muted-foreground mt-1">Updated: {data.model_info.last_updated}</p>
           </CardContent>
         </Card>
@@ -70,20 +80,38 @@ export function AIPerformanceDashboard() {
       <div className="grid grid-cols-2 gap-6">
         {/* FPR / FNR Trend */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">FPR / FNR Trend (7 days)</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle>FPR / FNR Trend (7 Days)</CardTitle>
+            <CardDescription>False positive and negative rates over time</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={ratesTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} domain={[0, "auto"]} unit="%" />
-                <Tooltip formatter={(value: number) => `${value.toFixed(2)}%`} />
-                <ReferenceLine y={5} stroke="#E67E22" strokeDasharray="5 5" label={{ value: "FPR target", position: "right", fontSize: 10 }} />
-                <ReferenceLine y={1} stroke="#C0392B" strokeDasharray="5 5" label={{ value: "FNR target", position: "right", fontSize: 10 }} />
-                <Line type="monotone" dataKey="FPR" stroke="#E67E22" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="FNR" stroke="#C0392B" strokeWidth={2} dot={{ r: 3 }} />
+            <ResponsiveContainer width="100%" height={240}>
+              <LineChart data={ratesTrend} margin={{ top: 10, right: 20, bottom: 20, left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 13, fill: "#374151" }} axisLine={false} tickLine={false} dy={8} />
+                <YAxis tick={{ fontSize: 13, fill: "#374151" }} axisLine={false} tickLine={false} domain={[0, "auto"]} unit="%" dx={-5} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    return (
+                      <div className="bg-card border border-border rounded-lg shadow-elevated px-4 py-3 text-sm">
+                        <p className="font-semibold mb-1">{label}</p>
+                        {payload.map((entry, i) => (
+                          <div key={i} className="flex items-center gap-2 py-0.5">
+                            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                            <span className="text-muted-foreground">{entry.name}</span>
+                            <span className="ml-auto font-bold">{(entry.value as number).toFixed(2)}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }}
+                />
+                <Legend verticalAlign="top" height={36} formatter={(value: string) => <span className="text-sm text-foreground">{value}</span>} />
+                <ReferenceLine y={5} stroke="#f59e0b" strokeDasharray="5 5" />
+                <ReferenceLine y={1} stroke="#ef4444" strokeDasharray="5 5" />
+                <Line type="monotone" dataKey="FPR" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4, fill: "#f59e0b", strokeWidth: 0 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
+                <Line type="monotone" dataKey="FNR" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444", strokeWidth: 0 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -91,17 +119,29 @@ export function AIPerformanceDashboard() {
 
         {/* Confidence Distribution */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Confidence Score Distribution</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle>Confidence Score Distribution</CardTitle>
+            <CardDescription>AI decision confidence histogram</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={data.confidence_histogram}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="range" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={50} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Bar dataKey="count" fill="#156082" radius={[3, 3, 0, 0]} />
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={data.confidence_histogram} margin={{ top: 10, right: 10, bottom: 20, left: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                <XAxis dataKey="range" tick={{ fontSize: 11, fill: "#374151" }} axisLine={false} tickLine={false} dy={5} />
+                <YAxis tick={{ fontSize: 13, fill: "#374151" }} axisLine={false} tickLine={false} dx={-5} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    return (
+                      <div className="bg-card border border-border rounded-lg shadow-elevated px-4 py-2.5 text-sm">
+                        <p className="font-semibold">Range: {label}</p>
+                        <p className="text-muted-foreground">{payload[0].value} inspections</p>
+                      </div>
+                    );
+                  }}
+                  cursor={{ fill: "rgba(0,0,0,0.03)" }}
+                />
+                <Bar dataKey="count" fill="#1B2A4A" radius={[4, 4, 0, 0]} barSize={28} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -110,47 +150,57 @@ export function AIPerformanceDashboard() {
 
       {/* Override Rate by Class */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Override Rate by Defect Class</CardTitle>
-          <CardDescription>% of AI decisions overridden by IQA</CardDescription>
+        <CardHeader className="pb-2">
+          <CardTitle>Override Rate by Defect Class</CardTitle>
+          <CardDescription>% of AI decisions overridden by IQA — high rates indicate retraining candidates</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={data.override_by_class} layout="vertical" margin={{ left: 30 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" tick={{ fontSize: 11 }} unit="%" domain={[0, 25]} />
-              <YAxis type="category" dataKey="defect_class" tick={{ fontSize: 11 }} width={130} />
-              <Tooltip formatter={(value: number) => `${value}%`} />
-              <ReferenceLine x={10} stroke="#E67E22" strokeDasharray="5 5" />
-              <Bar dataKey="override_rate" radius={[0, 4, 4, 0]}>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={data.override_by_class} layout="vertical" margin={{ left: 20, right: 20, top: 10, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+              <XAxis type="number" tick={{ fontSize: 13, fill: "#374151" }} unit="%" domain={[0, 25]} axisLine={false} tickLine={false} />
+              <YAxis type="category" dataKey="defect_class" tick={{ fontSize: 13, fill: "#1f2937" }} width={140} axisLine={false} tickLine={false} tickFormatter={toTitleCase} />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+                  const d = payload[0].payload;
+                  return (
+                    <div className="bg-card border border-border rounded-lg shadow-elevated px-4 py-2.5 text-sm">
+                      <p className="font-semibold">{toTitleCase(d.defect_class)}</p>
+                      <p className="text-muted-foreground">Override rate: <span className="font-bold">{d.override_rate}%</span></p>
+                    </div>
+                  );
+                }}
+                cursor={{ fill: "rgba(0,0,0,0.03)" }}
+              />
+              <ReferenceLine x={10} stroke="#f59e0b" strokeDasharray="5 5" />
+              <Bar dataKey="override_rate" radius={[0, 6, 6, 0]} barSize={22}>
                 {data.override_by_class.map((entry) => (
                   <BarCell key={entry.defect_class} overrideRate={entry.override_rate} />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-          <p className="text-xs text-muted-foreground mt-2">
-            High override rates indicate model disagreement with human reviewers — candidates for retraining focus.
-          </p>
         </CardContent>
       </Card>
 
       {/* Model Info Card */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Active Models</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle>Active Models</CardTitle>
+          <CardDescription>Currently deployed inference models</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-muted/50 rounded-lg">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Anomaly Detection</p>
-              <p className="text-sm font-bold text-foreground mt-1">{data.model_info.anomaly_model}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">PatchCore • ONNX Runtime • Edge inference</p>
+            <div className="p-5 bg-muted/40 rounded-xl">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Anomaly Detection</p>
+              <p className="text-base font-bold text-foreground mt-2">{data.model_info.anomaly_model}</p>
+              <p className="text-sm text-muted-foreground mt-1">PatchCore • ONNX Runtime • Edge inference</p>
             </div>
-            <div className="p-4 bg-muted/50 rounded-lg">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Defect Detection</p>
-              <p className="text-sm font-bold text-foreground mt-1">{data.model_info.detection_model}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">YOLOv8n • ONNX Runtime • 10 classes</p>
+            <div className="p-5 bg-muted/40 rounded-xl">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Defect Detection</p>
+              <p className="text-base font-bold text-foreground mt-2">{data.model_info.detection_model}</p>
+              <p className="text-sm text-muted-foreground mt-1">YOLOv8n • ONNX Runtime • 10 classes</p>
             </div>
           </div>
         </CardContent>
@@ -161,6 +211,6 @@ export function AIPerformanceDashboard() {
 
 // Helper component for conditional bar coloring
 function BarCell({ overrideRate }: { overrideRate: number }) {
-  const fill = overrideRate > 15 ? "#C0392B" : overrideRate > 8 ? "#E67E22" : "#1E8E3E";
+  const fill = overrideRate > 15 ? "#ef4444" : overrideRate > 8 ? "#f59e0b" : "#16a34a";
   return <rect fill={fill} />;
 }

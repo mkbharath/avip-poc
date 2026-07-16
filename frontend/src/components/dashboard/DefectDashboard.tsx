@@ -1,25 +1,42 @@
 import { useQuery } from "@tanstack/react-query";
 import { getDefectDashboard } from "../../api/dashboard";
 import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  Area, AreaChart,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const DEFECT_COLORS: Record<string, string> = {
-  scratch: "#e74c3c",
-  contamination: "#f39c12",
-  dent: "#3498db",
-  missing_component: "#9b59b6",
-  crack: "#e67e22",
-  surface_anomaly: "#1abc9c",
+  scratch: "#ef4444",
+  contamination: "#f59e0b",
+  dent: "#3b82f6",
+  missing_component: "#8b5cf6",
+  crack: "#f97316",
+  surface_anomaly: "#06b6d4",
 };
 
-const SEVERITY_COLORS = {
-  minor: "#f1c40f",
-  major: "#e67e22",
-  critical: "#e74c3c",
+const SEVERITY_COLORS: Record<string, string> = {
+  minor: "#fbbf24",
+  major: "#f97316",
+  critical: "#ef4444",
+};
+
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-card border border-border rounded-lg shadow-elevated px-3 py-2 text-xs">
+      <p className="font-medium text-foreground mb-1">{label}</p>
+      {payload.map((entry, i) => (
+        <div key={i} className="flex items-center gap-2 py-0.5">
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+          <span className="text-muted-foreground capitalize">{entry.name.replace(/_/g, " ")}</span>
+          <span className="ml-auto font-semibold text-foreground">{entry.value}</span>
+        </div>
+      ))}
+    </div>
+  );
 };
 
 export function DefectDashboard() {
@@ -31,8 +48,11 @@ export function DefectDashboard() {
 
   if (isLoading || !data) {
     return (
-      <div className="p-6">
-        <Card><CardContent className="pt-4"><Skeleton className="h-64 w-full" /></CardContent></Card>
+      <div className="p-6 lg:p-8 space-y-6">
+        <div className="grid grid-cols-2 gap-6">
+          <Card><CardContent className="pt-5"><Skeleton className="h-64 w-full rounded-lg" /></CardContent></Card>
+          <Card><CardContent className="pt-5"><Skeleton className="h-64 w-full rounded-lg" /></CardContent></Card>
+        </div>
       </div>
     );
   }
@@ -49,24 +69,43 @@ export function DefectDashboard() {
   }));
   const trendClasses = [...new Set(data.trends.map((t) => t.defect_class))];
 
+  // Sort pareto data
+  const paretoData = [...data.pareto].sort((a, b) => b.count - a.count);
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 lg:p-8 space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-xl font-semibold text-foreground tracking-tight">Defect Analytics</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">Defect classification, trends, and part family analysis</p>
+      </div>
+
+      {/* Top row: Pareto + Severity */}
       <div className="grid grid-cols-2 gap-6">
         {/* Defect Pareto */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Defect Pareto (by count)</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle>Defect Pareto</CardTitle>
+            <CardDescription>Top defect types by occurrence count</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={data.pareto} layout="vertical" margin={{ left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" tick={{ fontSize: 11 }} />
-                <YAxis type="category" dataKey="defect_class" tick={{ fontSize: 11 }} width={120} />
-                <Tooltip />
-                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                  {data.pareto.map((entry) => (
-                    <Cell key={entry.defect_class} fill={DEFECT_COLORS[entry.defect_class] || "#95a5a6"} />
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={paretoData} layout="vertical" margin={{ left: 10, right: 20, top: 10, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={true} vertical={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                <YAxis
+                  type="category"
+                  dataKey="defect_class"
+                  tick={{ fontSize: 11, fill: "#374151" }}
+                  width={115}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(val: string) => val.replace(/_/g, " ")}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(0,0,0,0.03)" }} />
+                <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={24}>
+                  {paretoData.map((entry) => (
+                    <Cell key={entry.defect_class} fill={DEFECT_COLORS[entry.defect_class] || "#94a3b8"} />
                   ))}
                 </Bar>
               </BarChart>
@@ -76,88 +115,131 @@ export function DefectDashboard() {
 
         {/* Severity Distribution */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Severity Distribution</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle>Severity Distribution</CardTitle>
+            <CardDescription>Breakdown by defect severity level</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={data.severity_distribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  dataKey="count"
-                  nameKey="severity"
-                  label={({ severity, count }) => `${severity}: ${count}`}
-                >
-                  {data.severity_distribution.map((entry) => (
-                    <Cell
-                      key={entry.severity}
-                      fill={SEVERITY_COLORS[entry.severity as keyof typeof SEVERITY_COLORS] || "#95a5a6"}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="flex items-center justify-center">
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart>
+                  <Pie
+                    data={data.severity_distribution}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={65}
+                    outerRadius={105}
+                    dataKey="count"
+                    nameKey="severity"
+                    stroke="none"
+                    paddingAngle={3}
+                  >
+                    {data.severity_distribution.map((entry) => (
+                      <Cell
+                        key={entry.severity}
+                        fill={SEVERITY_COLORS[entry.severity] || "#94a3b8"}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+                      const d = payload[0].payload;
+                      return (
+                        <div className="bg-card border border-border rounded-lg shadow-elevated px-3 py-2 text-xs">
+                          <span className="font-semibold capitalize">{d.severity}</span>
+                          <span className="ml-2 text-muted-foreground">{d.count} defects</span>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
+                    formatter={(value: string) => (
+                      <span className="text-xs text-foreground capitalize">{value}</span>
+                    )}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Trend lines */}
+      {/* Trend Chart — Area chart for a more polished look */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Defect Trends (7 days)</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle>Defect Trends</CardTitle>
+          <CardDescription>7-day rolling defect count by classification</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={trendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Legend />
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={trendData} margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>
+              <defs>
+                {trendClasses.map((cls) => (
+                  <linearGradient key={cls} id={`gradient-${cls}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={DEFECT_COLORS[cls] || "#94a3b8"} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={DEFECT_COLORS[cls] || "#94a3b8"} stopOpacity={0} />
+                  </linearGradient>
+                ))}
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend
+                verticalAlign="top"
+                height={36}
+                formatter={(value: string) => (
+                  <span className="text-xs text-foreground capitalize">{value.replace(/_/g, " ")}</span>
+                )}
+              />
               {trendClasses.map((cls) => (
-                <Line
+                <Area
                   key={cls}
                   type="monotone"
                   dataKey={cls}
-                  stroke={DEFECT_COLORS[cls] || "#95a5a6"}
+                  stroke={DEFECT_COLORS[cls] || "#94a3b8"}
                   strokeWidth={2}
-                  dot={{ r: 3 }}
+                  fill={`url(#gradient-${cls})`}
+                  dot={{ r: 3, fill: DEFECT_COLORS[cls] || "#94a3b8", strokeWidth: 0 }}
+                  activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff" }}
                 />
               ))}
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
       {/* Family Heatmap */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Defect Density by Part Family</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle>Defect Density by Part Family</CardTitle>
+          <CardDescription>Higher density indicates more quality issues per inspected unit</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-5 gap-3">
             {data.family_heatmap.map((f) => {
-              const bgColor = `rgba(231, 76, 60, ${f.density * 0.7})`;
+              const intensity = Math.min(f.density, 1);
+              const bgR = Math.round(239 * intensity + 241 * (1 - intensity));
+              const bgG = Math.round(68 * intensity + 245 * (1 - intensity));
+              const bgB = Math.round(68 * intensity + 245 * (1 - intensity));
+              const isHigh = intensity > 0.5;
               return (
                 <div
                   key={f.family}
-                  className="p-4 rounded-lg text-center border border-border"
-                  style={{ backgroundColor: bgColor }}
+                  className="p-4 rounded-xl text-center transition-all hover:scale-[1.02]"
+                  style={{ backgroundColor: `rgb(${bgR}, ${bgG}, ${bgB})` }}
                 >
-                  <p className={`text-xs font-medium ${f.density > 0.5 ? "text-white" : "text-foreground"}`}>
+                  <p className={`text-[11px] font-medium uppercase tracking-wide ${isHigh ? "text-white/90" : "text-foreground/70"}`}>
                     {f.family}
                   </p>
-                  <p className={`text-lg font-bold mt-1 ${f.density > 0.5 ? "text-white" : "text-foreground"}`}>
+                  <p className={`text-2xl font-bold mt-1.5 ${isHigh ? "text-white" : "text-foreground"}`}>
                     {(f.density * 100).toFixed(0)}%
                   </p>
-                  <p className={`text-xs mt-0.5 ${f.density > 0.5 ? "text-white/80" : "text-muted-foreground"}`}>
-                    Top: {f.top_defect}
+                  <p className={`text-[10px] mt-1 capitalize ${isHigh ? "text-white/70" : "text-muted-foreground"}`}>
+                    {f.top_defect.replace(/_/g, " ")}
                   </p>
                 </div>
               );

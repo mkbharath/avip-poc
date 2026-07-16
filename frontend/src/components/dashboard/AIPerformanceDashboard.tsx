@@ -211,6 +211,6 @@ export function AIPerformanceDashboard() {
 
 // Helper component for conditional bar coloring
 function BarCell({ overrideRate }: { overrideRate: number }) {
-  const fill = overrideRate > 15 ? "#ef4444" : overrideRate > 8 ? "#f59e0b" : "#16a34a";
+  const fill = overrideRate > 15 ? "#ef4444" : overrideRate > 8 ? "#f59e0b" : "#3b82f6";
   return <rect fill={fill} />;
 }

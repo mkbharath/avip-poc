@@ -457,44 +457,30 @@ def make_screw_assembly_top() -> Image.Image:
 
 def get_family_image(family: str, angle: str) -> Image.Image:
     """Get the correct image for a family + angle combination.
-    Each angle shows the SAME part from a different perspective."""
+    All angles show the same part surface with slight lighting/perspective variations."""
     if family == "metal_plate":
-        if angle == "top":
-            return make_chamber_lid_top()
-        elif angle == "north":
-            return make_chamber_lid_north()
-        elif angle == "south":
-            return make_chamber_lid_side()
-        elif angle == "east":
-            return make_chamber_lid_east()
-        elif angle == "west":
-            return make_chamber_lid_west()
+        img = make_chamber_lid_top()
     elif family == "pcb":
-        if angle == "top":
-            return make_pcb_top()
-        else:
-            # PCB side views — show board edge profile
-            img = make_pcb_top()
-            if angle == "north":
-                img = img.crop((0, 0, 640, 240)).resize(IMG_SIZE, Image.LANCZOS)
-            elif angle == "south":
-                img = img.crop((0, 240, 640, 480)).resize(IMG_SIZE, Image.LANCZOS)
-            elif angle == "east":
-                img = img.crop((320, 0, 640, 480)).resize(IMG_SIZE, Image.LANCZOS)
-            elif angle == "west":
-                img = img.crop((0, 0, 320, 480)).resize(IMG_SIZE, Image.LANCZOS)
-            return img
+        img = make_pcb_top()
     elif family == "weldment":
-        if angle == "top":
-            return make_weldment_top()
-        else:
-            return make_weldment_side(angle)
+        img = make_weldment_top()
     elif family == "screw":
-        if angle == "top":
-            return make_screw_assembly_top()
-        else:
-            return make_screw_assembly_side(angle)
-    return make_chamber_lid_top()
+        img = make_screw_assembly_top()
+    else:
+        img = make_chamber_lid_top()
+
+    # Apply slight variations per angle (simulates different lighting angles)
+    from PIL import ImageEnhance
+    if angle == "north":
+        img = ImageEnhance.Brightness(img).enhance(1.08)
+    elif angle == "south":
+        img = ImageEnhance.Brightness(img).enhance(0.92)
+    elif angle == "east":
+        img = ImageEnhance.Contrast(img).enhance(1.1)
+    elif angle == "west":
+        img = ImageEnhance.Contrast(img).enhance(0.9)
+
+    return img
 
 
 # Map scenarios to their family (for angle images)

@@ -99,6 +99,90 @@ def make_chamber_lid_side() -> Image.Image:
     return img
 
 
+def make_chamber_lid_north() -> Image.Image:
+    """North view — disc seen from front edge with lifting lug."""
+    w, h = IMG_SIZE
+    img = Image.new("RGB", IMG_SIZE, (42, 42, 46))
+    draw = ImageDraw.Draw(img)
+    cx, cy = w // 2, h // 2
+
+    # Disc edge (thin horizontal bar — the lid seen from the side)
+    draw.rectangle([(cx-180, cy-20), (cx+180, cy+20)], fill=(170, 172, 176))
+    # Flange (wider)
+    draw.rectangle([(cx-200, cy-6), (cx+200, cy+6)], fill=(162, 164, 168))
+    # Top face (foreshortened)
+    draw.rectangle([(cx-180, cy-30), (cx+180, cy-20)], fill=(180, 182, 186))
+
+    # Lifting lug
+    lug_x = cx + 80
+    draw.rectangle([(lug_x-10, cy-55), (lug_x+10, cy-30)], fill=(158, 160, 164), outline=(130, 132, 136))
+    draw.ellipse([(lug_x-5, cy-50), (lug_x+5, cy-40)], fill=(50, 52, 56))
+
+    # Edge machining marks
+    for x in range(cx-175, cx+175, 4):
+        shade = 166 + random.randint(-2, 2)
+        draw.line([(x, cy-18), (x, cy+18)], fill=(shade, shade, shade))
+
+    # Dimension
+    draw.line([(cx-180, cy+40), (cx+180, cy+40)], fill=(80, 150, 220), width=1)
+    draw.text((cx-20, cy+45), "406mm", fill=(80, 150, 220))
+
+    return img
+
+
+def make_chamber_lid_east() -> Image.Image:
+    """East view — right side showing gas inlet port."""
+    w, h = IMG_SIZE
+    img = Image.new("RGB", IMG_SIZE, (42, 42, 46))
+    draw = ImageDraw.Draw(img)
+    cx, cy = w // 2, h // 2
+
+    # Disc edge
+    draw.rectangle([(cx-150, cy-20), (cx+150, cy+20)], fill=(168, 170, 174))
+    # Flange
+    draw.rectangle([(cx-165, cy-8), (cx+165, cy+8)], fill=(160, 162, 166))
+
+    # Gas inlet port (protruding tube on right)
+    draw.rectangle([(cx+150, cy-10), (cx+195, cy+10)], fill=(165, 167, 171), outline=(130, 132, 136))
+    draw.ellipse([(cx+190, cy-8), (cx+200, cy+8)], fill=(55, 57, 61))
+    # VCR hex nut
+    draw.rectangle([(cx+165, cy-12), (cx+180, cy+12)], outline=(140, 142, 146))
+
+    # Bolt pattern on face
+    for bx in range(cx-140, cx+150, 35):
+        draw.ellipse([(bx-3, cy-3), (bx+3, cy+3)], fill=(140, 142, 146))
+
+    return img
+
+
+def make_chamber_lid_west() -> Image.Image:
+    """West view — left side showing thermocouple port and part number."""
+    w, h = IMG_SIZE
+    img = Image.new("RGB", IMG_SIZE, (42, 42, 46))
+    draw = ImageDraw.Draw(img)
+    cx, cy = w // 2, h // 2
+
+    # Disc edge
+    draw.rectangle([(cx-150, cy-20), (cx+150, cy+20)], fill=(168, 170, 174))
+    # Flange
+    draw.rectangle([(cx-165, cy-8), (cx+165, cy+8)], fill=(160, 162, 166))
+
+    # Thermocouple port (smaller tube on left)
+    draw.rectangle([(cx-190, cy-5), (cx-150, cy+5)], fill=(162, 164, 168), outline=(130, 132, 136))
+    draw.ellipse([(cx-195, cy-4), (cx-188, cy+4)], fill=(50, 52, 56))
+
+    # Part number engraved on edge
+    draw.text((cx-40, cy+25), "839-041322", fill=(130, 132, 136))
+    draw.text((cx-25, cy+38), "REV C", fill=(130, 132, 136))
+
+    # Edge texture
+    for x in range(cx-145, cx+145, 4):
+        shade = 164 + random.randint(-2, 2)
+        draw.line([(x, cy-18), (x, cy+18)], fill=(shade, shade, shade))
+
+    return img
+
+
 def make_gas_distribution_plate() -> Image.Image:
     """Top view of gas distribution plate — hundreds of tiny holes in a pattern."""
     w, h = IMG_SIZE
@@ -377,8 +461,14 @@ def get_family_image(family: str, angle: str) -> Image.Image:
     if family == "metal_plate":
         if angle == "top":
             return make_chamber_lid_top()
-        else:
+        elif angle == "north":
+            return make_chamber_lid_north()
+        elif angle == "south":
             return make_chamber_lid_side()
+        elif angle == "east":
+            return make_chamber_lid_east()
+        elif angle == "west":
+            return make_chamber_lid_west()
     elif family == "pcb":
         if angle == "top":
             return make_pcb_top()

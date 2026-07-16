@@ -38,8 +38,8 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-02",
         "findings": [
             {"class": "scratch", "approach": "model", "confidence": 0.92, "severity": "major",
-             "desc": "Linear surface scratch detected — 12mm length, 0.3mm depth estimated. Exceeds surface finish tolerance.",
-             "bbox": {"x": 170, "y": 200, "width": 300, "height": 60}},
+             "desc": "Linear surface scratch detected — 15mm length, crosses critical seal area.",
+             "bbox": {"x": 220, "y": 200, "width": 200, "height": 50}},
         ],
     },
     "scenario-03": {
@@ -114,7 +114,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "scratch", "approach": "model", "confidence": 0.86, "severity": "major",
              "desc": "Linear mark detected on chamfer edge — likely ring-light reflection artifact, not actual defect.",
-             "bbox": {"x": 170, "y": 200, "width": 300, "height": 60}},
+             "bbox": {"x": 220, "y": 200, "width": 200, "height": 50}},
         ],
     },
 }
@@ -135,7 +135,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "scratch", "approach": "model", "confidence": 0.89, "severity": "major",
              "desc": "Linear surface scratch on gas channel face — 15mm length, crosses critical seal area.",
-             "bbox": {"x": 30, "y": 90, "width": 320, "height": 50}},
+             "bbox": {"x": 220, "y": 200, "width": 200, "height": 50}},
         ],
     },
     "715-098456-003": {

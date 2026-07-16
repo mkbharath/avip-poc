@@ -2,20 +2,18 @@ FROM python:3.12-slim AS base
 
 WORKDIR /app
 
-# Install system dependencies for OpenCV
+# Install system dependencies for OpenCV and curl (healthcheck)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libglib2.0-0 libsm6 libxrender1 libxext6 libgl1-mesa-glx \
+    libglib2.0-0 libsm6 libxrender1 libxext6 libgl1-mesa-glx curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ ./app/
-COPY ai_models/ ./ai_models/
-COPY demo_data/ ./demo_data/
 
-# Create data directory for runtime storage
-RUN mkdir -p /app/data
+# Create directories for runtime (mounted via volumes in production)
+RUN mkdir -p /app/data /app/ai_models/patchcore /app/ai_models/yolov8 /app/demo_data
 
 ENV AVIP_ENV=demo
 ENV AVIP_DATA_DIR=/app/data

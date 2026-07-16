@@ -6,7 +6,18 @@ set -e
 echo "=== AVIP PoC Deployment ==="
 echo ""
 
+# 0. Create model placeholder files if they don't exist
+echo "0. Checking AI model files..."
+mkdir -p backend/ai_models/patchcore backend/ai_models/yolov8
+if [ ! -f backend/ai_models/patchcore/model.onnx ]; then
+    echo "   Creating placeholder model files (demo mode — models not required)"
+    touch backend/ai_models/patchcore/model.onnx
+    touch backend/ai_models/yolov8/defect_detector.onnx
+fi
+echo "   ✓ Model directory ready"
+
 # 1. Build and start containers
+echo ""
 echo "1. Building Docker images..."
 docker compose -f docker-compose.prod.yml build
 

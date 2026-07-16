@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   avip-api:
     build:
@@ -11,8 +9,8 @@ services:
       - "8001:8000"
     volumes:
       - avip-data:/app/data
-      - ./backend/demo_data:/app/demo_data:ro
-      - ./backend/ai_models:/app/ai_models:ro
+      - ./backend/demo_data:/app/demo_data
+      - ./backend/ai_models:/app/ai_models
     environment:
       - AVIP_DATA_DIR=/app/data
       - AVIP_DEMO_DATA_DIR=/app/demo_data

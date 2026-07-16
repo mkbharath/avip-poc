@@ -179,7 +179,7 @@ export function DefectDashboard() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={trendData} margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>
+            <AreaChart data={trendData} margin={{ top: 10, right: 20, bottom: 20, left: 20 }}>
               <defs>
                 {trendClasses.map((cls) => (
                   <linearGradient key={cls} id={`gradient-${cls}`} x1="0" y1="0" x2="0" y2="1">

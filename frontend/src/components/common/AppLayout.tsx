@@ -65,7 +65,7 @@ export function AppLayout() {
         {/* Logo */}
         <SidebarHeader className="px-5 pt-6 pb-4">
           <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
-            <LamResearchLogo variant="light" className="h-8 group-data-[collapsible=icon]:hidden" />
+            <LamResearchLogo variant="light" className="h-10 group-data-[collapsible=icon]:hidden" />
             <div className="w-8 h-8 rounded-lg bg-lam-green/20 items-center justify-center hidden group-data-[collapsible=icon]:flex">
               <span className="text-lam-green font-bold text-sm">L</span>
             </div>

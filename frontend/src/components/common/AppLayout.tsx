@@ -133,8 +133,8 @@ export function AppLayout() {
             </div>
           </div>
           <div className="flex items-center gap-2 mt-4 group-data-[collapsible=icon]:hidden">
-            <span className="text-slate-600 text-[9px] uppercase tracking-widest">Powered by</span>
-            <IdeyaLabsLogo variant="light" className="h-3 opacity-40" />
+            <span className="text-slate-400 text-xs tracking-wide">Powered by</span>
+            <IdeyaLabsLogo variant="light" className="h-4 opacity-70" />
           </div>
         </SidebarFooter>
       </Sidebar>

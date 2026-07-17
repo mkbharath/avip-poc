@@ -82,7 +82,7 @@ export function AppLayout() {
         <SidebarContent className="px-3 pt-1">
           {NAV_GROUPS.map((group, groupIdx) => (
             <SidebarGroup key={group.label} className={groupIdx > 0 ? "pt-4" : ""}>
-              <SidebarGroupLabel className="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-semibold px-3 mb-1.5">
+              <SidebarGroupLabel className="text-slate-500 text-xs uppercase tracking-[0.15em] font-semibold px-3 mb-1.5">
                 {group.label}
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -104,7 +104,7 @@ export function AppLayout() {
                           render={<NavLink to={item.to} />}
                         >
                           <item.icon className={`w-[18px] h-[18px] ${isActive ? "text-lam-green" : "text-slate-500"}`} strokeWidth={isActive ? 2 : 1.5} />
-                          <span className="text-[13px]">{item.label}</span>
+                          <span className="text-sm">{item.label}</span>
                           {isActive && (
                             <ChevronRight className="w-3.5 h-3.5 ml-auto opacity-50" />
                           )}

@@ -71,7 +71,7 @@ export function AppLayout() {
             </div>
           </div>
           <div className="mt-3 group-data-[collapsible=icon]:hidden">
-            <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500 font-medium uppercase tracking-[0.15em]">
+            <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 font-medium tracking-wide">
               <span className="w-1.5 h-1.5 rounded-full bg-lam-green animate-pulse" />
               AI Vision Platform
             </span>
@@ -82,7 +82,7 @@ export function AppLayout() {
         <SidebarContent className="px-3 pt-1">
           {NAV_GROUPS.map((group, groupIdx) => (
             <SidebarGroup key={group.label} className={groupIdx > 0 ? "pt-4" : ""}>
-              <SidebarGroupLabel className="text-slate-500 text-xs uppercase tracking-[0.15em] font-semibold px-3 mb-1.5">
+              <SidebarGroupLabel className="text-lam-green/70 text-[11px] uppercase tracking-widest font-bold px-3 mb-1.5">
                 {group.label}
               </SidebarGroupLabel>
               <SidebarGroupContent>

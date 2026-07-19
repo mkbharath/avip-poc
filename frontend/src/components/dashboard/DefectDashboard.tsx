@@ -130,18 +130,18 @@ export function DefectDashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
                     data={data.severity_distribution}
                     cx="50%"
-                    cy="45%"
-                    innerRadius={65}
-                    outerRadius={105}
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={110}
                     dataKey="count"
                     nameKey="severity"
                     stroke="none"
-                    paddingAngle={3}
+                    paddingAngle={2}
                   >
                     {data.severity_distribution.map((entry) => (
                       <Cell

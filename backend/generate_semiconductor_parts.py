@@ -505,8 +505,8 @@ SCENARIO_DEFECTS = {
     "scenario-03": "dent",
     "scenario-04": "missing",
     "scenario-05": "contamination",
-    "scenario-06": "anomaly",
-    "scenario-07": "anomaly",
+    "scenario-06": "anomaly_unknown",
+    "scenario-07": "anomaly_golden",
     "scenario-08": "pcb_defects",
     "scenario-09": "anomaly",
     "scenario-10": "scratch",
@@ -691,6 +691,46 @@ def apply_defect(img: Image.Image, defect_type: str) -> Image.Image:
         img = Image.fromarray(arr.astype(np.uint8))
         draw = ImageDraw.Draw(img)
         draw.ellipse([(cx-60, cy-40), (cx+60, cy+40)], outline=(175, 125, 60), width=1)
+
+    elif defect_type == "anomaly_unknown":
+        # Unknown anomaly — irregular dark patch, no clear defect class match
+        import random as rnd2
+        rnd2.seed(88)
+        cx, cy = w // 2 - 40, h // 2 + 50
+        arr = np.array(img).astype(np.float32)
+        Y, X = np.ogrid[:h, :w]
+        # Irregular dark region (not a perfect circle — looks like contamination or shadow)
+        for _ in range(600):
+            ox = int(rnd2.gauss(0, 35))
+            oy = int(rnd2.gauss(0, 25))
+            px, py = cx + ox, cy + oy
+            if 0 <= px < w and 0 <= py < h:
+                factor = 0.72 + rnd2.uniform(0, 0.10)
+                arr[py, px] = arr[py, px] * factor
+        img = Image.fromarray(arr.astype(np.uint8))
+        draw = ImageDraw.Draw(img)
+        # Irregular outline
+        pts = []
+        for a in range(0, 360, 20):
+            r_var = 35 + rnd2.randint(-10, 10)
+            rad = np.radians(a)
+            pts.append((cx + int(r_var * np.cos(rad)), cy + int(r_var * np.sin(rad))))
+        draw.line(pts + [pts[0]], fill=(130, 125, 115), width=1)
+
+    elif defect_type == "anomaly_golden":
+        # Golden deviation — very subtle finish variation (slight over-polishing band)
+        cx, cy = w // 2 + 30, h // 2 - 30
+        arr = np.array(img).astype(np.float32)
+        Y, X = np.ogrid[:h, :w]
+        # Elongated brighter band (different surface reflectivity)
+        dist = ((X - cx) / 80.0)**2 + ((Y - cy) / 25.0)**2
+        mask = dist < 1.0
+        intensity = np.clip(1.0 - dist, 0, 1)
+        # Slightly brighter (over-polished = more reflective)
+        arr[mask, 0] = np.minimum(arr[mask, 0] + intensity[mask] * 18, 255)
+        arr[mask, 1] = np.minimum(arr[mask, 1] + intensity[mask] * 18, 255)
+        arr[mask, 2] = np.minimum(arr[mask, 2] + intensity[mask] * 18, 255)
+        img = Image.fromarray(arr.astype(np.uint8))
 
     elif defect_type == "pcb_defects":
         # Missing capacitor (empty pads — larger, clearly visible)

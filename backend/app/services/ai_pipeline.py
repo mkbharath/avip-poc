@@ -74,8 +74,8 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-03",
         "findings": [
             {"class": "surface_anomaly", "approach": "anomaly", "confidence": 0.62, "severity": "minor",
-             "desc": "Subtle surface discoloration detected — no matching defect class. Requires human review.",
-             "bbox": {"x": 280, "y": 210, "width": 100, "height": 70}},
+             "desc": "Irregular dark patch on surface — no matching supervised class. Possible contamination or shadow artifact. Requires human review.",
+             "bbox": {"x": 245, "y": 265, "width": 75, "height": 55}},
         ],
     },
     "scenario-07": {
@@ -83,8 +83,8 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-03",
         "findings": [
             {"class": "surface_anomaly", "approach": "golden", "confidence": 0.58, "severity": "minor",
-             "desc": "Golden comparison shows finish variation in zone C2 — within marginal tolerance band.",
-             "bbox": {"x": 280, "y": 210, "width": 100, "height": 70}},
+             "desc": "Golden comparison shows subtle reflectivity variation — possible over-polishing or finish deviation. Within marginal tolerance band.",
+             "bbox": {"x": 270, "y": 185, "width": 160, "height": 50}},
         ],
     },
     "scenario-08": {

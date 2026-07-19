@@ -17,8 +17,8 @@ SCENARIO_DEFECTS = {
     "scenario-03": {"cx": 400, "cy": 180, "rx": 50, "ry": 50},    # dent
     "scenario-04": {"cx": 390, "cy": 160, "rx": 30, "ry": 30},    # missing
     "scenario-05": {"cx": 340, "cy": 230, "rx": 50, "ry": 40},    # contamination
-    "scenario-06": {"cx": 335, "cy": 240, "rx": 50, "ry": 35},    # anomaly
-    "scenario-07": {"cx": 335, "cy": 240, "rx": 50, "ry": 35},    # anomaly
+    "scenario-06": {"cx": 280, "cy": 290, "rx": 40, "ry": 30},    # unknown anomaly (lower-left)
+    "scenario-07": {"cx": 350, "cy": 210, "rx": 80, "ry": 25},    # golden deviation (elongated band)
     "scenario-08": [
         {"cx": 353, "cy": 203, "rx": 25, "ry": 18},   # missing cap C14
         {"cx": 407, "cy": 105, "rx": 35, "ry": 25},   # crack on U7

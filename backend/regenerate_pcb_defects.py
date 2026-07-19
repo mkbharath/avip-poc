@@ -107,8 +107,7 @@ def apply_solder_bridge(img: Image.Image) -> Image.Image:
     # Annotation arrow and label
     draw.line([(b1x+5, by+12), (b1x+5, by+35)], fill=(255, 120, 0), width=2)
     draw.polygon([(b1x+2, by+11), (b1x+8, by+11), (b1x+5, by+8)], fill=(255, 120, 0))
-    draw.rectangle([(b1x-12, by+35), (b1x+35, by+52)], fill=(255, 120, 0))
-    draw.text((b1x-8, by+38), "SOLDER BRIDGE", fill=(255, 255, 255))
+    # No text annotation — bounding box overlay handles identification
 
     return img
 
@@ -147,11 +146,10 @@ def apply_cold_solder(img: Image.Image) -> Image.Image:
     draw.ellipse([(gx-5, gy-4), (gx+5, gy+4)], fill=(240, 230, 120))
     # Bright specular highlight
     draw.ellipse([(gx-3, gy-4), (gx+4, gy-1)], fill=(255, 255, 200))
-    # "GOOD" label
-    draw.text((gx-15, gy+18), "GOOD", fill=(50, 200, 80))
-    draw.line([(gx, gy+14), (gx, gy+17)], fill=(50, 200, 80), width=1)
+    # "GOOD" label (just a small dot indicator, no text)
+    draw.ellipse([(gx-3, gy+16), (gx+3, gy+22)], fill=(50, 200, 80))
 
-    # === RIGHT PAD — COLD solder joint (negative lead) ===
+    # Right pad — no annotation text (bbox label handles this)
     bx, by = cx + r + 40, cy
     # Pad base (dull)
     draw.ellipse([(bx-18, by-14), (bx+18, by+14)], fill=(110, 100, 85), outline=(90, 82, 70), width=1)
@@ -170,9 +168,7 @@ def apply_cold_solder(img: Image.Image) -> Image.Image:
     crack_pts = [(bx-10, by-5), (bx-5, by-1), (bx+1, by-6), (bx+7, by), (bx+11, by+4)]
     draw.line(crack_pts, fill=(28, 25, 18), width=3)
     draw.line(crack_pts, fill=(185, 170, 145), width=1)
-    # "COLD JOINT" label
-    draw.text((bx-22, by+18), "COLD JOINT", fill=(255, 120, 0))
-    draw.line([(bx, by+14), (bx, by+17)], fill=(255, 120, 0), width=1)
+    # No text annotation — bounding box overlay handles identification
 
     # === Connecting traces ===
     draw.line([(gx+18, gy), (cx-r, cy)], fill=(185, 155, 55), width=2)

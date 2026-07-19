@@ -33,13 +33,14 @@ const SCENARIOS = [
 ];
 
 const DASHBOARDS = [
-  { name: 'inspections',    url: '/dashboard/inspection',  label: 'Inspections Dashboard' },
-  { name: 'defects',        url: '/dashboard/defects',     label: 'Defect Analytics' },
-  { name: 'suppliers',      url: '/dashboard/suppliers',   label: 'Supplier Quality' },
-  { name: 'ai-performance', url: '/dashboard/ai',          label: 'AI Performance' },
-  { name: 'review-queue',   url: '/review',                label: 'Review Queue' },
-  { name: 'demo-panel',     url: '/demo',                  label: 'Demo Panel' },
-  { name: 'station-kiosk',  url: '/kiosk',                 label: 'Station Kiosk' },
+  { name: '00-login',           url: '/login',                 label: 'Login Screen' },
+  { name: '01-station-kiosk',   url: '/kiosk',                 label: 'Station Kiosk (Scan)' },
+  { name: '02-review-queue',    url: '/review',                label: 'Review Queue' },
+  { name: '03-inspections',     url: '/dashboard/inspection',  label: 'Inspections Dashboard' },
+  { name: '04-defects',         url: '/dashboard/defects',     label: 'Defect Analytics' },
+  { name: '05-suppliers',       url: '/dashboard/suppliers',   label: 'Supplier Quality' },
+  { name: '06-ai-performance',  url: '/dashboard/ai',          label: 'AI Performance' },
+  { name: '07-demo-panel',      url: '/demo',                  label: 'Demo Panel' },
 ];
 
 function slug(name) {
@@ -100,8 +101,9 @@ async function screenshotScenario(page, scenario, inspectionId, outDir) {
   const base = `${scenario.id}-${slug(scenario.name)}`;
 
   if (scenario.decision === 'PASS') {
+    // PASS — show result screen with camera images
     await page.goto(`${BASE_URL}/kiosk/result/${inspectionId}`, { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2000);
     await save(page, path.join(outDir, `${base}.png`));
     return;
   }
@@ -181,8 +183,70 @@ async function main() {
     await page.waitForTimeout(300);
   }
 
-  // ── Dashboards ──
+  // ── Dashboards + static screens ──
   await screenshotDashboards(page, OUTPUT_DIR);
+
+  // ── Capture screen — navigate to an existing inspection's capture ──
+  console.log('\n--- Extra Screens ---');
+  const extraDir = path.join(OUTPUT_DIR, 'dashboards');
+
+  // Capture screen: run a fresh scenario-01 and catch mid-capture
+  console.log('\nCapture Screen (mid-inspection)');
+  const scanRes = await fetch(`${API_URL}/api/v1/demo/scenarios/scenario-01/run`, { method: 'POST' });
+  const scanData = await scanRes.json();
+  await page.goto(`${BASE_URL}/kiosk/capture/${scanData.inspection_id}`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(2000);
+  await save(page, path.join(extraDir, '08-capture-screen.png'));
+
+  // PASS result screen
+  console.log('\nPASS Result Screen');
+  await page.goto(`${BASE_URL}/kiosk/result/${scanData.inspection_id}`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(2000);
+  await save(page, path.join(extraDir, '09-result-pass.png'));
+
+  // FAIL result screen — run scenario-02
+  console.log('\nFAIL Result Screen');
+  const failRes = await fetch(`${API_URL}/api/v1/demo/scenarios/scenario-02/run`, { method: 'POST' });
+  const failData = await failRes.json();
+  await page.goto(`${BASE_URL}/kiosk/result/${failData.inspection_id}`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(2000);
+  await save(page, path.join(extraDir, '10-result-fail.png'));
+
+  // REVIEW result screen — run scenario-06
+  console.log('\nREVIEW Result Screen');
+  const revRes = await fetch(`${API_URL}/api/v1/demo/scenarios/scenario-06/run`, { method: 'POST' });
+  const revData = await revRes.json();
+  await page.goto(`${BASE_URL}/kiosk/result/${revData.inspection_id}`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(2000);
+  await save(page, path.join(extraDir, '11-result-review.png'));
+
+  // OCR Modal — label selection state
+  console.log('\nOCR Label Capture (selection)');
+  await page.goto(`${BASE_URL}/kiosk`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1000);
+  await page.locator('button:has-text("OCR Capture")').click().catch(() => {});
+  await page.waitForTimeout(1500);
+  await save(page, path.join(extraDir, '13-ocr-label-selection.png'));
+
+  // OCR Modal — after selecting a label (click first label)
+  console.log('\nOCR Label Capture (label selected)');
+  await page.locator('.grid button').first().click().catch(() => {});
+  await page.waitForTimeout(800);
+  await save(page, path.join(extraDir, '14-ocr-label-selected.png'));
+
+  // OCR Modal — capture and extract result
+  console.log('\nOCR Label Capture (result)');
+  await page.locator('button:has-text("Capture & Extract")').click().catch(() => {});
+  await page.waitForTimeout(3000); // scanning animation + result
+  await save(page, path.join(extraDir, '15-ocr-result.png'));
+  await page.goto(`${BASE_URL}/review/${failData.inspection_id}`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(2500);
+  // Enable all overlays for richest view
+  await page.locator('button:has-text("XAI Heatmap")').click().catch(() => {});
+  await page.waitForTimeout(500);
+  await page.locator('button:has-text("Golden Diff")').click().catch(() => {});
+  await page.waitForTimeout(800);
+  await save(page, path.join(extraDir, '12-review-workbench.png'));
 
   await browser.close();
 

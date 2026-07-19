@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAIPerformanceDashboard } from "../../api/dashboard";
 import {
-  LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip,
+  LineChart, Line, BarChart, Bar, Cell, LabelList, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -110,8 +110,12 @@ export function AIPerformanceDashboard() {
                 <Legend verticalAlign="top" height={36} formatter={(value: string) => <span className="text-sm text-foreground">{value}</span>} />
                 <ReferenceLine y={5} stroke="#f59e0b" strokeDasharray="5 5" />
                 <ReferenceLine y={1} stroke="#ef4444" strokeDasharray="5 5" />
-                <Line type="monotone" dataKey="FPR" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4, fill: "#f59e0b", strokeWidth: 0 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
-                <Line type="monotone" dataKey="FNR" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444", strokeWidth: 0 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
+                <Line type="monotone" dataKey="FPR" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4, fill: "#f59e0b", strokeWidth: 0 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }}>
+                  <LabelList dataKey="FPR" position="top" formatter={(v: number) => `${v.toFixed(1)}%`} style={{ fontSize: 10, fill: "#f59e0b", fontWeight: 600 }} />
+                </Line>
+                <Line type="monotone" dataKey="FNR" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444", strokeWidth: 0 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }}>
+                  <LabelList dataKey="FNR" position="bottom" formatter={(v: number) => `${v.toFixed(1)}%`} style={{ fontSize: 10, fill: "#ef4444", fontWeight: 600 }} />
+                </Line>
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -141,7 +145,9 @@ export function AIPerformanceDashboard() {
                   }}
                   cursor={{ fill: "rgba(0,0,0,0.03)" }}
                 />
-                <Bar dataKey="count" fill="#1B2A4A" radius={[4, 4, 0, 0]} barSize={28} />
+                <Bar dataKey="count" fill="#1B2A4A" radius={[4, 4, 0, 0]} barSize={28}>
+                  <LabelList dataKey="count" position="top" style={{ fontSize: 11, fill: "#374151", fontWeight: 600 }} />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -179,6 +185,7 @@ export function AIPerformanceDashboard() {
                   const fill = entry.override_rate > 15 ? "#ef4444" : entry.override_rate > 8 ? "#f59e0b" : "#3b82f6";
                   return <Cell key={entry.defect_class} fill={fill} />;
                 })}
+                <LabelList dataKey="override_rate" position="right" formatter={(v: number) => `${v}%`} style={{ fontSize: 12, fill: "#374151", fontWeight: 600 }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>

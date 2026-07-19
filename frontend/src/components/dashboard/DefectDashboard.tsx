@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getDefectDashboard } from "../../api/dashboard";
 import {
-  BarChart, Bar, PieChart, Pie, Cell,
+  BarChart, Bar, PieChart, Pie, Cell, LabelList,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   Area, AreaChart,
 } from "recharts";
@@ -111,6 +111,11 @@ export function DefectDashboard() {
                   {paretoData.map((entry) => (
                     <Cell key={entry.defect_class} fill={DEFECT_COLORS[entry.defect_class] || "#94a3b8"} />
                   ))}
+                  <LabelList
+                    dataKey="count"
+                    position="right"
+                    style={{ fontSize: 13, fontWeight: 600, fill: "#1f2937" }}
+                  />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -130,13 +135,25 @@ export function DefectDashboard() {
                   <Pie
                     data={data.severity_distribution}
                     cx="50%"
-                    cy="50%"
+                    cy="45%"
                     innerRadius={65}
                     outerRadius={105}
                     dataKey="count"
                     nameKey="severity"
                     stroke="none"
                     paddingAngle={3}
+                    label={({ cx, cy, midAngle, innerRadius, outerRadius, count }) => {
+                      const RADIAN = Math.PI / 180;
+                      const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                      return (
+                        <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight={700}>
+                          {count}
+                        </text>
+                      );
+                    }}
+                    labelLine={false}
                   >
                     {data.severity_distribution.map((entry) => (
                       <Cell
@@ -160,9 +177,10 @@ export function DefectDashboard() {
                   <Legend
                     verticalAlign="bottom"
                     height={40}
-                    formatter={(value: string) => (
-                      <span className="text-sm text-foreground">{toTitleCase(value)}</span>
-                    )}
+                    formatter={(value: string) => {
+                      const entry = data.severity_distribution.find(d => d.severity === value);
+                      return <span className="text-sm text-foreground">{toTitleCase(value)} ({entry?.count ?? 0})</span>;
+                    }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -195,9 +213,10 @@ export function DefectDashboard() {
               <Legend
                 verticalAlign="top"
                 height={40}
-                formatter={(value: string) => (
-                  <span className="text-sm text-foreground">{toTitleCase(value)}</span>
-                )}
+                formatter={(value: string) => {
+                  const total = trendData.reduce((sum, d) => sum + ((d as Record<string, number>)[value] || 0), 0);
+                  return <span className="text-sm text-foreground">{toTitleCase(value)} ({total})</span>;
+                }}
               />
               {trendClasses.map((cls) => (
                 <Area

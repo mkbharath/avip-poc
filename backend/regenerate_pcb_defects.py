@@ -115,58 +115,68 @@ def apply_solder_bridge(img: Image.Image) -> Image.Image:
 
 def apply_cold_solder(img: Image.Image) -> Image.Image:
     """
-    COLD SOLDER JOINT — dull, grainy, fractured solder on electrolytic cap.
-    Very common real defect in power boards. Highly distinctive appearance.
+    COLD SOLDER JOINT — shows TWO joints side by side for clear contrast.
+    LEFT = good (shiny, golden). RIGHT = cold (dull, grainy, cracked).
+    Uses a large through-hole electrolytic capacitor for clear visibility.
     """
     draw = ImageDraw.Draw(img)
-    arr = None  # Will convert when needed
 
-    # Draw a prominent electrolytic capacitor (large, cylindrical)
-    cx, cy = 200, 240
-    r = 28
+    # === LARGE ELECTROLYTIC CAPACITOR in clear area ===
+    cx, cy = 320, 240   # center of board, clear area
+    r = 32
 
-    # Capacitor body (black with stripe)
-    draw.ellipse([(cx-r, cy-r), (cx+r, cy+r)], fill=(12, 12, 16), outline=(50, 50, 55), width=3)
-    # Polarity stripe (lighter band)
-    draw.arc([(cx-r+3, cy-r+3), (cx+r-3, cy+r-3)], 240, 300, fill=(60, 60, 65), width=8)
-    # + marker
-    draw.line([(cx-8, cy), (cx+8, cy)], fill=(180, 180, 185), width=2)
-    draw.line([(cx, cy-8), (cx, cy+8)], fill=(180, 180, 185), width=2)
-    # Capacitor top vent (X mark)
-    draw.line([(cx-10, cy-10), (cx+10, cy+10)], fill=(30, 30, 35), width=1)
-    draw.line([(cx-10, cy+10), (cx+10, cy-10)], fill=(30, 30, 35), width=1)
+    # Capacitor body (large black cylinder)
+    draw.ellipse([(cx-r, cy-r), (cx+r, cy+r)], fill=(12, 12, 16), outline=(55, 55, 60), width=3)
+    # White polarity stripe
+    draw.arc([(cx-r+4, cy-r+4), (cx+r-4, cy+r-4)], 230, 310, fill=(220, 220, 225), width=10)
+    # + symbol
+    draw.line([(cx-10, cy), (cx+10, cy)], fill=(210, 210, 215), width=2)
+    draw.line([(cx, cy-10), (cx, cy+10)], fill=(210, 210, 215), width=2)
+    # Vent X marks
+    draw.line([(cx-12, cy-12), (cx+12, cy+12)], fill=(25, 25, 30), width=1)
+    draw.line([(cx-12, cy+12), (cx+12, cy-12)], fill=(25, 25, 30), width=1)
 
-    # Solder pads
-    # Left pad (positive — GOOD solder, shiny)
-    lpad_x, lpad_y = cx - r - 20, cy
-    draw.ellipse([(lpad_x-12, lpad_y-10), (lpad_x+12, lpad_y+10)], fill=(185, 165, 60), outline=(155, 140, 50))
-    draw.ellipse([(lpad_x-7, lpad_y-5), (lpad_x+7, lpad_y+5)], fill=(210, 195, 85))
-    draw.ellipse([(lpad_x-3, lpad_y-3), (lpad_x+3, lpad_y+3)], fill=(235, 225, 120))
+    # === LEFT PAD — GOOD solder joint (positive lead) ===
+    # Large, clear, shiny appearance
+    gx, gy = cx - r - 40, cy   # well separated from body
+    # Pad base
+    draw.ellipse([(gx-18, gy-14), (gx+18, gy+14)], fill=(160, 140, 45), outline=(130, 115, 35), width=1)
+    # Solder cone (good wetting)
+    draw.ellipse([(gx-14, gy-10), (gx+14, gy+10)], fill=(200, 180, 65))
+    draw.ellipse([(gx-9, gy-7), (gx+9, gy+7)], fill=(220, 205, 90))
+    draw.ellipse([(gx-5, gy-4), (gx+5, gy+4)], fill=(240, 230, 120))
+    # Bright specular highlight
+    draw.ellipse([(gx-3, gy-4), (gx+4, gy-1)], fill=(255, 255, 200))
+    # "GOOD" label
+    draw.text((gx-15, gy+18), "GOOD", fill=(50, 200, 80))
+    draw.line([(gx, gy+14), (gx, gy+17)], fill=(50, 200, 80), width=1)
 
-    # Right pad (negative — COLD solder, dull grey/grainy)
-    rpad_x, rpad_y = cx + r + 20, cy
-    # Cold joint base (dull, not golden)
-    draw.ellipse([(rpad_x-12, rpad_y-10), (rpad_x+12, rpad_y+10)], fill=(130, 120, 105), outline=(110, 100, 88))
-    # Grainy texture (cold solder has crystalline structure)
+    # === RIGHT PAD — COLD solder joint (negative lead) ===
+    bx, by = cx + r + 40, cy
+    # Pad base (dull)
+    draw.ellipse([(bx-18, by-14), (bx+18, by+14)], fill=(110, 100, 85), outline=(90, 82, 70), width=1)
+    # Cold solder surface — flat, dull grey, no wetting cone
+    draw.ellipse([(bx-14, by-10), (bx+14, by+10)], fill=(125, 115, 98))
+    # Crystalline/grainy texture
     import random as rnd
     rnd.seed(99)
-    for _ in range(120):
-        ox = rnd.randint(-11, 11)
+    for _ in range(150):
+        ox = rnd.randint(-13, 13)
         oy = rnd.randint(-9, 9)
-        if ox*ox/121 + oy*oy/81 <= 1.0:
-            shade = rnd.randint(95, 145)
-            draw.point((rpad_x+ox, rpad_y+oy), fill=(shade, shade-8, shade-18))
-    # Fracture crack (dark jagged line through joint)
-    draw.line([(rpad_x-8, rpad_y-4), (rpad_x-2, rpad_y+2), (rpad_x+5, rpad_y-3), (rpad_x+9, rpad_y+6)],
-              fill=(30, 28, 22), width=2)
-    draw.line([(rpad_x-7, rpad_y-5), (rpad_x-1, rpad_y+1), (rpad_x+6, rpad_y-4)],
-              fill=(180, 165, 140), width=1)
+        if ox*ox/169 + oy*oy/81 <= 1.0:
+            shade = rnd.randint(90, 145)
+            draw.point((bx+ox, by+oy), fill=(shade, shade-10, shade-22))
+    # Fracture crack (dark jagged line)
+    crack_pts = [(bx-10, by-5), (bx-5, by-1), (bx+1, by-6), (bx+7, by), (bx+11, by+4)]
+    draw.line(crack_pts, fill=(28, 25, 18), width=3)
+    draw.line(crack_pts, fill=(185, 170, 145), width=1)
+    # "COLD JOINT" label
+    draw.text((bx-22, by+18), "COLD JOINT", fill=(255, 120, 0))
+    draw.line([(bx, by+14), (bx, by+17)], fill=(255, 120, 0), width=1)
 
-    # Annotation
-    draw.line([(rpad_x+15, rpad_y), (rpad_x+55, rpad_y-20)], fill=(255, 120, 0), width=2)
-    draw.polygon([(rpad_x+14, rpad_y-3), (rpad_x+14, rpad_y+3), (rpad_x+18, rpad_y)], fill=(255, 120, 0))
-    draw.rectangle([(rpad_x+52, rpad_y-35), (rpad_x+145, rpad_y-18)], fill=(255, 120, 0))
-    draw.text((rpad_x+56, rpad_y-32), "COLD JOINT", fill=(255, 255, 255))
+    # === Connecting traces ===
+    draw.line([(gx+18, gy), (cx-r, cy)], fill=(185, 155, 55), width=2)
+    draw.line([(bx-18, by), (cx+r, cy)], fill=(185, 155, 55), width=2)
 
     return img
 

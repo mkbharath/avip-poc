@@ -203,7 +203,7 @@ export function ReviewWorkbench() {
                     }}
                     onClick={() => setSelectedFinding(i)}
                   >
-                    <span className={`absolute -top-6 left-0 text-sm font-semibold px-1.5 py-0.5 rounded ${
+                    <span className={`absolute -bottom-6 left-0 text-xs font-semibold px-1.5 py-0.5 rounded whitespace-nowrap ${
                       severity === "critical" ? "bg-red-500" : severity === "major" ? "bg-orange-400" : "bg-yellow-400"
                     } text-white`}>
                       {(f.defect_class as string).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}

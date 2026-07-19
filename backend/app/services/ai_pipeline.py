@@ -130,7 +130,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "decision": "FAIL",
         "fusion_rule": "F-02",
         "findings": [
-            {"class": "surface_anomaly", "approach": "anomaly", "confidence": 0.91, "severity": "major",
+            {"class": "crack", "approach": "anomaly", "confidence": 0.91, "severity": "major",
              "desc": "Cold solder joint on C1 electrolytic capacitor negative lead — dull, fractured joint with crystalline structure. Intermittent power failure risk.",
              "bbox": {"x": 374, "y": 226, "width": 40, "height": 30}},
         ],
@@ -191,7 +191,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "decision": "FAIL",
         "fusion_rule": "F-02",
         "findings": [
-            {"class": "surface_anomaly", "approach": "anomaly", "confidence": 0.91, "severity": "major",
+            {"class": "crack", "approach": "anomaly", "confidence": 0.91, "severity": "major",
              "desc": "Cold solder joint on C1 capacitor negative lead — dull crystalline joint with fracture crack. Power failure risk.",
              "bbox": {"x": 374, "y": 226, "width": 40, "height": 30}},
         ],

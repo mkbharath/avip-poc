@@ -631,18 +631,31 @@ def apply_defect(img: Image.Image, defect_type: str) -> Image.Image:
                       fill=(90, 92, 96), width=1)
 
     elif defect_type == "dent":
-        cx, cy = w // 2 + 30, h // 2 - 20
+        cx, cy = w // 2 + 80, h // 2 - 60   # Away from center port, on flat surface
         r = 45
         # Darken circular area
         arr = np.array(img)
         Y, X = np.ogrid[:h, :w]
         dist = np.sqrt((X - cx)**2 + (Y - cy)**2)
         mask = dist < r
-        arr[mask] = (arr[mask] * 0.65).astype(np.uint8)
+        arr[mask] = (arr[mask] * 0.62).astype(np.uint8)
+        # Very dark center
+        center_mask = dist < 18
+        arr[center_mask] = (arr[center_mask] * 0.42).astype(np.uint8)
         img = Image.fromarray(arr)
         draw = ImageDraw.Draw(img)
-        draw.arc([(cx-r, cy-r), (cx+r, cy+r)], 200, 340, fill=(220, 222, 230), width=4)
-        draw.arc([(cx-r, cy-r), (cx+r, cy+r)], 20, 160, fill=(80, 82, 86), width=3)
+        # Bright rim highlight (metal displaced by impact)
+        draw.arc([(cx-r, cy-r), (cx+r, cy+r)], 200, 350, fill=(240, 242, 248), width=5)
+        # Dark shadow rim opposite
+        draw.arc([(cx-r, cy-r), (cx+r, cy+r)], 20, 170, fill=(75, 77, 81), width=4)
+        # Radial stress cracks
+        for angle in range(0, 360, 30):
+            rad = np.radians(angle)
+            x1 = cx + int((r+5) * np.cos(rad))
+            y1 = cy + int((r+5) * np.sin(rad))
+            x2 = cx + int((r+20) * np.cos(rad))
+            y2 = cy + int((r+20) * np.sin(rad))
+            draw.line([(x1, y1), (x2, y2)], fill=(105, 107, 111), width=1)
 
     elif defect_type == "missing":
         # Remove one screw — show empty hole at position 3 (390, 160)

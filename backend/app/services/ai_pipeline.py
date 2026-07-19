@@ -48,7 +48,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "dent", "approach": "anomaly", "confidence": 0.91, "severity": "major",
              "desc": "Impact dent detected — circular depression 8mm diameter, depth exceeds 0.2mm tolerance.",
-             "bbox": {"x": 280, "y": 195, "width": 100, "height": 100}},
+             "bbox": {"x": 355, "y": 135, "width": 90, "height": 90}},
         ],
     },
     "scenario-04": {

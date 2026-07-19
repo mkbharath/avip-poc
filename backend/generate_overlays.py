@@ -14,7 +14,7 @@ IMG_SIZE = (640, 480)
 SCENARIO_DEFECTS = {
     "scenario-01": None,  # PASS — no overlays
     "scenario-02": {"cx": 320, "cy": 240, "rx": 150, "ry": 30},   # scratch
-    "scenario-03": {"cx": 350, "cy": 220, "rx": 50, "ry": 50},    # dent
+    "scenario-03": {"cx": 400, "cy": 180, "rx": 50, "ry": 50},    # dent
     "scenario-04": {"cx": 390, "cy": 160, "rx": 30, "ry": 30},    # missing
     "scenario-05": {"cx": 340, "cy": 230, "rx": 50, "ry": 40},    # contamination
     "scenario-06": {"cx": 335, "cy": 240, "rx": 50, "ry": 35},    # anomaly

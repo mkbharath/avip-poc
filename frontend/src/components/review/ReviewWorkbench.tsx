@@ -276,8 +276,8 @@ export function ReviewWorkbench() {
                     <ApproachBadge approach={f.approach as string} />
                   </div>
 
-                  {/* Row 3: Description (truncated) */}
-                  <p className="text-xs text-foreground/70 leading-relaxed line-clamp-2">
+                  {/* Row 3: Description */}
+                  <p className="text-xs text-foreground/70 leading-relaxed">
                     {f.description as string}
                   </p>
                 </button>

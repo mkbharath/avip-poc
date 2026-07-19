@@ -135,7 +135,9 @@ SCENARIO_RESULTS: dict[str, dict] = {
              "bbox": {"x": 200, "y": 150, "width": 30, "height": 30}},
         ],
     },
-} (manual barcode scans)
+}
+
+# Part-number-based results for kiosk flow (manual barcode scans)
 # Gives each part a realistic, consistent outcome
 KIOSK_RESULTS: dict[str, dict] = {
     "839-041322-001": {
@@ -194,6 +196,7 @@ KIOSK_RESULTS: dict[str, dict] = {
              "bbox": {"x": 200, "y": 150, "width": 30, "height": 30}},
         ],
     },
+    "444-027654-002": {
         # ESC Controller Board — FAIL (missing cap + crack)
         "decision": "FAIL",
         "fusion_rule": "F-02",

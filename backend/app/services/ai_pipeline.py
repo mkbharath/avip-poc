@@ -121,8 +121,8 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "decision": "FAIL",
         "fusion_rule": "F-02",
         "findings": [
-            {"class": "crack", "approach": "model", "confidence": 0.94, "severity": "critical",
-             "desc": "Solder bridge detected on IC U7 — excess solder shorting pins 3 and 4. Short circuit confirmed.",
+            {"class": "contamination", "approach": "model", "confidence": 0.94, "severity": "critical",
+             "desc": "Solder bridge on IC U7 pins 3-4 — excess solder causing short circuit. Rework required.",
              "bbox": {"x": 405, "y": 130, "width": 28, "height": 28}},
         ],
     },
@@ -181,7 +181,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "decision": "FAIL",
         "fusion_rule": "F-02",
         "findings": [
-            {"class": "crack", "approach": "model", "confidence": 0.94, "severity": "critical",
+            {"class": "contamination", "approach": "model", "confidence": 0.94, "severity": "critical",
              "desc": "Solder bridge on IC U7 pins 3-4 — excess solder causing short circuit. Rework required.",
              "bbox": {"x": 405, "y": 130, "width": 28, "height": 28}},
         ],

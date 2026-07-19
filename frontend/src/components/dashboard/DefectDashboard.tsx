@@ -214,7 +214,7 @@ export function DefectDashboard() {
                 verticalAlign="top"
                 height={40}
                 formatter={(value: string) => {
-                  const total = trendData.reduce((sum, d) => sum + ((d as Record<string, number>)[value] || 0), 0);
+                  const total = trendData.reduce((sum, d) => sum + (((d as unknown) as Record<string, number>)[value] || 0), 0);
                   return <span className="text-sm text-foreground">{toTitleCase(value)} ({total})</span>;
                 }}
               />

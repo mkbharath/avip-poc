@@ -589,6 +589,20 @@ def main():
         save_with_thumb(img, DEMO_DIR / f"kiosk/444-027654-004/{angle}.jpg")
     print("    ✓ 444-027654-004 (Tombstone)")
 
+    # Gas manifold with heat tint (REVIEW)
+    for angle in ANGLES:
+        img = get_family_image("weldment", angle)
+        if angle == "top":
+            img = apply_defect(img, "anomaly")
+        save_with_thumb(img, DEMO_DIR / f"kiosk/622-073891-001/{angle}.jpg")
+    print("    ✓ 622-073891-001 (heat tint)")
+
+    # Lower Chamber Shield with surface deviation (REVIEW)
+    for angle in ANGLES:
+        img = get_family_image("metal_plate", angle)
+        if angle == "top":
+            img = apply_defect(img, "anomaly")
+        save_with_thumb(img, DEMO_DIR / f"kiosk/839-055678-003/{angle}.jpg")
     print("\nDone!")
 
 
@@ -644,12 +658,17 @@ def apply_defect(img: Image.Image, defect_type: str) -> Image.Image:
         cx, cy = w // 2 + 15, h // 2
         arr = np.array(img).astype(np.float32)
         Y, X = np.ogrid[:h, :w]
-        dist = ((X - cx) / 45.0)**2 + ((Y - cy) / 30.0)**2
+        # Larger, stronger discoloration — clearly visible amber/brown heat tint
+        dist = ((X - cx) / 65.0)**2 + ((Y - cy) / 45.0)**2
         mask = dist < 1.0
-        arr[mask, 0] = np.minimum(arr[mask, 0] * 1.12 + 10, 255)
-        arr[mask, 1] = arr[mask, 1] * 0.93
-        arr[mask, 2] = arr[mask, 2] * 0.8
+        # Strong amber/brown heat tint
+        arr[mask, 0] = np.minimum(arr[mask, 0] * 1.25 + 30, 255)
+        arr[mask, 1] = arr[mask, 1] * 0.78
+        arr[mask, 2] = arr[mask, 2] * 0.55
         img = Image.fromarray(arr.astype(np.uint8))
+        draw = ImageDraw.Draw(img)
+        # Visible elliptical boundary
+        draw.ellipse([(cx-65, cy-45), (cx+65, cy+45)], outline=(185, 130, 55), width=2)
 
     elif defect_type == "pcb_defects":
         # Missing capacitor (empty pads — larger, clearly visible)

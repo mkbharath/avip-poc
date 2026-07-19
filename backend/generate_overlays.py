@@ -22,6 +22,8 @@ SCENARIO_DEFECTS = {
     "scenario-08": {"cx": 370, "cy": 160, "rx": 60, "ry": 50},    # pcb multi
     "scenario-09": {"cx": 335, "cy": 230, "rx": 50, "ry": 35},    # anomaly
     "scenario-10": {"cx": 320, "cy": 240, "rx": 150, "ry": 30},   # scratch
+    "scenario-11": {"cx": 320, "cy": 323, "rx": 30, "ry": 25},    # lifted pad
+    "scenario-12": {"cx": 353, "cy": 182, "rx": 20, "ry": 20},    # tombstone
 }
 
 # Kiosk defects
@@ -29,6 +31,8 @@ KIOSK_DEFECTS = {
     "839-041322-002": {"cx": 320, "cy": 240, "rx": 150, "ry": 30},
     "715-098456-003": {"cx": 390, "cy": 160, "rx": 30, "ry": 30},
     "444-027654-002": {"cx": 370, "cy": 160, "rx": 60, "ry": 50},
+    "444-027654-003": {"cx": 320, "cy": 323, "rx": 30, "ry": 25},
+    "444-027654-004": {"cx": 353, "cy": 182, "rx": 20, "ry": 20},
 }
 
 

@@ -495,6 +495,8 @@ SCENARIO_FAMILIES = {
     "scenario-08": "pcb",
     "scenario-09": "weldment",
     "scenario-10": "metal_plate",
+    "scenario-11": "pcb",
+    "scenario-12": "pcb",
 }
 
 SCENARIO_DEFECTS = {
@@ -508,6 +510,8 @@ SCENARIO_DEFECTS = {
     "scenario-08": "pcb_defects",
     "scenario-09": "anomaly",
     "scenario-10": "scratch",
+    "scenario-11": "lifted_pad",
+    "scenario-12": "tombstone",
 }
 
 
@@ -568,6 +572,22 @@ def main():
             img = apply_defect(img, "pcb_defects")
         save_with_thumb(img, DEMO_DIR / f"kiosk/444-027654-002/{angle}.jpg")
     print("    ✓ 444-027654-002 (PCB)")
+
+    # RF Driver Board — lifted pad
+    for angle in ANGLES:
+        img = get_family_image("pcb", angle)
+        if angle == "top":
+            img = apply_defect(img, "lifted_pad")
+        save_with_thumb(img, DEMO_DIR / f"kiosk/444-027654-003/{angle}.jpg")
+    print("    ✓ 444-027654-003 (Lifted pad)")
+
+    # Power Distribution Board — tombstoned component
+    for angle in ANGLES:
+        img = get_family_image("pcb", angle)
+        if angle == "top":
+            img = apply_defect(img, "tombstone")
+        save_with_thumb(img, DEMO_DIR / f"kiosk/444-027654-004/{angle}.jpg")
+    print("    ✓ 444-027654-004 (Tombstone)")
 
     print("\nDone!")
 

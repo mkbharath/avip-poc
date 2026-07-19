@@ -117,9 +117,25 @@ SCENARIO_RESULTS: dict[str, dict] = {
              "bbox": {"x": 220, "y": 200, "width": 200, "height": 50}},
         ],
     },
-}
-
-# Part-number-based results for kiosk flow (manual barcode scans)
+    "scenario-11": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "crack", "approach": "model", "confidence": 0.94, "severity": "critical",
+             "desc": "Lifted pad detected on J4 connector pin 2 — pad separated from substrate. Intermittent signal loss risk.",
+             "bbox": {"x": 300, "y": 320, "width": 40, "height": 30}},
+        ],
+    },
+    "scenario-12": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "missing_component", "approach": "model", "confidence": 0.91, "severity": "critical",
+             "desc": "Tombstoned capacitor C22 (0402) — component standing vertically, one pad not soldered. Reflow defect.",
+             "bbox": {"x": 200, "y": 150, "width": 30, "height": 30}},
+        ],
+    },
+} (manual barcode scans)
 # Gives each part a realistic, consistent outcome
 KIOSK_RESULTS: dict[str, dict] = {
     "839-041322-001": {
@@ -158,7 +174,26 @@ KIOSK_RESULTS: dict[str, dict] = {
              "bbox": {"x": 162, "y": 125, "width": 75, "height": 50}},
         ],
     },
-    "444-027654-002": {
+    "444-027654-003": {
+        # RF Driver Board — FAIL (lifted pad)
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "crack", "approach": "model", "confidence": 0.94, "severity": "critical",
+             "desc": "Lifted pad on J4 connector pin 2 — pad separated from substrate, intermittent signal loss risk.",
+             "bbox": {"x": 300, "y": 320, "width": 40, "height": 30}},
+        ],
+    },
+    "444-027654-004": {
+        # Power Distribution Board — FAIL (tombstoned component)
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "missing_component", "approach": "model", "confidence": 0.91, "severity": "critical",
+             "desc": "Tombstoned capacitor C22 (0402) — component standing vertically, one pad unsoldered.",
+             "bbox": {"x": 200, "y": 150, "width": 30, "height": 30}},
+        ],
+    },
         # ESC Controller Board — FAIL (missing cap + crack)
         "decision": "FAIL",
         "fusion_rule": "F-02",

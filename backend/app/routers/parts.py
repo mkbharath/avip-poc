@@ -16,6 +16,8 @@ OCR_LABEL_MAP: dict[str, str | None] = {
     "label_839-041322-001.jpg": "839-041322-001",
     "label_839-041322-002.jpg": "839-041322-002",
     "label_444-027654-002.jpg": "444-027654-002",
+    "label_444-027654-003.jpg": "444-027654-003",
+    "label_444-027654-004.jpg": "444-027654-004",
     "label_622-073891-001.jpg": "622-073891-001",
     "label_715-098456-003.jpg": "715-098456-003",
     "label_damaged.jpg": None,  # Simulates unreadable/damaged label

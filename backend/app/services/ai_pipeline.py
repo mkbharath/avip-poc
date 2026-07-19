@@ -123,14 +123,14 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "crack", "approach": "model", "confidence": 0.94, "severity": "critical",
              "desc": "Solder bridge detected on IC U7 — excess solder shorting pins 3 and 4. Short circuit confirmed.",
-             "bbox": {"x": 380, "y": 134, "width": 55, "height": 30}},
+             "bbox": {"x": 405, "y": 130, "width": 28, "height": 28}},
         ],
     },
     "scenario-12": {
         "decision": "FAIL",
         "fusion_rule": "F-02",
         "findings": [
-            {"class": "missing_component", "approach": "model", "confidence": 0.91, "severity": "critical",
+            {"class": "surface_anomaly", "approach": "anomaly", "confidence": 0.91, "severity": "major",
              "desc": "Cold solder joint on C1 electrolytic capacitor negative lead — dull, fractured joint with crystalline structure. Intermittent power failure risk.",
              "bbox": {"x": 374, "y": 226, "width": 40, "height": 30}},
         ],
@@ -183,7 +183,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "crack", "approach": "model", "confidence": 0.94, "severity": "critical",
              "desc": "Solder bridge on IC U7 pins 3-4 — excess solder causing short circuit. Rework required.",
-             "bbox": {"x": 380, "y": 134, "width": 55, "height": 30}},
+             "bbox": {"x": 405, "y": 130, "width": 28, "height": 28}},
         ],
     },
     "444-027654-004": {
@@ -191,7 +191,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "decision": "FAIL",
         "fusion_rule": "F-02",
         "findings": [
-            {"class": "missing_component", "approach": "model", "confidence": 0.91, "severity": "critical",
+            {"class": "surface_anomaly", "approach": "anomaly", "confidence": 0.91, "severity": "major",
              "desc": "Cold solder joint on C1 capacitor negative lead — dull crystalline joint with fracture crack. Power failure risk.",
              "bbox": {"x": 374, "y": 226, "width": 40, "height": 30}},
         ],

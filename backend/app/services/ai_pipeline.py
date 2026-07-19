@@ -122,8 +122,8 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-02",
         "findings": [
             {"class": "crack", "approach": "model", "confidence": 0.94, "severity": "critical",
-             "desc": "Lifted pad detected on J4 connector pin 2 — pad separated from substrate. Intermittent signal loss risk.",
-             "bbox": {"x": 300, "y": 320, "width": 40, "height": 30}},
+             "desc": "Solder bridge detected on IC U7 — excess solder shorting pins 3 and 4. Short circuit confirmed.",
+             "bbox": {"x": 380, "y": 134, "width": 55, "height": 30}},
         ],
     },
     "scenario-12": {
@@ -131,8 +131,8 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-02",
         "findings": [
             {"class": "missing_component", "approach": "model", "confidence": 0.91, "severity": "critical",
-             "desc": "Tombstoned capacitor C22 (0402) — component standing vertically, one pad not soldered. Reflow defect.",
-             "bbox": {"x": 200, "y": 150, "width": 30, "height": 30}},
+             "desc": "Cold solder joint on C1 electrolytic capacitor — dull, fractured joint. Intermittent power failure risk.",
+             "bbox": {"x": 228, "y": 230, "width": 40, "height": 25}},
         ],
     },
 }
@@ -177,23 +177,23 @@ KIOSK_RESULTS: dict[str, dict] = {
         ],
     },
     "444-027654-003": {
-        # RF Driver Board — FAIL (lifted pad)
+        # RF Driver Board — FAIL (solder bridge)
         "decision": "FAIL",
         "fusion_rule": "F-02",
         "findings": [
             {"class": "crack", "approach": "model", "confidence": 0.94, "severity": "critical",
-             "desc": "Lifted pad on J4 connector pin 2 — pad separated from substrate, intermittent signal loss risk.",
-             "bbox": {"x": 300, "y": 320, "width": 40, "height": 30}},
+             "desc": "Solder bridge on IC U7 pins 3-4 — excess solder causing short circuit. Rework required.",
+             "bbox": {"x": 380, "y": 134, "width": 55, "height": 30}},
         ],
     },
     "444-027654-004": {
-        # Power Distribution Board — FAIL (tombstoned component)
+        # Power Distribution Board — FAIL (cold solder joint)
         "decision": "FAIL",
         "fusion_rule": "F-02",
         "findings": [
             {"class": "missing_component", "approach": "model", "confidence": 0.91, "severity": "critical",
-             "desc": "Tombstoned capacitor C22 (0402) — component standing vertically, one pad unsoldered.",
-             "bbox": {"x": 200, "y": 150, "width": 30, "height": 30}},
+             "desc": "Cold solder joint on C1 capacitor — dull crystalline joint with fracture crack. Power failure risk.",
+             "bbox": {"x": 228, "y": 230, "width": 40, "height": 25}},
         ],
     },
     "444-027654-002": {

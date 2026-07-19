@@ -100,21 +100,21 @@ DEMO_SCENARIOS = [
     },
     {
         "id": "scenario-11",
-        "name": "Lifted Pad — RF Driver Board",
+        "name": "Solder Bridge — RF Driver Board",
         "family": "pcb-sub-assembly",
         "part_number": "444-027654-003",
         "expected_decision": "FAIL",
-        "description": "RF Driver Board with a lifted solder pad on connector J4 — pad has separated from board substrate, causing intermittent signal loss.",
-        "demonstrates": "PCB pad-level defect detection, FAIL routing for rework",
+        "description": "RF Driver Board with excess solder bridging IC U7 pins 3 and 4 — confirmed short circuit detected by AI.",
+        "demonstrates": "PCB solder bridge detection, FAIL routing for rework",
     },
     {
         "id": "scenario-12",
-        "name": "Tombstoned Capacitor — Power Board",
+        "name": "Cold Solder Joint — Power Board",
         "family": "pcb-sub-assembly",
         "part_number": "444-027654-004",
         "expected_decision": "FAIL",
-        "description": "Power Distribution Board with a tombstoned 0402 capacitor — one end lifted vertically off its pad due to uneven reflow soldering.",
-        "demonstrates": "Fine-pitch SMD defect detection, automated FAIL for soldering issue",
+        "description": "Power Distribution Board with a cold (crystalline, fractured) solder joint on C1 electrolytic capacitor.",
+        "demonstrates": "Cold joint detection via visual anomaly — intermittent failure risk",
     },
 ]
 

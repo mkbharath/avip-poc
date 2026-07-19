@@ -718,19 +718,33 @@ def apply_defect(img: Image.Image, defect_type: str) -> Image.Image:
         draw.line(pts + [pts[0]], fill=(130, 125, 115), width=1)
 
     elif defect_type == "anomaly_golden":
-        # Golden deviation — very subtle finish variation (slight over-polishing band)
-        cx, cy = w // 2 + 30, h // 2 - 30
+        # Golden deviation — visible concentric ring of different surface finish
+        # Looks like uneven anodizing or polishing variation (ring pattern)
+        cx, cy = w // 2, h // 2
+        draw = ImageDraw.Draw(img)
         arr = np.array(img).astype(np.float32)
         Y, X = np.ogrid[:h, :w]
-        # Elongated brighter band (different surface reflectivity)
-        dist = ((X - cx) / 80.0)**2 + ((Y - cy) / 25.0)**2
-        mask = dist < 1.0
-        intensity = np.clip(1.0 - dist, 0, 1)
-        # Slightly brighter (over-polished = more reflective)
-        arr[mask, 0] = np.minimum(arr[mask, 0] + intensity[mask] * 18, 255)
-        arr[mask, 1] = np.minimum(arr[mask, 1] + intensity[mask] * 18, 255)
-        arr[mask, 2] = np.minimum(arr[mask, 2] + intensity[mask] * 18, 255)
+
+        # Arc-shaped band at radius ~100px — brighter (different anodize thickness)
+        dist_from_center = np.sqrt((X - cx) ** 2 + (Y - cy) ** 2)
+        # Ring between radius 90 and 120
+        ring_mask = (dist_from_center > 88) & (dist_from_center < 118)
+        # Make ring slightly brighter and warmer (anodize variation)
+        arr[ring_mask, 0] = np.minimum(arr[ring_mask, 0] + 22, 255)
+        arr[ring_mask, 1] = np.minimum(arr[ring_mask, 1] + 18, 255)
+        arr[ring_mask, 2] = np.minimum(arr[ring_mask, 2] + 8, 255)
+
         img = Image.fromarray(arr.astype(np.uint8))
+        draw = ImageDraw.Draw(img)
+        # Dashed outline marking the band
+        for a in range(0, 360, 8):
+            if a % 16 < 8:  # dashed effect
+                rad = np.radians(a)
+                x1 = cx + int(88 * np.cos(rad))
+                y1 = cy + int(88 * np.sin(rad))
+                x2 = cx + int(118 * np.cos(rad))
+                y2 = cy + int(118 * np.sin(rad))
+                draw.line([(x1, y1), (x2, y2)], fill=(200, 190, 160), width=1)
 
     elif defect_type == "pcb_defects":
         # Missing capacitor (empty pads — larger, clearly visible)

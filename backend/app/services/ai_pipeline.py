@@ -83,8 +83,8 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "fusion_rule": "F-03",
         "findings": [
             {"class": "surface_anomaly", "approach": "golden", "confidence": 0.58, "severity": "minor",
-             "desc": "Golden comparison shows subtle reflectivity variation — possible over-polishing or finish deviation. Within marginal tolerance band.",
-             "bbox": {"x": 270, "y": 185, "width": 160, "height": 50}},
+             "desc": "Golden comparison shows concentric ring of different surface reflectivity — possible uneven anodizing or polishing variation. Within marginal tolerance band.",
+             "bbox": {"x": 210, "y": 130, "width": 220, "height": 220}},
         ],
     },
     "scenario-08": {

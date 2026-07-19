@@ -543,7 +543,14 @@ def main():
         for angle in ANGLES:
             img = get_family_image(family, angle)
             if defect and angle == "top":
-                img = apply_defect(img, defect)
+                if defect == "lifted_pad":
+                    from regenerate_pcb_defects import apply_solder_bridge
+                    img = apply_solder_bridge(img)
+                elif defect == "tombstone":
+                    from regenerate_pcb_defects import apply_cold_solder
+                    img = apply_cold_solder(img)
+                else:
+                    img = apply_defect(img, defect)
             save_with_thumb(img, out_dir / f"{angle}.jpg")
         print(f"    ✓ {sid} ({family}, defect={defect or 'clean'})")
 
@@ -573,21 +580,23 @@ def main():
         save_with_thumb(img, DEMO_DIR / f"kiosk/444-027654-002/{angle}.jpg")
     print("    ✓ 444-027654-002 (PCB)")
 
-    # RF Driver Board — lifted pad
+    # RF Driver Board — solder bridge
     for angle in ANGLES:
         img = get_family_image("pcb", angle)
         if angle == "top":
-            img = apply_defect(img, "lifted_pad")
+            from regenerate_pcb_defects import apply_solder_bridge
+            img = apply_solder_bridge(img)
         save_with_thumb(img, DEMO_DIR / f"kiosk/444-027654-003/{angle}.jpg")
-    print("    ✓ 444-027654-003 (Lifted pad)")
+    print("    ✓ 444-027654-003 (Solder Bridge)")
 
-    # Power Distribution Board — tombstoned component
+    # Power Distribution Board — cold solder joint
     for angle in ANGLES:
         img = get_family_image("pcb", angle)
         if angle == "top":
-            img = apply_defect(img, "tombstone")
+            from regenerate_pcb_defects import apply_cold_solder
+            img = apply_cold_solder(img)
         save_with_thumb(img, DEMO_DIR / f"kiosk/444-027654-004/{angle}.jpg")
-    print("    ✓ 444-027654-004 (Tombstone)")
+    print("    ✓ 444-027654-004 (Cold Solder Joint)")
 
     # Gas manifold with heat tint (REVIEW)
     for angle in ANGLES:

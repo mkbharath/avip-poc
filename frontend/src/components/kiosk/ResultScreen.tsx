@@ -31,6 +31,7 @@ export function ResultScreen() {
   const partNumber = (inspectionData?.part_number ?? part?.part_number ?? "") as string;
   const revision = (inspectionData?.revision ?? part?.revision ?? "") as string;
   const findings = (Array.isArray(inspectionData?.findings) ? inspectionData.findings : []) as Array<Record<string, unknown>>;
+  const images = (Array.isArray(inspectionData?.images) ? inspectionData.images : []) as Array<Record<string, unknown>>;
 
   useEffect(() => {
     if (decisionResult !== "PASS") return;
@@ -100,12 +101,44 @@ export function ResultScreen() {
       )}
 
       {decisionResult === "PASS" && (
-        <Card className="mt-8 border-avip-pass/30">
-          <CardContent className="pt-4 text-center">
-            <p className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Certificate ID</p>
-            <p className="text-avip-pass font-mono text-lg font-bold">{(id || "").slice(0, 8).toUpperCase()}</p>
-          </CardContent>
-        </Card>
+        <div className="mt-8 w-full max-w-2xl space-y-4">
+          {/* Inspected images strip */}
+          {images.length > 0 && (
+            <Card className="border-avip-pass/20">
+              <CardContent className="pt-4 pb-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                  Inspected — All {images.length} Cameras Passed
+                </p>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {images.map((img, i) => (
+                    <div key={i} className="flex-shrink-0 relative">
+                      <img
+                        src={img.file_url as string}
+                        alt={(img.camera_angle as string).toUpperCase()}
+                        className="w-24 h-18 object-cover rounded-lg border-2 border-avip-pass/40"
+                        style={{ height: '72px' }}
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 bg-avip-pass/80 text-white text-[9px] font-medium text-center rounded-b-lg py-0.5">
+                        {(img.camera_angle as string).toUpperCase()}
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-avip-pass rounded-full flex items-center justify-center">
+                        <CheckCircle2 className="w-3 h-3 text-white" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Certificate */}
+          <Card className="border-avip-pass/30">
+            <CardContent className="pt-4 text-center">
+              <p className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Certificate ID</p>
+              <p className="text-avip-pass font-mono text-lg font-bold">{(id || "").slice(0, 8).toUpperCase()}</p>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       <div className="mt-10 flex gap-3">

@@ -66,7 +66,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "contamination", "approach": "model", "confidence": 0.89, "severity": "major",
              "desc": "Particulate contamination on electropolished surface — area 8.2 mm², foreign material confirmed.",
-             "bbox": {"x": 270, "y": 190, "width": 100, "height": 80}},
+             "bbox": {"x": 270, "y": 195, "width": 120, "height": 90}},
         ],
     },
     "scenario-06": {
@@ -173,7 +173,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "surface_anomaly", "approach": "anomaly", "confidence": 0.61, "severity": "minor",
              "desc": "Subtle discoloration near weld HAZ — possible heat tint. Needs human verification.",
-             "bbox": {"x": 162, "y": 125, "width": 75, "height": 50}},
+             "bbox": {"x": 275, "y": 200, "width": 120, "height": 80}},
         ],
     },
     "444-027654-003": {

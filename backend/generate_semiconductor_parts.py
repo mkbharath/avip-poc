@@ -667,17 +667,17 @@ def apply_defect(img: Image.Image, defect_type: str) -> Image.Image:
         cx, cy = w // 2 + 15, h // 2
         arr = np.array(img).astype(np.float32)
         Y, X = np.ogrid[:h, :w]
-        # Larger, stronger discoloration — clearly visible amber/brown heat tint
-        dist = ((X - cx) / 65.0)**2 + ((Y - cy) / 45.0)**2
+        # Realistic heat tint — gradient from center, brownish-amber
+        dist = ((X - cx) / 60.0)**2 + ((Y - cy) / 40.0)**2
         mask = dist < 1.0
-        # Strong amber/brown heat tint
-        arr[mask, 0] = np.minimum(arr[mask, 0] * 1.25 + 30, 255)
-        arr[mask, 1] = arr[mask, 1] * 0.78
-        arr[mask, 2] = arr[mask, 2] * 0.55
+        intensity = np.clip(1.0 - dist, 0, 1)
+        # Subtle but visible: warm amber shift, not solid orange
+        arr[mask, 0] = np.minimum(arr[mask, 0] + intensity[mask] * 30, 255)
+        arr[mask, 1] = arr[mask, 1] * (1.0 - intensity[mask] * 0.18)
+        arr[mask, 2] = arr[mask, 2] * (1.0 - intensity[mask] * 0.40)
         img = Image.fromarray(arr.astype(np.uint8))
         draw = ImageDraw.Draw(img)
-        # Visible elliptical boundary
-        draw.ellipse([(cx-65, cy-45), (cx+65, cy+45)], outline=(185, 130, 55), width=2)
+        draw.ellipse([(cx-60, cy-40), (cx+60, cy+40)], outline=(175, 125, 60), width=1)
 
     elif defect_type == "pcb_defects":
         # Missing capacitor (empty pads — larger, clearly visible)

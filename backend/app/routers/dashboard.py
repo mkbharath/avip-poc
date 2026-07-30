@@ -124,6 +124,12 @@ async def defect_dashboard():
         "missing_component": 8,
         "crack": 5,
         "surface_anomaly": 4,
+        "porosity": 11,
+        "tool_marks": 9,
+        "coating_stain": 7,
+        "label_mismatch": 3,
+        "burr": 6,
+        "paint_peel": 5,
     }
     # Add real counts on top of simulated baseline
     merged = {k: v + real_pareto.get(k, 0) for k, v in sim_pareto.items()}
@@ -139,14 +145,14 @@ async def defect_dashboard():
     rows = await cursor.fetchall()
     real_severity = {r["severity"]: r["cnt"] for r in rows}
     severity = [
-        {"severity": "minor", "count": 32 + real_severity.get("minor", 0)},
-        {"severity": "major", "count": 18 + real_severity.get("major", 0)},
-        {"severity": "critical", "count": 6 + real_severity.get("critical", 0)},
+        {"severity": "minor", "count": 42 + real_severity.get("minor", 0)},
+        {"severity": "major", "count": 38 + real_severity.get("major", 0)},
+        {"severity": "critical", "count": 14 + real_severity.get("critical", 0)},
     ]
 
     # Trends (simulated 7-day)
     trends = []
-    defect_classes = ["scratch", "contamination", "dent", "missing_component"]
+    defect_classes = ["scratch", "contamination", "dent", "missing_component", "porosity", "tool_marks", "burr"]
     for i in range(7):
         date = (datetime.now(timezone.utc) - timedelta(days=6 - i)).strftime("%Y-%m-%d")
         for dc in defect_classes:

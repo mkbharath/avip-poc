@@ -15,6 +15,12 @@ const DEFECT_COLORS: Record<string, string> = {
   missing_component: "#8b5cf6",
   crack: "#f97316",
   surface_anomaly: "#06b6d4",
+  porosity: "#dc2626",
+  tool_marks: "#7c3aed",
+  coating_stain: "#d97706",
+  label_mismatch: "#be185d",
+  burr: "#059669",
+  paint_peel: "#9333ea",
 };
 
 const SEVERITY_COLORS: Record<string, string> = {

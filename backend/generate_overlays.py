@@ -27,6 +27,12 @@ SCENARIO_DEFECTS = {
     "scenario-10": {"cx": 320, "cy": 240, "rx": 150, "ry": 30},   # scratch
     "scenario-11": {"cx": 420, "cy": 149, "rx": 40, "ry": 18},    # solder bridge on IC pins
     "scenario-12": {"cx": 392, "cy": 240, "rx": 25, "ry": 20},    # cold solder joint (right pad)
+    "scenario-13": {"cx": 320, "cy": 240, "rx": 70, "ry": 50},    # porosity (center cluster)
+    "scenario-14": {"cx": 320, "cy": 230, "rx": 150, "ry": 50},   # tool marks (wide horizontal)
+    "scenario-15": {"cx": 310, "cy": 250, "rx": 80, "ry": 70},    # coating stain (multiple patches)
+    "scenario-16": {"cx": 320, "cy": 240, "rx": 150, "ry": 110},  # label mismatch (full area)
+    "scenario-17": {"cx": 320, "cy": 240, "rx": 40, "ry": 40},    # burr (on hole edge)
+    "scenario-18": {"cx": 380, "cy": 200, "rx": 40, "ry": 40},    # paint peel (upper right)
 }
 
 # Kiosk defects
@@ -41,6 +47,12 @@ KIOSK_DEFECTS = {
     "839-055678-003": {"cx": 335, "cy": 240, "rx": 65, "ry": 45},   # surface deviation
     "444-027654-003": {"cx": 420, "cy": 149, "rx": 40, "ry": 18},
     "444-027654-004": {"cx": 392, "cy": 240, "rx": 25, "ry": 20},
+    "839-041322-003": {"cx": 320, "cy": 240, "rx": 70, "ry": 50},
+    "839-041322-004": {"cx": 320, "cy": 230, "rx": 150, "ry": 50},
+    "839-055678-004": {"cx": 310, "cy": 250, "rx": 80, "ry": 70},
+    "839-055678-005": {"cx": 320, "cy": 240, "rx": 150, "ry": 110},
+    "715-098456-008": {"cx": 320, "cy": 240, "rx": 40, "ry": 40},
+    "839-055678-006": {"cx": 380, "cy": 200, "rx": 40, "ry": 40},
 }
 
 

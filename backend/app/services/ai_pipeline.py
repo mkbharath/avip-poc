@@ -135,6 +135,60 @@ SCENARIO_RESULTS: dict[str, dict] = {
              "bbox": {"x": 374, "y": 226, "width": 40, "height": 30}},
         ],
     },
+    "scenario-13": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "porosity", "approach": "model", "confidence": 0.93, "severity": "critical",
+             "desc": "Subsurface material porosity exposed after machining — multiple voids (0.3-0.8mm) on sealing surface. Vacuum integrity compromised.",
+             "bbox": {"x": 280, "y": 180, "width": 100, "height": 80}},
+        ],
+    },
+    "scenario-14": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "tool_marks", "approach": "model", "confidence": 0.88, "severity": "major",
+             "desc": "Visible machining lines and tool path marks — surface finish exceeds Ra 1.6μm tolerance. Rework required.",
+             "bbox": {"x": 200, "y": 200, "width": 240, "height": 80}},
+        ],
+    },
+    "scenario-15": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "coating_stain", "approach": "model", "confidence": 0.90, "severity": "major",
+             "desc": "Visible stain marks on anodized surface — contamination during coating process. Cosmetic reject.",
+             "bbox": {"x": 250, "y": 180, "width": 140, "height": 120}},
+        ],
+    },
+    "scenario-16": {
+        "decision": "FAIL",
+        "fusion_rule": "F-01",
+        "findings": [
+            {"class": "label_mismatch", "approach": "rule", "confidence": 1.0, "severity": "critical",
+             "desc": "Serial number mismatch: part engraving reads S/N 1034325-0326 but label shows S/N 1034325-0879. Traceability failure.",
+             "bbox": {"x": 180, "y": 220, "width": 280, "height": 60}},
+        ],
+    },
+    "scenario-17": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "burr", "approach": "model", "confidence": 0.92, "severity": "critical",
+             "desc": "Machining burr detected on thread edge — raised material 0.4mm height. Particle generation risk in cleanroom environment.",
+             "bbox": {"x": 300, "y": 200, "width": 60, "height": 80}},
+        ],
+    },
+    "scenario-18": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "paint_peel", "approach": "anomaly", "confidence": 0.95, "severity": "critical",
+             "desc": "Paint/coating delamination near mounting hole — 8mm² area of exposed bare aluminum substrate. Adhesion failure.",
+             "bbox": {"x": 340, "y": 160, "width": 80, "height": 80}},
+        ],
+    },
 }
 
 # Part-number-based results for kiosk flow (manual barcode scans)
@@ -230,6 +284,66 @@ KIOSK_RESULTS: dict[str, dict] = {
         "decision": "PASS",
         "fusion_rule": "F-05",
         "findings": [],
+    },
+    "839-041322-003": {
+        # Chamber Lid — porosity
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "porosity", "approach": "model", "confidence": 0.93, "severity": "critical",
+             "desc": "Subsurface porosity exposed after machining — voids on sealing surface compromise vacuum integrity.",
+             "bbox": {"x": 280, "y": 180, "width": 100, "height": 80}},
+        ],
+    },
+    "839-041322-004": {
+        # Gas Inlet Manifold — tool marks
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "tool_marks", "approach": "model", "confidence": 0.88, "severity": "major",
+             "desc": "Visible machining lines — surface finish exceeds Ra 1.6μm tolerance.",
+             "bbox": {"x": 200, "y": 200, "width": 240, "height": 80}},
+        ],
+    },
+    "839-055678-004": {
+        # Lower Shield — coating stain
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "coating_stain", "approach": "model", "confidence": 0.90, "severity": "major",
+             "desc": "Stain marks on anodized surface — contamination during coating process.",
+             "bbox": {"x": 250, "y": 180, "width": 140, "height": 120}},
+        ],
+    },
+    "839-055678-005": {
+        # Upper Chamber Ring — label mismatch
+        "decision": "FAIL",
+        "fusion_rule": "F-01",
+        "findings": [
+            {"class": "label_mismatch", "approach": "rule", "confidence": 1.0, "severity": "critical",
+             "desc": "Serial number mismatch: engraving vs label. Traceability failure.",
+             "bbox": {"x": 180, "y": 220, "width": 280, "height": 60}},
+        ],
+    },
+    "715-098456-008": {
+        # Showerhead Retainer Screw — burr
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "burr", "approach": "model", "confidence": 0.92, "severity": "critical",
+             "desc": "Machining burr on thread edge — particle generation risk.",
+             "bbox": {"x": 300, "y": 200, "width": 60, "height": 80}},
+        ],
+    },
+    "839-055678-006": {
+        # Electrode Housing — paint peel
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "paint_peel", "approach": "anomaly", "confidence": 0.95, "severity": "critical",
+             "desc": "Paint/coating delamination near mounting hole — exposed bare substrate.",
+             "bbox": {"x": 340, "y": 160, "width": 80, "height": 80}},
+        ],
     },
 }
 

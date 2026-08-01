@@ -181,7 +181,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.92, "severity": "critical",
              "desc": "Machining burr detected on thread edge — raised material 0.4mm height. Particle generation risk in cleanroom environment.",
-             "bbox": {"x": 0, "y": 117, "width": 256, "height": 192}},
+             "bbox": {"x": 100, "y": 210, "width": 180, "height": 150}},
         ],
     },
     "scenario-18": {
@@ -336,7 +336,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.92, "severity": "critical",
              "desc": "Machining burr on thread edge — particle generation risk.",
-             "bbox": {"x": 0, "y": 117, "width": 256, "height": 192}},
+             "bbox": {"x": 100, "y": 210, "width": 180, "height": 150}},
         ],
     },
     "839-055678-006": {

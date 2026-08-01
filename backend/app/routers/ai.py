@@ -183,7 +183,7 @@ _CURATED_BBOXES: dict[str, dict[str, dict]] = {
         "label_mismatch": {"x": 272, "y": 134, "width": 84, "height": 192},
     },
     "scenario-17": {
-        "burr": {"x": 0, "y": 117, "width": 256, "height": 192},
+        "burr": {"x": 100, "y": 210, "width": 180, "height": 150},
     },
     "scenario-18": {
         "paint_peel": {"x": 268, "y": 354, "width": 119, "height": 126},

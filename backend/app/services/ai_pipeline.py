@@ -163,7 +163,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "coating_stain", "approach": "model", "confidence": 0.90, "severity": "major",
              "desc": "Visible stain marks on anodized surface — contamination during coating process. Cosmetic reject.",
-             "bbox": {"x": 200, "y": 280, "width": 180, "height": 140}},
+             "bbox": {"x": 260, "y": 280, "width": 180, "height": 140}},
         ],
     },
     "scenario-16": {
@@ -316,7 +316,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "coating_stain", "approach": "model", "confidence": 0.90, "severity": "major",
              "desc": "Stain marks on anodized surface — contamination during coating process.",
-             "bbox": {"x": 200, "y": 280, "width": 180, "height": 140}},
+             "bbox": {"x": 260, "y": 280, "width": 180, "height": 140}},
         ],
     },
     "839-055678-005": {

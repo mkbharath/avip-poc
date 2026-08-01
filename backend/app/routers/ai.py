@@ -177,7 +177,7 @@ _CURATED_BBOXES: dict[str, dict[str, dict]] = {
         "tool_marks": {"x": 120, "y": 193, "width": 256, "height": 192},
     },
     "scenario-15": {
-        "coating_stain": {"x": 200, "y": 280, "width": 180, "height": 140},
+        "coating_stain": {"x": 260, "y": 280, "width": 180, "height": 140},
     },
     "scenario-16": {
         "label_mismatch": {"x": 272, "y": 134, "width": 84, "height": 192},

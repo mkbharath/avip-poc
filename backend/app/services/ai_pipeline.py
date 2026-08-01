@@ -154,7 +154,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "tool_marks", "approach": "model", "confidence": 0.88, "severity": "major",
              "desc": "Visible machining lines and tool path marks — surface finish exceeds Ra 1.6μm tolerance. Rework required.",
-             "bbox": {"x": 189, "y": 193, "width": 256, "height": 192}},
+             "bbox": {"x": 120, "y": 193, "width": 256, "height": 192}},
         ],
     },
     "scenario-15": {
@@ -306,7 +306,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "tool_marks", "approach": "model", "confidence": 0.88, "severity": "major",
              "desc": "Visible machining lines — surface finish exceeds Ra 1.6μm tolerance.",
-             "bbox": {"x": 189, "y": 193, "width": 256, "height": 192}},
+             "bbox": {"x": 120, "y": 193, "width": 256, "height": 192}},
         ],
     },
     "839-055678-004": {

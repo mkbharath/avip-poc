@@ -108,7 +108,12 @@ Respond ONLY with valid JSON in this exact format:
   "bbox_estimate": {"x_pct": <0-100>, "y_pct": <0-100>, "w_pct": <0-100>, "h_pct": <0-100>}
 }
 
-bbox_estimate should be approximate percentage coordinates of where the defect is in the image.
+bbox_estimate MUST be a TIGHT bounding box around ONLY the most prominent/visible defect area:
+- x_pct, y_pct = top-left corner of the defect as percentage of image width/height
+- w_pct, h_pct = size of the box as percentage of image width/height
+- The box MUST be smaller than 40% of the image in both width and height
+- Focus on the single most visible defect instance, not the entire affected region
+- Example: a scratch in the center would be {"x_pct": 35, "y_pct": 45, "w_pct": 30, "h_pct": 8}
 If no defect is found, use defect_class "no_defect" with confidence 0.95 and null bbox_estimate."""
 
 

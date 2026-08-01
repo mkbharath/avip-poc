@@ -11,6 +11,7 @@ import { DefectDashboard } from "./components/dashboard/DefectDashboard";
 import { SupplierDashboard } from "./components/dashboard/SupplierDashboard";
 import { AIPerformanceDashboard } from "./components/dashboard/AIPerformanceDashboard";
 import { PresenterPanel } from "./components/demo/PresenterPanel";
+import { AILab } from "./components/ai-lab/AILab";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="/dashboard/ai" element={<AIPerformanceDashboard />} />
         <Route path="/dashboard" element={<Navigate to="/dashboard/inspection" replace />} />
         <Route path="/demo" element={<PresenterPanel />} />
+        <Route path="/ai-lab" element={<AILab />} />
       </Route>
     </Routes>
   );

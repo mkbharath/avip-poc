@@ -7,6 +7,7 @@ import {
   Building2,
   Cpu,
   Play,
+  FlaskConical,
   ChevronRight,
 } from "lucide-react";
 import {
@@ -49,6 +50,7 @@ const NAV_GROUPS = [
     label: "Tools",
     items: [
       { label: "Demo Panel", to: "/demo", icon: Play },
+      { label: "AI Lab", to: "/ai-lab", icon: FlaskConical },
     ],
   },
 ];
@@ -176,5 +178,6 @@ function getPageTitle(path: string): string {
   if (path === "/dashboard/suppliers") return "Suppliers";
   if (path === "/dashboard/ai") return "AI Performance";
   if (path === "/demo") return "Demo Panel";
+  if (path === "/ai-lab") return "AI Lab";
   return "AVIP";
 }

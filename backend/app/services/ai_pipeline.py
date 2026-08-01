@@ -380,9 +380,6 @@ class AIPipeline:
 
         if scenario_id and scenario_id in SCENARIO_RESULTS:
             result = self._build_scenario_result(scenario_id)
-            # Optionally run Vision LLM alongside hardcoded results
-            if settings.vision_llm_enabled:
-                await self._augment_with_vision_llm(result, scenario_id)
             return result
 
         # Non-scenario (kiosk flow): use part-number-based results for realistic demos
@@ -397,9 +394,6 @@ class AIPipeline:
 
         if part_number and part_number in KIOSK_RESULTS:
             result = self._build_kiosk_result(part_number)
-            # Optionally run Vision LLM alongside hardcoded results
-            if settings.vision_llm_enabled:
-                await self._augment_with_vision_llm_kiosk(result, part_number)
             return result
 
         # Fallback: default PASS for unknown parts

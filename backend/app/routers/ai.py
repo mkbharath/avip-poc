@@ -171,22 +171,22 @@ async def classify_all_scenarios():
 # Used as fallback when Vision LLM classification matches the expected defect class.
 _CURATED_BBOXES: dict[str, dict[str, dict]] = {
     "scenario-13": {
-        "porosity": {"x": 216, "y": 201, "width": 224, "height": 168},
+        "porosity": {"x": 250, "y": 220, "width": 160, "height": 130},
     },
     "scenario-14": {
-        "tool_marks": {"x": 223, "y": 166, "width": 224, "height": 168},
+        "tool_marks": {"x": 255, "y": 185, "width": 160, "height": 130},
     },
     "scenario-15": {
-        "coating_stain": {"x": 220, "y": 160, "width": 200, "height": 160},
+        "coating_stain": {"x": 240, "y": 170, "width": 160, "height": 130},
     },
     "scenario-16": {
-        "label_mismatch": {"x": 272, "y": 145, "width": 84, "height": 168},
+        "label_mismatch": {"x": 235, "y": 165, "width": 160, "height": 130},
     },
     "scenario-17": {
-        "burr": {"x": 188, "y": 124, "width": 224, "height": 168},
+        "burr": {"x": 220, "y": 145, "width": 160, "height": 130},
     },
     "scenario-18": {
-        "paint_peel": {"x": 268, "y": 354, "width": 119, "height": 126},
+        "paint_peel": {"x": 250, "y": 350, "width": 130, "height": 100},
     },
 }
 

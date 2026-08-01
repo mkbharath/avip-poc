@@ -14,6 +14,11 @@ class Settings(BaseModel):
     models_dir: Path = Path(os.getenv("AVIP_MODELS_DIR", "./ai_models"))
     demo_data_dir: Path = Path(os.getenv("AVIP_DEMO_DATA_DIR", "./demo_data"))
 
+    # Vision LLM (GPT-4 Vision) — optional, additive to existing demo flow
+    vision_llm_enabled: bool = os.getenv("AVIP_VISION_LLM", "false").lower() == "true"
+    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
+    openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o")
+
     # Derived paths
     @property
     def db_path(self) -> Path:

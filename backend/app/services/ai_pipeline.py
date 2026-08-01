@@ -1,9 +1,11 @@
 """AI Pipeline — orchestrates the three inspection approaches and produces fused decisions."""
 
+import logging
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
+from app.config import settings
 from app.models.inspection import (
     Approach,
     BoundingBox,
@@ -16,6 +18,8 @@ from app.services.anomaly_detector import AnomalyDetector
 from app.services.defect_detector import DefectDetector
 from app.services.fusion_engine import FusionEngine
 from app.services.rule_engine import RuleEngine
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -375,7 +379,11 @@ class AIPipeline:
         scenario_id = row["scenario_id"] if row else None
 
         if scenario_id and scenario_id in SCENARIO_RESULTS:
-            return self._build_scenario_result(scenario_id)
+            result = self._build_scenario_result(scenario_id)
+            # Optionally run Vision LLM alongside hardcoded results
+            if settings.vision_llm_enabled:
+                await self._augment_with_vision_llm(result, scenario_id)
+            return result
 
         # Non-scenario (kiosk flow): use part-number-based results for realistic demos
         from app.db.database import get_db
@@ -388,7 +396,11 @@ class AIPipeline:
         part_number = row["part_number"] if row else None
 
         if part_number and part_number in KIOSK_RESULTS:
-            return self._build_kiosk_result(part_number)
+            result = self._build_kiosk_result(part_number)
+            # Optionally run Vision LLM alongside hardcoded results
+            if settings.vision_llm_enabled:
+                await self._augment_with_vision_llm_kiosk(result, part_number)
+            return result
 
         # Fallback: default PASS for unknown parts
         return InspectionResult(
@@ -400,6 +412,44 @@ class AIPipeline:
                 confidence_summary={"overall": 0.0, "max_finding": 0.0, "approaches_triggered": 0.0},
             ),
         )
+
+    async def _augment_with_vision_llm(
+        self, result: "InspectionResult", scenario_id: str
+    ) -> None:
+        """Run Vision LLM on the scenario image and append finding if detected."""
+        from app.services.vision_llm import vision_llm_service
+
+        # Find the scenario image
+        scenario_num = scenario_id.replace("scenario-", "")
+        image_path = settings.demo_data_dir / "images" / "scenarios" / scenario_id / "top.jpg"
+
+        if not image_path.exists():
+            logger.debug(f"Vision LLM: No image for {scenario_id}")
+            return
+
+        finding = await vision_llm_service.classify(str(image_path))
+        if finding:
+            result.findings.append(finding)
+            result.decision.findings_count = len(result.findings)
+            logger.info(f"Vision LLM: {scenario_id} -> {finding.defect_class} ({finding.confidence:.0%})")
+
+    async def _augment_with_vision_llm_kiosk(
+        self, result: "InspectionResult", part_number: str
+    ) -> None:
+        """Run Vision LLM on the kiosk part image and append finding if detected."""
+        from app.services.vision_llm import vision_llm_service
+
+        image_path = settings.demo_data_dir / "images" / "kiosk" / part_number / "top.jpg"
+
+        if not image_path.exists():
+            logger.debug(f"Vision LLM: No image for kiosk part {part_number}")
+            return
+
+        finding = await vision_llm_service.classify(str(image_path))
+        if finding:
+            result.findings.append(finding)
+            result.decision.findings_count = len(result.findings)
+            logger.info(f"Vision LLM: {part_number} -> {finding.defect_class} ({finding.confidence:.0%})")
 
     async def _run_real_pipeline(
         self,

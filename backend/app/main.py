@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.db.database import close_db, init_db
-from app.routers import certificates, dashboard, demo, inspections, parts, review
+from app.routers import ai, certificates, dashboard, demo, inspections, parts, review
 
 
 @asynccontextmanager
@@ -46,6 +46,7 @@ app.include_router(review.router, prefix="/api/v1", tags=["Review"])
 app.include_router(dashboard.router, prefix="/api/v1", tags=["Dashboard"])
 app.include_router(certificates.router, prefix="/api/v1", tags=["Certificates"])
 app.include_router(demo.router, prefix="/api/v1", tags=["Demo"])
+app.include_router(ai.router, prefix="/api/v1", tags=["AI"])
 
 # Serve demo label images for OCR feature (must mount before broader /static)
 labels_dir = settings.demo_data_dir / "labels"

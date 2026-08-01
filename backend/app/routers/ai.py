@@ -69,6 +69,8 @@ async def classify_scenario(scenario_id: str):
                 "description": "No defect detected by Vision LLM",
                 "bbox": None,
             },
+            "error": vision_llm_service._last_error,
+            "raw_response": vision_llm_service._last_raw_response,
         }
 
 

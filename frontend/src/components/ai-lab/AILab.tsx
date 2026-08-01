@@ -36,6 +36,8 @@ interface ClassifyResult {
   scenario_id?: string;
   filename?: string;
   classification: Classification;
+  error?: string | null;
+  raw_response?: string | null;
 }
 
 interface AllScenariosResult {
@@ -242,7 +244,14 @@ export function AILab() {
 
             {/* Result */}
             {classifyResult && (
-              <ClassificationResultCard result={classifyResult.classification} />
+              <>
+                <ClassificationResultCard result={classifyResult.classification} />
+                {classifyResult.error && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+                    <strong>Error:</strong> {classifyResult.error}
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>

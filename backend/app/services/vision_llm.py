@@ -110,6 +110,8 @@ class VisionLLMService:
         self._client = None
         self._reference_images: dict[str, str] = {}  # class -> base64
         self._initialized = False
+        self._last_error: str | None = None
+        self._last_raw_response: str | None = None
 
     def _ensure_initialized(self) -> bool:
         """Lazy-initialize the OpenAI client and load reference images."""
@@ -169,11 +171,13 @@ class VisionLLMService:
             A Finding object if a defect is detected, None otherwise.
         """
         if not self._ensure_initialized():
+            self._last_error = "Service not initialized (missing API key or openai package)"
             return None
 
         img_b64 = self._encode_image(image_path)
         if not img_b64:
-            logger.warning(f"Vision LLM: Cannot read image at {image_path}")
+            self._last_error = f"Cannot read image at {image_path}"
+            logger.warning(f"Vision LLM: {self._last_error}")
             return None
 
         # Build the messages with few-shot reference images
@@ -188,9 +192,12 @@ class VisionLLMService:
             )
 
             result_text = response.choices[0].message.content.strip()
+            self._last_error = None
+            self._last_raw_response = result_text
             return self._parse_response(result_text)
 
         except Exception as e:
+            self._last_error = str(e)
             logger.error(f"Vision LLM: API call failed: {e}")
             return None
 

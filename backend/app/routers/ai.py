@@ -174,7 +174,7 @@ _CURATED_BBOXES: dict[str, dict[str, dict]] = {
         "porosity": {"x": 240, "y": 200, "width": 160, "height": 120},
     },
     "scenario-14": {
-        "tool_marks": {"x": 280, "y": 180, "width": 200, "height": 140},
+        "tool_marks": {"x": 80, "y": 60, "width": 250, "height": 200},
     },
     "scenario-15": {
         "coating_stain": {"x": 220, "y": 160, "width": 200, "height": 160},

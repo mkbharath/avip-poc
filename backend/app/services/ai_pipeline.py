@@ -193,6 +193,124 @@ SCENARIO_RESULTS: dict[str, dict] = {
              "bbox": {"x": 268, "y": 354, "width": 119, "height": 126}},
         ],
     },
+    # ── Scenarios 19-31: All remaining images from client PDF ─────────────────
+    "scenario-19": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "porosity", "approach": "model", "confidence": 0.91, "severity": "critical",
+             "desc": "Porosity exposure on curved machined channel — voids along sealing groove compromise vacuum seal.",
+             "bbox": {"x": 228, "y": 128, "width": 256, "height": 192}},
+        ],
+    },
+    "scenario-20": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "dent", "approach": "model", "confidence": 0.89, "severity": "major",
+             "desc": "Impact dent and linear scratch marks on machined surface — surface finish and flatness compromised.",
+             "bbox": {"x": 145, "y": 288, "width": 256, "height": 160}},
+        ],
+    },
+    "scenario-21": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "tool_marks", "approach": "model", "confidence": 0.92, "severity": "major",
+             "desc": "Parallel machining lines on cylindrical bore surface — surface finish Ra exceeds specification.",
+             "bbox": {"x": 222, "y": 257, "width": 256, "height": 160}},
+        ],
+    },
+    "scenario-22": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "scratch", "approach": "model", "confidence": 0.90, "severity": "major",
+             "desc": "Diagonal scratch marks on machined chamfer — linear damage crossing precision-ground surface.",
+             "bbox": {"x": 140, "y": 288, "width": 256, "height": 160}},
+        ],
+    },
+    "scenario-23": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "burr", "approach": "model", "confidence": 0.93, "severity": "critical",
+             "desc": "Machining burr at threaded hole entry — raised material around bore edge. Particle risk in cleanroom.",
+             "bbox": {"x": 238, "y": 205, "width": 200, "height": 160}},
+        ],
+    },
+    "scenario-24": {
+        "decision": "FAIL",
+        "fusion_rule": "F-01",
+        "findings": [
+            {"class": "label_mismatch", "approach": "rule", "confidence": 1.0, "severity": "critical",
+             "desc": "Part engraving reads S/N 16-435080-00 REV D but label shows different revision. Traceability failure.",
+             "bbox": {"x": 127, "y": 172, "width": 256, "height": 180}},
+        ],
+    },
+    "scenario-25": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "scratch", "approach": "model", "confidence": 0.88, "severity": "major",
+             "desc": "Visible scratch marks on showerhead plate surface — linear damage on perforated anodized plate.",
+             "bbox": {"x": 323, "y": 154, "width": 195, "height": 132}},
+        ],
+    },
+    "scenario-26": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "dent", "approach": "anomaly", "confidence": 0.87, "severity": "major",
+             "desc": "Impact dent on showerhead plate — depression visible on perforated surface near hole pattern.",
+             "bbox": {"x": 277, "y": 80, "width": 200, "height": 160}},
+        ],
+    },
+    "scenario-27": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "coating_stain", "approach": "model", "confidence": 0.91, "severity": "major",
+             "desc": "Multiple stain marks and line marks on anodized interior bowl — process contamination during coating.",
+             "bbox": {"x": 150, "y": 150, "width": 220, "height": 180}},
+        ],
+    },
+    "scenario-28": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "coating_stain", "approach": "model", "confidence": 0.89, "severity": "major",
+             "desc": "Staining on anodized perforated plate — discolored region indicating contamination or uneven anodizing.",
+             "bbox": {"x": 260, "y": 280, "width": 180, "height": 140}},
+        ],
+    },
+    "scenario-29": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "coating_stain", "approach": "model", "confidence": 0.90, "severity": "major",
+             "desc": "Visible color variation on anodized housing surface — uneven coating thickness causing shade inconsistency.",
+             "bbox": {"x": 189, "y": 102, "width": 256, "height": 192}},
+        ],
+    },
+    "scenario-30": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "coating_stain", "approach": "model", "confidence": 0.85, "severity": "minor",
+             "desc": "Poor anodized coating finish with streaks and uneven surface appearance — fails cosmetic quality standard.",
+             "bbox": {"x": 200, "y": 140, "width": 240, "height": 150}},
+        ],
+    },
+    "scenario-31": {
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "burr", "approach": "model", "confidence": 0.94, "severity": "critical",
+             "desc": "Visible burr on fastener head edge — sharp raised material from machining. Particle contamination risk.",
+             "bbox": {"x": 173, "y": 80, "width": 200, "height": 160}},
+        ],
+    },
 }
 
 # Part-number-based results for kiosk flow (manual barcode scans)

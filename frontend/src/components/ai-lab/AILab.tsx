@@ -214,13 +214,23 @@ export function AILab() {
               </select>
             </div>
 
-            {/* Image Preview */}
-            <div className="rounded-lg border bg-muted/30 overflow-hidden">
-              <img
-                src={`/static/demo-images/scenarios/${selectedScenario}/top.jpg`}
-                alt={SCENARIO_NAMES[selectedScenario]}
-                className="w-full h-48 object-contain bg-black/5"
-              />
+            {/* Image Preview with Bounding Box Overlay */}
+            <div className="rounded-lg border bg-muted/30 overflow-hidden relative">
+              <div className="relative">
+                <img
+                  src={`/static/demo-images/scenarios/${selectedScenario}/top.jpg?v=2`}
+                  alt={SCENARIO_NAMES[selectedScenario]}
+                  className="w-full h-64 object-contain bg-black/5"
+                />
+                {/* Bounding Box Overlay */}
+                {classifyResult?.classification?.bbox && classifyResult.classification.defect_class !== "no_defect" && (
+                  <BoundingBoxOverlay
+                    bbox={classifyResult.classification.bbox}
+                    label={classifyResult.classification.defect_class}
+                    confidence={classifyResult.classification.confidence}
+                  />
+                )}
+              </div>
             </div>
 
             {/* Classify Button */}
@@ -408,6 +418,47 @@ function ClassificationResultCard({ result }: { result: Classification }) {
           {result.bbox.width.toFixed(0)}x{result.bbox.height.toFixed(0)})
         </p>
       )}
+    </div>
+  );
+}
+
+function BoundingBoxOverlay({
+  bbox,
+  label,
+  confidence,
+}: {
+  bbox: { x: number; y: number; width: number; height: number };
+  label: string;
+  confidence: number;
+}) {
+  // bbox is in 640x480 pixel space, convert to percentage
+  const left = (bbox.x / 640) * 100;
+  const top = (bbox.y / 480) * 100;
+  const width = (bbox.width / 640) * 100;
+  const height = (bbox.height / 480) * 100;
+
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      {/* Bounding box */}
+      <div
+        className="absolute border-2 border-red-500 rounded-sm"
+        style={{
+          left: `${left}%`,
+          top: `${top}%`,
+          width: `${width}%`,
+          height: `${height}%`,
+        }}
+      >
+        {/* Label tag above the box */}
+        <div className="absolute -top-6 left-0 flex items-center gap-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm whitespace-nowrap">
+          {label.replace(/_/g, " ")} {(confidence * 100).toFixed(0)}%
+        </div>
+        {/* Corner markers */}
+        <div className="absolute -top-0.5 -left-0.5 w-2.5 h-2.5 border-t-2 border-l-2 border-red-500" />
+        <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 border-t-2 border-r-2 border-red-500" />
+        <div className="absolute -bottom-0.5 -left-0.5 w-2.5 h-2.5 border-b-2 border-l-2 border-red-500" />
+        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 border-b-2 border-r-2 border-red-500" />
+      </div>
     </div>
   );
 }

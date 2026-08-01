@@ -73,34 +73,43 @@ DEFECT_CATALOG = {
     },
 }
 
-SYSTEM_PROMPT = """You are an AI vision inspection system for semiconductor manufacturing equipment parts at Lam Research.
+SYSTEM_PROMPT = """You are an expert quality inspector for semiconductor manufacturing equipment parts at Lam Research. You have years of experience identifying cosmetic defects on machined metal parts.
 
-Your job is to analyze images of machined metal parts, anodized housings, and coated components to detect cosmetic defects.
+Your job is to closely examine images of machined metal parts, anodized housings, and coated components for cosmetic defects that would cause a part to FAIL incoming quality inspection.
 
-You will be shown an inspection image. Classify any visible defects using ONLY these defect classes:
-- porosity: dark pits/voids on machined metal surface
-- tool_marks: parallel grooves/lines from machining tools
-- coating_stain: discoloration or uneven coating
-- label_mismatch: incorrect or damaged part label
-- burr: raised sharp material on edges/holes
-- paint_peel: coating delamination, peeling, flaking
+IMPORTANT: These parts are precision-machined for semiconductor equipment. Even subtle surface irregularities are defects. Look carefully for:
+- Unusual texture patterns, dark spots, pits, or voids (porosity)
+- Parallel grooves or lines that differ from normal machining finish (tool marks)
+- Discoloration, stains, or uneven coloring on coated surfaces (coating stain)
+- Any label issues — misalignment, wrong content, damage (label mismatch)
+- Raised material, sharp protrusions on edges or holes (burr)
+- Areas where paint/coating appears to be lifting, flaking, or missing (paint peel)
+
+Classify using ONLY these defect classes:
+- porosity: dark pits/voids on machined metal surface (subsurface voids exposed by machining)
+- tool_marks: parallel grooves/lines from machining that exceed acceptable surface finish
+- coating_stain: discoloration, staining, or uneven coating/anodization
+- label_mismatch: incorrect, damaged, or misaligned part label
+- burr: raised sharp material on edges or machined holes
+- paint_peel: coating delamination — peeling, flaking, bubbling, or exposed substrate
 - scratch: linear surface damage
 - dent: impact depression on surface
 - contamination: foreign particles on surface
-- no_defect: part looks good, no visible issues
+- no_defect: part is genuinely defect-free with acceptable surface finish
+
+BIAS TOWARD DETECTION: If you see ANY irregularity that could be a defect, classify it. These are precision parts — err on the side of flagging issues rather than passing them.
 
 Respond ONLY with valid JSON in this exact format:
 {
   "defect_class": "<class_name>",
   "confidence": <0.0-1.0>,
   "severity": "<minor|major|critical>",
-  "description": "<one sentence describing what you see>",
+  "description": "<one sentence describing what you observe>",
   "bbox_estimate": {"x_pct": <0-100>, "y_pct": <0-100>, "w_pct": <0-100>, "h_pct": <0-100>}
 }
 
 bbox_estimate should be approximate percentage coordinates of where the defect is in the image.
-If no defect is found, use defect_class "no_defect" with confidence 0.95 and null bbox_estimate.
-Be precise and conservative — only flag real defects, not normal machining textures or lighting artifacts."""
+If no defect is found, use defect_class "no_defect" with confidence 0.95 and null bbox_estimate."""
 
 
 class VisionLLMService:
@@ -208,12 +217,12 @@ class VisionLLMService:
         # Add few-shot reference examples if available
         if self._reference_images:
             ref_content = [
-                {"type": "text", "text": "Here are reference examples of known defect types:"}
+                {"type": "text", "text": "Here are reference images showing KNOWN DEFECTS that were flagged during inspection. Each image below contains the labeled defect — study the visual pattern carefully:"}
             ]
             for defect_class, img_b64 in self._reference_images.items():
                 ref_content.append({
                     "type": "text",
-                    "text": f"\n[{defect_class}]: {DEFECT_CATALOG[defect_class]['description']}"
+                    "text": f"\n[DEFECT: {defect_class}] — {DEFECT_CATALOG[defect_class]['description']}. This image FAILED inspection."
                 })
                 ref_content.append({
                     "type": "image_url",
@@ -225,14 +234,14 @@ class VisionLLMService:
             messages.append({"role": "user", "content": ref_content})
             messages.append({
                 "role": "assistant",
-                "content": "I understand the defect reference catalog. Please show me the inspection image to classify."
+                "content": "I've studied the defect reference catalog carefully. I can identify these defect patterns: porosity (dark pits/voids), tool_marks (machining grooves), coating_stain (discoloration), label_mismatch (label issues), burr (raised edge material), and paint_peel (coating delamination). Please show me the inspection image to classify."
             })
 
         # Add the actual inspection image
         messages.append({
             "role": "user",
             "content": [
-                {"type": "text", "text": "Classify this inspection image. What defect (if any) do you see?"},
+                {"type": "text", "text": "Inspect this part image carefully. This part is under review for cosmetic defects. Look for ANY surface irregularities, texture anomalies, discoloration, or damage. What defect (if any) do you identify?"},
                 {
                     "type": "image_url",
                     "image_url": {

@@ -145,7 +145,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "porosity", "approach": "model", "confidence": 0.9, "severity": "critical",
              "desc": "Material porosity exposure after machining — dark voids/pits visible on the machined sealing surface.",
-             "bbox": {"x": 128, "y": 105, "width": 320, "height": 240}},
+             "bbox": {"x": 85, "y": 0, "width": 120, "height": 100}},
         ],
     },
     "scenario-14": {
@@ -154,7 +154,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "tool_marks", "approach": "model", "confidence": 0.9, "severity": "major",
              "desc": "Machining lines and tool marks on the corner piece — parallel grooves exceeding surface finish Ra tolerance.",
-             "bbox": {"x": 64, "y": 29, "width": 256, "height": 158}},
+             "bbox": {"x": 406, "y": 0, "width": 120, "height": 100}},
         ],
     },
     "scenario-15": {
@@ -163,7 +163,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "coating_stain", "approach": "model", "confidence": 0.9, "severity": "major",
              "desc": "Coating stain on anodized surface — contamination stain visible on the perforated plate surface.",
-             "bbox": {"x": 220, "y": 268, "width": 200, "height": 120}},
+             "bbox": {"x": 259, "y": 189, "width": 120, "height": 100}},
         ],
     },
     "scenario-16": {
@@ -172,7 +172,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "label_mismatch", "approach": "rule", "confidence": 0.95, "severity": "major",
              "desc": "The serial number on the label does not match the part engraving.",
-             "bbox": {"x": 283, "y": 96, "width": 109, "height": 240}},
+             "bbox": {"x": 254, "y": 179, "width": 120, "height": 100}},
         ],
     },
     "scenario-17": {
@@ -181,7 +181,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.95, "severity": "major",
              "desc": "Raised material is visible on the edge of the component, indicating a burr defect.",
-             "bbox": {"x": 192, "y": 168, "width": 128, "height": 217}},
+             "bbox": {"x": 258, "y": 190, "width": 120, "height": 100}},
         ],
     },
     "scenario-18": {
@@ -190,7 +190,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "paint_peel", "approach": "anomaly", "confidence": 0.9, "severity": "critical",
              "desc": "Paint peel-off near mounting hole — small area of coating delamination exposing bare substrate.",
-             "bbox": {"x": 256, "y": 361, "width": 60, "height": 50}},
+             "bbox": {"x": 268, "y": 380, "width": 120, "height": 100}},
         ],
     },
     "scenario-19": {
@@ -199,7 +199,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "porosity", "approach": "model", "confidence": 0.9, "severity": "critical",
              "desc": "Material porosity exposure on machined channel — curved surface with visible voids after machining.",
-             "bbox": {"x": 35, "y": 96, "width": 320, "height": 96}},
+             "bbox": {"x": 299, "y": 143, "width": 120, "height": 100}},
         ],
     },
     "scenario-20": {
@@ -208,7 +208,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "dent", "approach": "anomaly", "confidence": 0.9, "severity": "major",
              "desc": "Impact dent and scratch marks on dark machined surface — circular depression with linear scratch damage.",
-             "bbox": {"x": 128, "y": 120, "width": 60, "height": 50}},
+             "bbox": {"x": 132, "y": 205, "width": 120, "height": 100}},
         ],
     },
     "scenario-21": {
@@ -217,7 +217,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "tool_marks", "approach": "model", "confidence": 0.9, "severity": "major",
              "desc": "Machining lines on cylindrical bore surface — parallel lines from turning tool exceeding Ra specification.",
-             "bbox": {"x": 64, "y": 189, "width": 320, "height": 102}},
+             "bbox": {"x": 126, "y": 180, "width": 120, "height": 100}},
         ],
     },
     "scenario-22": {
@@ -226,7 +226,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "scratch", "approach": "model", "confidence": 0.9, "severity": "major",
              "desc": "Scratch marks on machined chamfer edge — diagonal linear damage crossing the precision-ground surface.",
-             "bbox": {"x": 192, "y": 162, "width": 96, "height": 115}},
+             "bbox": {"x": 57, "y": 292, "width": 120, "height": 100}},
         ],
     },
     "scenario-23": {
@@ -235,7 +235,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "scratch", "approach": "model", "confidence": 0.9, "severity": "major",
              "desc": "Scratch marks on narrow machined channel — linear damage visible along the machined groove.",
-             "bbox": {"x": 192, "y": 0, "width": 128, "height": 240}},
+             "bbox": {"x": 428, "y": 0, "width": 120, "height": 100}},
         ],
     },
     "scenario-24": {
@@ -244,7 +244,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.95, "severity": "critical",
              "desc": "Machining burr at threaded hole — raised material around the screw hole bore edge from machining.",
-             "bbox": {"x": 256, "y": 130, "width": 96, "height": 109}},
+             "bbox": {"x": 351, "y": 2, "width": 120, "height": 100}},
         ],
     },
     "scenario-25": {
@@ -253,7 +253,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "label_mismatch", "approach": "rule", "confidence": 0.95, "severity": "critical",
              "desc": "Serial number mismatch on label — part label shows incorrect S/N vs part engraving. Traceability failure.",
-             "bbox": {"x": 128, "y": 145, "width": 320, "height": 94}},
+             "bbox": {"x": 0, "y": 380, "width": 120, "height": 100}},
         ],
     },
     "scenario-26": {
@@ -262,7 +262,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "label_mismatch", "approach": "rule", "confidence": 0.95, "severity": "critical",
              "desc": "Label serial number mismatch — packaging label S/N does not match part S/N. Traceability failure.",
-             "bbox": {"x": 64, "y": 40, "width": 320, "height": 240}},
+             "bbox": {"x": 467, "y": 0, "width": 120, "height": 100}},
         ],
     },
     "scenario-27": {
@@ -271,7 +271,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "scratch", "approach": "model", "confidence": 0.95, "severity": "major",
              "desc": "Scratch mark on anodized showerhead plate — linear defect visible on left perforated panel.",
-             "bbox": {"x": 384, "y": 239, "width": 64, "height": 50}},
+             "bbox": {"x": 428, "y": 143, "width": 120, "height": 100}},
         ],
     },
     "scenario-28": {
@@ -280,7 +280,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "dent", "approach": "anomaly", "confidence": 0.9, "severity": "major",
              "desc": "Dent on anodized showerhead plate — circular depression visible on perforated surface.",
-             "bbox": {"x": 256, "y": 0, "width": 128, "height": 72}},
+             "bbox": {"x": 366, "y": 0, "width": 120, "height": 100}},
         ],
     },
     "scenario-29": {
@@ -289,7 +289,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "coating_stain", "approach": "model", "confidence": 0.85, "severity": "major",
              "desc": "Coating stain on anodized perforated plate — discolored region indicating uneven anodizing or contamination.",
-             "bbox": {"x": 64, "y": 364, "width": 128, "height": 115}},
+             "bbox": {"x": 259, "y": 190, "width": 120, "height": 100}},
         ],
     },
     "scenario-30": {
@@ -298,7 +298,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "color_variation", "approach": "model", "confidence": 0.95, "severity": "major",
              "desc": "Color variation on anodized housing — visible shade inconsistency from uneven coating thickness.",
-             "bbox": {"x": 64, "y": 28, "width": 320, "height": 240}},
+             "bbox": {"x": 417, "y": 0, "width": 120, "height": 100}},
         ],
     },
     "scenario-31": {
@@ -307,7 +307,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.95, "severity": "critical",
              "desc": "Machining burr on shaft fitting — raised metal curl visible at collar junction, particle contamination risk.",
-             "bbox": {"x": 52, "y": 144, "width": 107, "height": 72}},
+             "bbox": {"x": 0, "y": 171, "width": 120, "height": 100}},
         ],
     },
     "scenario-32": {
@@ -316,7 +316,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.95, "severity": "critical",
              "desc": "Burr on fastener head — sharp raised material at right edge of screw head from machining.",
-             "bbox": {"x": 260, "y": 150, "width": 160, "height": 150}},
+             "bbox": {"x": 480, "y": 202, "width": 120, "height": 100}},
         ],
     },
     "scenario-33": {
@@ -449,7 +449,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "porosity", "approach": "model", "confidence": 0.93, "severity": "critical",
              "desc": "Subsurface porosity exposed after machining — voids on sealing surface compromise vacuum integrity.",
-             "bbox": {"x": 0, "y": 185, "width": 160, "height": 200}},
+             "bbox": {"x": 85, "y": 0, "width": 120, "height": 100}},
         ],
     },
     "839-041322-004": {
@@ -459,7 +459,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "tool_marks", "approach": "model", "confidence": 0.88, "severity": "major",
              "desc": "Visible machining lines — surface finish exceeds Ra 1.6μm tolerance.",
-             "bbox": {"x": 174, "y": 141, "width": 260, "height": 180}},
+             "bbox": {"x": 406, "y": 0, "width": 120, "height": 100}},
         ],
     },
     "839-055678-004": {
@@ -469,7 +469,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "coating_stain", "approach": "model", "confidence": 0.90, "severity": "major",
              "desc": "Stain marks on anodized surface — contamination during coating process.",
-             "bbox": {"x": 220, "y": 268, "width": 200, "height": 120}},
+             "bbox": {"x": 259, "y": 189, "width": 120, "height": 100}},
         ],
     },
     "839-055678-005": {
@@ -479,7 +479,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "label_mismatch", "approach": "rule", "confidence": 1.0, "severity": "critical",
              "desc": "Serial number mismatch: engraving vs label. Traceability failure.",
-             "bbox": {"x": 203, "y": 180, "width": 180, "height": 140}},
+             "bbox": {"x": 254, "y": 179, "width": 120, "height": 100}},
         ],
     },
     "715-098456-008": {
@@ -489,7 +489,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.92, "severity": "critical",
              "desc": "Machining burr on thread edge — particle generation risk.",
-             "bbox": {"x": 114, "y": 214, "width": 100, "height": 100}},
+             "bbox": {"x": 258, "y": 190, "width": 120, "height": 100}},
         ],
     },
     "839-055678-006": {
@@ -499,7 +499,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "paint_peel", "approach": "anomaly", "confidence": 0.95, "severity": "critical",
              "desc": "Paint/coating delamination near mounting hole — exposed bare substrate.",
-             "bbox": {"x": 268, "y": 354, "width": 119, "height": 126}},
+             "bbox": {"x": 268, "y": 380, "width": 120, "height": 100}},
         ],
     },
 }

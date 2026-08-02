@@ -325,7 +325,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "coating_stain", "approach": "model", "confidence": 0.9, "severity": "major",
              "desc": "Line marks and stains on anodized coated bowl interior — multiple contamination marks from coating process.",
-             "bbox": {"x": 50, "y": 100, "width": 220, "height": 200}},
+             "bbox": {"x": 122, "y": 84, "width": 120, "height": 100}},
         ],
     },
     "scenario-34": {
@@ -334,7 +334,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "coating_stain", "approach": "model", "confidence": 0.88, "severity": "major",
              "desc": "Stains on anodized coated interior surface — discoloration and streak marks from contamination.",
-             "bbox": {"x": 100, "y": 150, "width": 200, "height": 200}},
+             "bbox": {"x": 272, "y": 214, "width": 120, "height": 100}},
         ],
     },
     "scenario-35": {
@@ -343,7 +343,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "poor_finish", "approach": "anomaly", "confidence": 0.85, "severity": "minor",
              "desc": "Poor anodized coating finish — comparison shows streaks and uneven surface appearance on left side vs good finish on right.",
-             "bbox": {"x": 0, "y": 150, "width": 220, "height": 180}},
+             "bbox": {"x": 0, "y": 190, "width": 120, "height": 100}},
         ],
     },
 }

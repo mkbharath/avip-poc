@@ -316,7 +316,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.95, "severity": "critical",
              "desc": "Burr on fastener head — sharp raised material at right edge of screw head from machining.",
-             "bbox": {"x": 447, "y": 240, "width": 95, "height": 52}},
+             "bbox": {"x": 260, "y": 150, "width": 160, "height": 150}},
         ],
     },
     "scenario-33": {

@@ -346,7 +346,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "coating_stain", "approach": "model", "confidence": 0.88, "severity": "major",
              "desc": "Stains on anodized coated interior surface — discoloration and streak marks from contamination.",
-             "bbox": {"x": 272, "y": 214, "width": 120, "height": 100}},
+             "bbox": {"x": 360, "y": 130, "width": 140, "height": 110}},
         ],
     },
     "scenario-35": {

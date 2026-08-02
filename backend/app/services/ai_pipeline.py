@@ -163,7 +163,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "coating_stain", "approach": "model", "confidence": 0.9, "severity": "major",
              "desc": "Coating stain on anodized surface — contamination stain visible on the perforated plate surface.",
-             "bbox": {"x": 259, "y": 189, "width": 120, "height": 100}},
+             "bbox": {"x": 220, "y": 300, "width": 160, "height": 110}},
         ],
     },
     "scenario-16": {
@@ -481,7 +481,7 @@ KIOSK_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "coating_stain", "approach": "model", "confidence": 0.90, "severity": "major",
              "desc": "Stain marks on anodized surface — contamination during coating process.",
-             "bbox": {"x": 259, "y": 189, "width": 120, "height": 100}},
+             "bbox": {"x": 220, "y": 300, "width": 160, "height": 110}},
         ],
     },
     "839-055678-005": {

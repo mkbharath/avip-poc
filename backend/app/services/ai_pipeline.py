@@ -307,7 +307,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.95, "severity": "critical",
              "desc": "Machining burr on shaft fitting — raised metal curl visible at collar junction, particle contamination risk.",
-             "bbox": {"x": 124, "y": 51, "width": 120, "height": 100}},
+             "bbox": {"x": 55, "y": 51, "width": 120, "height": 100}},
         ],
     },
     "scenario-32": {

@@ -332,9 +332,12 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "decision": "FAIL",
         "fusion_rule": "F-02",
         "findings": [
-            {"class": "coating_stain", "approach": "model", "confidence": 0.9, "severity": "major",
-             "desc": "Line marks and stains on anodized coated bowl interior — multiple contamination marks from coating process.",
-             "bbox": {"x": 122, "y": 84, "width": 120, "height": 100}},
+            {"class": "coating_stain", "approach": "model", "confidence": 0.92, "severity": "major",
+             "desc": "Coating stain on upper-right of anodized ring — discoloration on dark metallic surface near edge.",
+             "bbox": {"x": 510, "y": 40, "width": 120, "height": 130}},
+            {"class": "coating_stain", "approach": "model", "confidence": 0.90, "severity": "major",
+             "desc": "Coating stain on left section of anodized bowl — visible discoloration on dark metallic surface.",
+             "bbox": {"x": 60, "y": 180, "width": 160, "height": 120}},
         ],
     },
     "scenario-34": {

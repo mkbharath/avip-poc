@@ -3,6 +3,7 @@ import { getInspectionDashboard } from "../../api/dashboard";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell,
 } from "recharts";
+import type { CycleTimeBucket } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -97,7 +98,7 @@ export function InspectionDashboard() {
                   cursor={{ fill: "rgba(0,0,0,0.03)" }}
                 />
                 <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={40}>
-                  {cycleTimeData.map((entry) => {
+                  {cycleTimeData.map((entry: CycleTimeBucket) => {
                     // Color: green for fast, amber for mid, red for slow
                     const color =
                       entry.range === "0–20s" ? "#10b981" :

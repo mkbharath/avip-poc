@@ -129,11 +129,17 @@ export interface ReviewQueueItem {
 
 // ===== Dashboard Models =====
 
+export interface CycleTimeBucket {
+  range: string;
+  count: number;
+}
+
 export interface InspectionDashboardData {
   today_count: number;
   pass_rate: number;
   avg_cycle_time_seconds: number;
   queue_depth: number;
+  cycle_time_distribution?: CycleTimeBucket[];
   stations: StationStatus[];
   recent_decisions: RecentDecision[];
 }

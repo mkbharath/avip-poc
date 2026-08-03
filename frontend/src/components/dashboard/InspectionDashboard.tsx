@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getInspectionDashboard } from "../../api/dashboard";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,12 +18,12 @@ export function InspectionDashboard() {
     return <DashboardSkeleton />;
   }
 
-  const cycleTimeData = [
-    { range: "0–20s", count: 3 },
-    { range: "20–40s", count: 14 },
-    { range: "40–60s", count: 38 },
-    { range: "60–80s", count: 9 },
-    { range: "80–100s", count: 2 },
+  const cycleTimeData = data.cycle_time_distribution ?? [
+    { range: "0–20s", count: 4 },
+    { range: "20–40s", count: 18 },
+    { range: "40–60s", count: 22 },
+    { range: "60–80s", count: 8 },
+    { range: "80–100s", count: 3 },
   ];
 
   return (
@@ -96,7 +96,19 @@ export function InspectionDashboard() {
                   }}
                   cursor={{ fill: "rgba(0,0,0,0.03)" }}
                 />
-                <Bar dataKey="count" fill="#1B2A4A" radius={[6, 6, 0, 0]} barSize={40} />
+                <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={40}>
+                  {cycleTimeData.map((entry) => {
+                    // Color: green for fast, amber for mid, red for slow
+                    const color =
+                      entry.range === "0–20s" ? "#10b981" :
+                      entry.range === "20–40s" ? "#3b82f6" :
+                      entry.range === "40–60s" ? "#1B2A4A" :
+                      entry.range === "60–80s" ? "#f59e0b" :
+                      "#ef4444";
+                    return <Cell key={entry.range} fill={color} />;
+                  })}
+                  <LabelList dataKey="count" position="top" style={{ fontSize: 13, fontWeight: 600, fill: "#374151" }} />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

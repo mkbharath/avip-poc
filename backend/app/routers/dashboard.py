@@ -89,11 +89,45 @@ async def inspection_dashboard():
     recent = recent_from_db + [d for d in sim_decisions if len(recent_from_db) < 8]
     recent = recent[:10]
 
+    # Cycle time distribution — build from real inspection data + sim baseline
+    cursor = await db.execute(
+        """SELECT started_at, completed_at FROM inspections
+           WHERE completed_at IS NOT NULL AND started_at >= ?""",
+        (today_start,),
+    )
+    rows = await cursor.fetchall()
+    buckets = {"0–20s": 0, "20–40s": 0, "40–60s": 0, "60–80s": 0, "80–100s": 0}
+    for r in rows:
+        try:
+            started = datetime.fromisoformat(r["started_at"].replace("Z", "+00:00"))
+            completed = datetime.fromisoformat(r["completed_at"].replace("Z", "+00:00"))
+            duration = (completed - started).total_seconds()
+            if duration < 20:
+                buckets["0–20s"] += 1
+            elif duration < 40:
+                buckets["20–40s"] += 1
+            elif duration < 60:
+                buckets["40–60s"] += 1
+            elif duration < 80:
+                buckets["60–80s"] += 1
+            else:
+                buckets["80–100s"] += 1
+        except Exception:
+            pass
+
+    # Realistic sim baseline — bell curve centered ~38s (most inspections in 20-60s range)
+    sim_buckets = {"0–20s": 4, "20–40s": 18, "40–60s": 22, "60–80s": 8, "80–100s": 3}
+    cycle_time_distribution = [
+        {"range": k, "count": v + buckets.get(k, 0)}
+        for k, v in sim_buckets.items()
+    ]
+
     return {
         "today_count": sim_today,
         "pass_rate": sim_pass_rate,
         "avg_cycle_time_seconds": sim_cycle,
         "queue_depth": sim_queue,
+        "cycle_time_distribution": cycle_time_distribution,
         "stations": [
             {"id": "STN-LIV-01", "name": "Station 1", "status": "active", "current_part": "839-041322-001", "parts_per_hour": 38},
             {"id": "STN-LIV-02", "name": "Station 2", "status": "active", "current_part": "715-098456-003", "parts_per_hour": 34},

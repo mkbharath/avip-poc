@@ -130,6 +130,8 @@ async def defect_dashboard():
         "label_mismatch": 3,
         "burr": 6,
         "paint_peel": 5,
+        "color_variation": 7,
+        "poor_finish": 4,
     }
     # Add real counts on top of simulated baseline
     merged = {k: v + real_pareto.get(k, 0) for k, v in sim_pareto.items()}
@@ -152,7 +154,7 @@ async def defect_dashboard():
 
     # Trends (simulated 7-day)
     trends = []
-    defect_classes = ["scratch", "contamination", "dent", "missing_component", "porosity", "tool_marks", "burr"]
+    defect_classes = ["scratch", "contamination", "dent", "missing_component", "porosity", "tool_marks", "burr", "coating_stain", "color_variation", "poor_finish"]
     for i in range(7):
         date = (datetime.now(timezone.utc) - timedelta(days=6 - i)).strftime("%Y-%m-%d")
         for dc in defect_classes:

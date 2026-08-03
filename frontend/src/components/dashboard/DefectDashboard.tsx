@@ -21,6 +21,8 @@ const DEFECT_COLORS: Record<string, string> = {
   label_mismatch: "#be185d",
   burr: "#059669",
   paint_peel: "#9333ea",
+  color_variation: "#0ea5e9",
+  poor_finish: "#84cc16",
 };
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -99,8 +101,8 @@ export function DefectDashboard() {
             <CardDescription>Top defect types by occurrence count</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={paretoData} layout="vertical" margin={{ left: 10, right: 20, top: 10, bottom: 10 }}>
+            <ResponsiveContainer width="100%" height={Math.max(320, paretoData.length * 36)}>
+              <BarChart data={paretoData} layout="vertical" margin={{ left: 10, right: 40, top: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={true} vertical={false} />
                 <XAxis type="number" tick={{ fontSize: 13, fill: "#374151" }} axisLine={false} tickLine={false} />
                 <YAxis

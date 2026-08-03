@@ -1,8 +1,9 @@
 services:
   backend:
     build: ./backend
+    container_name: avip-api
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
       - poc_data:/app/data
     environment:
@@ -18,6 +19,7 @@ services:
 
   frontend:
     build: ./frontend
+    container_name: avip-frontend
     ports:
       - "3000:80"
     depends_on:

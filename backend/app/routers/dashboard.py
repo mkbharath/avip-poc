@@ -91,8 +91,8 @@ async def inspection_dashboard():
 
     # Cycle time distribution — build from real inspection data + sim baseline
     cursor = await db.execute(
-        """SELECT started_at, completed_at FROM inspections
-           WHERE completed_at IS NOT NULL AND started_at >= ?""",
+        """SELECT started_at, decided_at FROM inspections
+           WHERE decided_at IS NOT NULL AND started_at >= ?""",
         (today_start,),
     )
     rows = await cursor.fetchall()
@@ -100,7 +100,7 @@ async def inspection_dashboard():
     for r in rows:
         try:
             started = datetime.fromisoformat(r["started_at"].replace("Z", "+00:00"))
-            completed = datetime.fromisoformat(r["completed_at"].replace("Z", "+00:00"))
+            completed = datetime.fromisoformat(r["decided_at"].replace("Z", "+00:00"))
             duration = (completed - started).total_seconds()
             if duration < 20:
                 buckets["0–20s"] += 1

@@ -6,6 +6,8 @@ services:
       - "8001:8000"
     volumes:
       - poc_data:/app/data
+      - ./backend/demo_data:/app/demo_data:ro
+      - ./backend/ai_models:/app/ai_models:ro
     environment:
       - AVIP_ENV=demo
       - AVIP_DATA_DIR=/app/data

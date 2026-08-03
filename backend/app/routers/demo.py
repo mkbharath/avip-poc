@@ -199,12 +199,12 @@ DEMO_SCENARIOS = [
     },
     {
         "id": "scenario-22",
-        "name": "Scratch Marks — p1 Sample 6",
+        "name": "Machining Burr — p1 Sample 6",
         "family": "machined-aluminum-plate",
         "part_number": "839-041322-022",
         "expected_decision": "FAIL",
-        "description": "Scratch marks on machined chamfer edge — diagonal linear damage crossing the precision-ground surface.",
-        "demonstrates": "Scratch Marks detection — Lam cosmetic defect sample (PDF p1)",
+        "description": "Machining burr at hole edge — raised material and chip visible around the bore on the precision-ground surface.",
+        "demonstrates": "Machining Burr detection — Lam cosmetic defect sample (PDF p1)",
     },
     {
         "id": "scenario-23",

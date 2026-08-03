@@ -53,25 +53,6 @@ export function CaptureScreen() {
 
   const captureStarted = useRef(false);
 
-  const captureMutation = useMutation({
-    mutationFn: () => simulateCapture(id!),
-    onSuccess: (data) => {
-      // Update camera views with actual image URLs from the backend
-      const apiImages = data.images || [];
-      setCameras((prev) =>
-        prev.map((cam) => {
-          const match = apiImages.find((img: { camera_angle: string; file_url: string }) => img.camera_angle === cam.angle);
-          if (match) {
-            return { ...cam, state: "passed" as CameraState, imageUrl: match.file_url };
-          }
-          return cam;
-        })
-      );
-      setStep("inspecting");
-      inspectMutation.mutate();
-    },
-  });
-
   const inspectMutation = useMutation({
     mutationFn: () => runInspection(id!),
     onSuccess: () => {
@@ -89,26 +70,36 @@ export function CaptureScreen() {
     captureStarted.current = true;
 
     const captureSequence = async () => {
+      // Fetch real image URLs from backend first (silently)
+      let realImages: { camera_angle: string; file_url: string }[] = [];
+      try {
+        const data = await simulateCapture(id!);
+        realImages = data.images || [];
+      } catch (_) {
+        // fallback to clean images if capture fails
+      }
+
+      // Animate cameras one by one, revealing real images as each "captures"
       for (let i = 0; i < cameras.length; i++) {
         setCameras((prev) =>
           prev.map((cam, idx) => (idx === i ? { ...cam, state: "capturing" } : cam))
         );
         await delay(600);
 
-        const folder = imageFolderRef.current;
         setCameras((prev) =>
-          prev.map((cam, idx) =>
-            idx === i
-              ? { ...cam, state: "passed", imageUrl: `/static/demo-images/${folder}/clean/${cam.angle}.jpg?v=${Date.now()}` }
-              : cam
-          )
+          prev.map((cam, idx) => {
+            if (idx !== i) return cam;
+            const match = realImages.find((img) => img.camera_angle === cam.angle);
+            return { ...cam, state: "passed" as CameraState, imageUrl: match?.file_url };
+          })
         );
         setCaptureProgress(((i + 1) / cameras.length) * 100);
         await delay(300);
       }
 
       await delay(300);
-      captureMutation.mutate();
+      setStep("inspecting");
+      inspectMutation.mutate();
     };
 
     captureSequence();
@@ -213,8 +204,15 @@ export function CaptureScreen() {
             <CardTitle className="text-xs text-muted-foreground uppercase tracking-wide">Part Identified</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-foreground font-mono font-bold text-lg">839-041322-001</p>
-            <p className="text-muted-foreground text-sm">Rev C • Machined Aluminum Plate</p>
+            <p className="text-foreground font-mono font-bold text-lg">
+              {(inspection as unknown as Record<string, unknown>)?.part_number as string || "—"}
+            </p>
+            <p className="text-muted-foreground text-sm">
+              {[
+                (inspection as unknown as Record<string, unknown>)?.revision as string ? `Rev ${(inspection as unknown as Record<string, unknown>)?.revision}` : null,
+                (inspection as unknown as Record<string, unknown>)?.family_name as string,
+              ].filter(Boolean).join(" • ") || "Loading..."}
+            </p>
           </CardContent>
         </Card>
 

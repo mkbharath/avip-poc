@@ -154,7 +154,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "tool_marks", "approach": "model", "confidence": 0.9, "severity": "major",
              "desc": "Machining lines and tool marks on the corner piece — parallel grooves exceeding surface finish Ra tolerance.",
-             "bbox": {"x": 406, "y": 0, "width": 120, "height": 100}},
+             "bbox": {"x": 50, "y": 180, "width": 300, "height": 240}},
         ],
     },
     "scenario-15": {
@@ -181,7 +181,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.95, "severity": "major",
              "desc": "Raised material is visible on the edge of the component, indicating a burr defect.",
-             "bbox": {"x": 258, "y": 190, "width": 120, "height": 100}},
+             "bbox": {"x": 30, "y": 210, "width": 340, "height": 180}},
         ],
     },
     "scenario-18": {
@@ -199,7 +199,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "porosity", "approach": "model", "confidence": 0.9, "severity": "critical",
              "desc": "Material porosity exposure on machined channel — curved surface with visible voids after machining.",
-             "bbox": {"x": 299, "y": 143, "width": 120, "height": 100}},
+             "bbox": {"x": 179, "y": 93, "width": 310, "height": 140}},
         ],
     },
     "scenario-20": {
@@ -208,7 +208,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "dent", "approach": "anomaly", "confidence": 0.9, "severity": "major",
              "desc": "Impact dent and scratch marks on dark machined surface — circular depression with linear scratch damage.",
-             "bbox": {"x": 132, "y": 205, "width": 120, "height": 100}},
+             "bbox": {"x": 132, "y": 255, "width": 120, "height": 100}},
         ],
     },
     "scenario-21": {
@@ -217,16 +217,16 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "tool_marks", "approach": "model", "confidence": 0.9, "severity": "major",
              "desc": "Machining lines on cylindrical bore surface — parallel lines from turning tool exceeding Ra specification.",
-             "bbox": {"x": 126, "y": 180, "width": 120, "height": 100}},
+             "bbox": {"x": 126, "y": 270, "width": 120, "height": 100}},
         ],
     },
     "scenario-22": {
         "decision": "FAIL",
         "fusion_rule": "F-02",
         "findings": [
-            {"class": "scratch", "approach": "model", "confidence": 0.9, "severity": "major",
-             "desc": "Scratch marks on machined chamfer edge — diagonal linear damage crossing the precision-ground surface.",
-             "bbox": {"x": 57, "y": 292, "width": 120, "height": 100}},
+            {"class": "burr", "approach": "model", "confidence": 0.9, "severity": "major",
+             "desc": "Machining burr at hole edge — raised material and chip visible around the bore on the precision-ground surface.",
+             "bbox": {"x": 80, "y": 260, "width": 350, "height": 220}},
         ],
     },
     "scenario-23": {
@@ -244,7 +244,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.95, "severity": "critical",
              "desc": "Machining burr at threaded hole — raised material around the screw hole bore edge from machining.",
-             "bbox": {"x": 351, "y": 2, "width": 120, "height": 100}},
+             "bbox": {"x": 370, "y": 175, "width": 160, "height": 150}},
         ],
     },
     "scenario-25": {
@@ -271,7 +271,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "scratch", "approach": "model", "confidence": 0.95, "severity": "major",
              "desc": "Scratch mark on anodized showerhead plate — linear defect visible on left perforated panel.",
-             "bbox": {"x": 428, "y": 143, "width": 120, "height": 100}},
+             "bbox": {"x": 368, "y": 143, "width": 120, "height": 100}},
         ],
     },
     "scenario-28": {
@@ -289,7 +289,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "coating_stain", "approach": "model", "confidence": 0.85, "severity": "major",
              "desc": "Coating stain on anodized perforated plate — discolored region indicating uneven anodizing or contamination.",
-             "bbox": {"x": 259, "y": 190, "width": 120, "height": 100}},
+             "bbox": {"x": 70, "y": 300, "width": 160, "height": 160}},
         ],
     },
     "scenario-30": {
@@ -316,7 +316,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.95, "severity": "critical",
              "desc": "Machining burr on shaft fitting — raised metal curl visible at collar junction, particle contamination risk.",
-             "bbox": {"x": 55, "y": 51, "width": 120, "height": 100}},
+             "bbox": {"x": 50, "y": 50, "width": 160, "height": 130}},
         ],
     },
     "scenario-32": {
@@ -325,7 +325,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "burr", "approach": "model", "confidence": 0.95, "severity": "critical",
              "desc": "Burr on fastener head — sharp raised material at right edge of screw head from machining.",
-             "bbox": {"x": 480, "y": 202, "width": 120, "height": 100}},
+             "bbox": {"x": 480, "y": 160, "width": 120, "height": 100}},
         ],
     },
     "scenario-33": {
@@ -346,7 +346,7 @@ SCENARIO_RESULTS: dict[str, dict] = {
         "findings": [
             {"class": "coating_stain", "approach": "model", "confidence": 0.88, "severity": "major",
              "desc": "Stains on anodized coated interior surface — discoloration and streak marks from contamination.",
-             "bbox": {"x": 296, "y": 136, "width": 160, "height": 120}},
+             "bbox": {"x": 296, "y": 166, "width": 160, "height": 120}},
         ],
     },
     "scenario-35": {
@@ -502,6 +502,105 @@ KIOSK_RESULTS: dict[str, dict] = {
             {"class": "burr", "approach": "model", "confidence": 0.92, "severity": "critical",
              "desc": "Machining burr on thread edge — particle generation risk.",
              "bbox": {"x": 258, "y": 190, "width": 120, "height": 100}},
+        ],
+    },
+    "715-098456-010": {
+        # Machining Burr — p6 Sample 2 (shaft fitting burr)
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "burr", "approach": "model", "confidence": 0.95, "severity": "critical",
+             "desc": "Machining burr on shaft fitting — raised metal curl visible at collar junction, particle contamination risk.",
+             "bbox": {"x": 20, "y": 55, "width": 120, "height": 120}},
+        ],
+    },
+    "715-098456-011": {
+        # Machining Burr — p6 Sample 4 (fastener head burr)
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "burr", "approach": "model", "confidence": 0.95, "severity": "critical",
+             "desc": "Burr on fastener head — sharp raised material at right edge of screw head from machining.",
+             "bbox": {"x": 480, "y": 160, "width": 120, "height": 100}},
+        ],
+    },
+    "839-041322-019": {
+        # Material Porosity — p1 Sample 2
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "porosity", "approach": "model", "confidence": 0.9, "severity": "critical",
+             "desc": "Material porosity exposure on machined channel — curved surface with visible voids after machining.",
+             "bbox": {"x": 179, "y": 93, "width": 310, "height": 140}},
+        ],
+    },
+    "839-041322-020": {
+        # Dent / Impact Damage — p1 Sample 4
+        "decision": "FAIL",
+        "fusion_rule": "F-04",
+        "findings": [
+            {"class": "dent", "approach": "anomaly", "confidence": 0.9, "severity": "major",
+             "desc": "Impact dent and scratch marks on dark machined surface — circular depression with linear scratch damage.",
+             "bbox": {"x": 132, "y": 255, "width": 120, "height": 100}},
+        ],
+    },
+    "839-041322-021": {
+        # Machining Lines / Tool Marks — p1 Sample 5
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "tool_marks", "approach": "model", "confidence": 0.9, "severity": "major",
+             "desc": "Machining lines on cylindrical bore surface — parallel lines from turning tool exceeding Ra specification.",
+             "bbox": {"x": 126, "y": 270, "width": 120, "height": 100}},
+        ],
+    },
+    "839-041322-024": {
+        # Scratch Marks — p3 Sample 2
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "scratch", "approach": "model", "confidence": 0.95, "severity": "major",
+             "desc": "Scratch mark on anodized showerhead plate — linear defect visible on left perforated panel.",
+             "bbox": {"x": 368, "y": 143, "width": 120, "height": 100}},
+        ],
+    },
+    "839-055678-015": {
+        # Coating Stain — p4 Sample 5
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "coating_stain", "approach": "model", "confidence": 0.85, "severity": "major",
+             "desc": "Coating stain on anodized perforated plate — discolored region indicating uneven anodizing or contamination.",
+             "bbox": {"x": 70, "y": 300, "width": 160, "height": 160}},
+        ],
+    },
+    "839-055678-016": {
+        # Color Variation — p5 Sample 2
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "color_variation", "approach": "model", "confidence": 0.95, "severity": "major",
+             "desc": "Color variation — upper-left panel shows uneven coating shade on anodized surface.",
+             "bbox": {"x": 95, "y": 34, "width": 160, "height": 120}},
+            {"class": "color_variation", "approach": "model", "confidence": 0.93, "severity": "major",
+             "desc": "Color variation — upper-right panel shows discoloration patch on coated surface.",
+             "bbox": {"x": 428, "y": 57, "width": 160, "height": 120}},
+            {"class": "color_variation", "approach": "model", "confidence": 0.91, "severity": "major",
+             "desc": "Color variation — lower-left panel shows coating shade inconsistency near edge.",
+             "bbox": {"x": 76, "y": 258, "width": 160, "height": 120}},
+            {"class": "color_variation", "approach": "model", "confidence": 0.90, "severity": "major",
+             "desc": "Color variation — lower-right panel shows uneven anodizing around mounting features.",
+             "bbox": {"x": 366, "y": 360, "width": 160, "height": 120}},
+        ],
+    },
+    "839-055678-018": {
+        # Coating Stain — p4 Sample 3
+        "decision": "FAIL",
+        "fusion_rule": "F-02",
+        "findings": [
+            {"class": "coating_stain", "approach": "model", "confidence": 0.88, "severity": "major",
+             "desc": "Stains on anodized coated interior surface — discoloration and streak marks from contamination.",
+             "bbox": {"x": 296, "y": 166, "width": 160, "height": 120}},
         ],
     },
     "839-055678-006": {

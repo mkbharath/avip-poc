@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 
 const BASE_URL = 'http://localhost:3000';
-const API_URL  = 'http://localhost:8001';
+const API_URL  = 'http://localhost:8000';
 const OUTPUT_DIR = path.join(__dirname, 'screenshots');
 
 const SCENARIOS = [
@@ -30,6 +30,13 @@ const SCENARIOS = [
   { id: 'scenario-10', name: 'Override Scenario',              decision: 'FAIL' },
   { id: 'scenario-11', name: 'Solder Bridge RF Board',         decision: 'FAIL' },
   { id: 'scenario-12', name: 'Cold Solder Joint Power Board',  decision: 'FAIL' },
+  { id: 'scenario-19', name: 'Material Porosity p1 Sample 2',       decision: 'FAIL' },
+  { id: 'scenario-20', name: 'Dent Impact Damage p1 Sample 4',      decision: 'FAIL' },
+  { id: 'scenario-21', name: 'Tool Marks p1 Sample 5',              decision: 'FAIL' },
+  { id: 'scenario-27', name: 'Scratch Marks p3 Sample 2',           decision: 'FAIL' },
+  { id: 'scenario-29', name: 'Coating Stain p4 Sample 5',           decision: 'FAIL' },
+  { id: 'scenario-30', name: 'Color Variation p5 Sample 2',         decision: 'FAIL' },
+  { id: 'scenario-34', name: 'Coating Stain p4 Sample 3',           decision: 'FAIL' },
 ];
 
 const DASHBOARDS = [

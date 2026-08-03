@@ -133,7 +133,7 @@ async def simulate_capture(inspection_id: str):
         part_number = part_row["part_number"] if part_row else None
         
         kiosk_review_parts = {"622-073891-001", "839-055678-003"}
-        kiosk_fail_parts = {"444-027654-003", "444-027654-004", "839-041322-002", "715-098456-003", "444-027654-002"}
+        kiosk_fail_parts = {"444-027654-003", "444-027654-004", "839-041322-002", "715-098456-003", "444-027654-002", "715-098456-010", "715-098456-011", "839-041322-019", "839-041322-020", "839-041322-021", "839-041322-024", "839-055678-015", "839-055678-016", "839-055678-018"}
         kiosk_image_dir = settings.demo_data_dir / "images" / "kiosk" / (part_number or "")
         if part_number and (part_number in kiosk_fail_parts or part_number in kiosk_review_parts) and kiosk_image_dir.exists():
             image_base = f"kiosk/{part_number}"

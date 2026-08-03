@@ -27,12 +27,36 @@ SCENARIO_DEFECTS = {
     "scenario-10": {"cx": 320, "cy": 240, "rx": 150, "ry": 30},   # scratch
     "scenario-11": {"cx": 420, "cy": 149, "rx": 40, "ry": 18},    # solder bridge on IC pins
     "scenario-12": {"cx": 392, "cy": 240, "rx": 25, "ry": 20},    # cold solder joint (right pad)
-    "scenario-13": {"cx": 320, "cy": 240, "rx": 70, "ry": 50},    # porosity (center cluster)
-    "scenario-14": {"cx": 320, "cy": 230, "rx": 150, "ry": 50},   # tool marks (wide horizontal)
+    "scenario-13": {"cx": 145, "cy": 50,  "rx": 60,  "ry": 50},   # porosity (top-left)
+    "scenario-14": {"cx": 200, "cy": 300, "rx": 150, "ry": 120},   # tool marks (wide area left-center)
     "scenario-15": {"cx": 310, "cy": 250, "rx": 80, "ry": 70},    # coating stain (multiple patches)
     "scenario-16": {"cx": 320, "cy": 240, "rx": 150, "ry": 110},  # label mismatch (full area)
-    "scenario-17": {"cx": 320, "cy": 240, "rx": 40, "ry": 40},    # burr (on hole edge)
-    "scenario-18": {"cx": 380, "cy": 200, "rx": 40, "ry": 40},    # paint peel (upper right)
+    "scenario-17": {"cx": 200, "cy": 300, "rx": 170, "ry": 90},   # burr (collar junction)
+    "scenario-18": {"cx": 328, "cy": 430, "rx": 60,  "ry": 50},   # paint peel (lower center)
+    "scenario-19": {"cx": 334, "cy": 163, "rx": 155, "ry": 70},   # porosity
+    "scenario-20": {"cx": 192, "cy": 305, "rx": 60,  "ry": 50},   # dent/impact
+    "scenario-21": {"cx": 186, "cy": 320, "rx": 60, "ry": 50},    # tool marks
+    "scenario-22": {"cx": 255, "cy": 370, "rx": 175, "ry": 110},   # burr at hole edge
+    "scenario-23": {"cx": 488, "cy": 50,  "rx": 60, "ry": 50},    # scratch
+    "scenario-24": {"cx": 450, "cy": 250, "rx": 80, "ry": 75},    # burr at threaded hole
+    "scenario-25": {"cx": 60,  "cy": 430, "rx": 60, "ry": 50},    # label mismatch
+    "scenario-26": {"cx": 527, "cy": 50,  "rx": 60, "ry": 50},    # label mismatch
+    "scenario-27": {"cx": 428, "cy": 193, "rx": 60, "ry": 50},    # scratch
+    "scenario-28": {"cx": 426, "cy": 50,  "rx": 60, "ry": 50},    # dent
+    "scenario-29": {"cx": 150, "cy": 380, "rx": 80, "ry": 80},    # coating stain (bottom-left)
+    "scenario-30": [
+        {"cx": 175, "cy": 94,  "rx": 80, "ry": 60},   # color variation upper-left
+        {"cx": 508, "cy": 117, "rx": 80, "ry": 60},   # color variation upper-right
+        {"cx": 156, "cy": 318, "rx": 80, "ry": 60},   # color variation lower-left
+        {"cx": 446, "cy": 420, "rx": 80, "ry": 60},   # color variation lower-right
+    ],
+    "scenario-31": {"cx": 130, "cy": 115, "rx": 80, "ry": 65},   # burr on shaft fitting
+    "scenario-32": {"cx": 540, "cy": 210, "rx": 60, "ry": 50},   # burr on fastener head
+    "scenario-33": [
+        {"cx": 570, "cy": 105, "rx": 60, "ry": 65},   # coating stain upper-right
+        {"cx": 140, "cy": 240, "rx": 80, "ry": 60},   # coating stain left
+    ],
+    "scenario-34": {"cx": 376, "cy": 226, "rx": 80, "ry": 60},   # coating stain interior
 }
 
 # Kiosk defects

@@ -56,22 +56,22 @@ export function SourceComparisonReview() {
         </div>
       ) : (
         <Card className="overflow-hidden rounded-xl border border-slate-200 p-0 shadow-sm">
-          <Table>
+          <Table className="table-fixed">
             <TableHeader>
               <TableRow className="border-b border-slate-200 bg-slate-50 hover:bg-slate-50">
-                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[180px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Part / Lot
                 </TableHead>
-                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[200px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Field
                 </TableHead>
-                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[180px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   How Flagged
                 </TableHead>
-                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[360px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Source Values
                 </TableHead>
-                <TableHead className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[120px] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Action
                 </TableHead>
               </TableRow>
@@ -100,12 +100,12 @@ function DiscrepancyRow({ item }: { item: SCDiscrepancy }) {
       <TableCell className="px-4 py-3.5 align-top">
         <ProvenancePill provenance={item.provenance} />
       </TableCell>
-      <TableCell className="px-4 py-3.5 align-top">
-        <div className="min-w-[280px]">
+      <TableCell className="w-[360px] max-w-[360px] px-4 py-3.5 pr-6 align-top">
+        <div className="w-full min-w-0 max-w-[336px]">
           <SourceValueCompare values={item.values} fieldType={item.field_type} />
         </div>
       </TableCell>
-      <TableCell className="px-4 py-3.5 text-right align-top">
+      <TableCell className="w-[120px] px-4 py-3.5 text-right align-top">
         <Button
           variant="default"
           size="sm"

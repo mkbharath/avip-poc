@@ -211,19 +211,19 @@ export function DiscrepancyReport() {
         </div>
       ) : (
         <Card className="overflow-hidden rounded-xl border border-slate-200 p-0 shadow-sm">
-          <Table>
+          <Table className="table-fixed">
             <TableHeader>
               <TableRow className="border-b border-slate-200 bg-slate-50 hover:bg-slate-50">
-                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[180px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Part / Lot
                 </TableHead>
-                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[200px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Field
                 </TableHead>
-                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[180px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   How Flagged
                 </TableHead>
-                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[420px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Source Values
                 </TableHead>
               </TableRow>
@@ -252,8 +252,8 @@ function ReportRow({ row }: { row: SCReportRow }) {
       <TableCell className="px-4 py-3.5 align-top">
         <ProvenancePill provenance={row.provenance} />
       </TableCell>
-      <TableCell className="px-4 py-3.5 align-top">
-        <div className="min-w-[280px]">
+      <TableCell className="w-[420px] max-w-[420px] px-4 py-3.5 align-top">
+        <div className="w-full min-w-0 max-w-[388px]">
           <SourceValueCompare values={row.values} fieldType={row.field_type} />
         </div>
       </TableCell>

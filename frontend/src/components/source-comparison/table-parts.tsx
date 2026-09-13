@@ -134,13 +134,32 @@ function normalize(value: string | number | null | undefined): string | null {
 }
 
 /**
- * Determine which sources should be highlighted as outliers.
+ * Which source, if any, is the neutral "reference" for this field.
+ *
+ * For numeric fields SHQ is the authoritative reference: it is rendered in a
+ * calm neutral style (never amber) and only the OTHER sources that deviate
+ * from it are emphasized.
+ */
+function referenceSource(
+  values: SCValues,
+  fieldType: SCFieldType
+): SCSource | null {
+  if (fieldType === "numeric" && !isMissing(values.SHQ)) return "SHQ";
+  return null;
+}
+
+/**
+ * Determine which sources should be highlighted as outliers, keeping the
+ * highlight MEANINGFUL rather than painting everything amber.
  *
  * - Numeric fields: SHQ is the reference. Any present source whose value
- *   differs from SHQ is highlighted. (If SHQ is missing, fall back to the
- *   minority rule below.)
- * - Categorical / text / identifier: highlight the minority value(s) — the
- *   values shared by the fewest present sources.
+ *   differs from SHQ is highlighted; SHQ itself stays neutral. (If SHQ is
+ *   missing, fall back to the majority rule below.)
+ * - Categorical / identifier / free_text: highlight only the minority
+ *   value(s) — the ones that differ from a clear MAJORITY. If there is no
+ *   majority (every present value is distinct, or a 1-vs-1 tie), nothing is
+ *   highlighted — the amber ProvenancePill remains the "this is flagged"
+ *   signal, so we avoid lighting up every cell.
  *
  * Works with either 2 or 3 present sources. If every present source agrees,
  * nothing is highlighted.
@@ -155,9 +174,7 @@ function computeOutliers(
   // Fewer than two values to compare — nothing to flag.
   if (present.length < 2) return outliers;
 
-  const useShqReference = fieldType === "numeric" && !isMissing(values.SHQ);
-
-  if (useShqReference) {
+  if (referenceSource(values, fieldType) === "SHQ") {
     const reference = normalize(values.SHQ);
     for (const source of present) {
       if (source === "SHQ") continue;
@@ -168,7 +185,7 @@ function computeOutliers(
     return outliers;
   }
 
-  // Minority rule: tally how many present sources share each normalized value.
+  // Majority rule: tally how many present sources share each normalized value.
   const counts = new Map<string, number>();
   for (const source of present) {
     const key = normalize(values[source]) ?? "";
@@ -179,17 +196,38 @@ function computeOutliers(
   if (counts.size <= 1) return outliers;
 
   const maxCount = Math.max(...counts.values());
+
+  // No clear majority: every value is a minority (all distinct, or an even
+  // tie). Highlighting all of them would just be noise, so highlight nothing
+  // and let the ProvenancePill carry the "flagged" meaning.
+  const majorityGroups = [...counts.values()].filter((c) => c === maxCount).length;
+  const hasClearMajority = maxCount > 1 && majorityGroups === 1;
+  if (!hasClearMajority) return outliers;
+
+  // Highlight the values that are NOT part of the single majority group.
   for (const source of present) {
     const key = normalize(values[source]) ?? "";
-    // A value is an outlier if it is NOT part of the majority group. When there
-    // is a tie (e.g. two sources with different values), every distinct value
-    // is a minority, so both get highlighted.
-    if ((counts.get(key) ?? 0) < maxCount || maxCount === 1) {
+    if ((counts.get(key) ?? 0) < maxCount) {
       outliers.add(source);
     }
   }
 
   return outliers;
+}
+
+// The visual state a single source cell can take.
+type CellState = "missing" | "reference" | "outlier" | "neutral";
+
+function cellState(
+  source: SCSource,
+  values: SCValues,
+  reference: SCSource | null,
+  outliers: Set<SCSource>
+): CellState {
+  if (isMissing(values[source])) return "missing";
+  if (source === reference) return "reference";
+  if (outliers.has(source)) return "outlier";
+  return "neutral";
 }
 
 export function SourceValueCompare({
@@ -199,45 +237,126 @@ export function SourceValueCompare({
   values: SCValues;
   fieldType: SCFieldType;
 }) {
+  const reference = referenceSource(values, fieldType);
   const outliers = computeOutliers(values, fieldType);
 
+  // Free text (full-sentence values) gets a vertical stacked layout so long
+  // values have room and stay on a single truncated line per source. Short
+  // value types keep the compact 3-up grid.
+  if (fieldType === "free_text") {
+    return (
+      <div className="flex w-full min-w-0 flex-col gap-1.5">
+        {SOURCE_ORDER.map((source) => {
+          const raw = values[source];
+          const state = cellState(source, values, reference, outliers);
+          return (
+            <SourceValueRow key={source} source={source} value={raw} state={state} />
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-3 gap-1.5">
+    <div className="grid w-full min-w-0 grid-cols-3 gap-1.5">
       {SOURCE_ORDER.map((source) => {
         const raw = values[source];
-        const missing = isMissing(raw);
-        const isOutlier = outliers.has(source);
-
+        const state = cellState(source, values, reference, outliers);
         return (
-          <div
-            key={source}
-            className={cn(
-              "flex flex-col items-start rounded-md border px-2 py-1.5",
-              missing
-                ? "border-slate-200 bg-slate-50/60"
-                : isOutlier
-                  ? "border-amber-300 bg-amber-50 ring-1 ring-amber-300/60"
-                  : "border-slate-200 bg-slate-50"
-            )}
-          >
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-              {source}
-            </span>
-            <span
-              className={cn(
-                "font-mono text-sm font-medium",
-                missing
-                  ? "text-slate-300"
-                  : isOutlier
-                    ? "text-amber-900"
-                    : "text-slate-900"
-              )}
-            >
-              {missing ? "—" : String(raw)}
-            </span>
-          </div>
+          <SourceValueTile key={source} source={source} value={raw} state={state} />
         );
       })}
+    </div>
+  );
+}
+
+// Shared per-state styling. Highlighting is deliberately restrained: outliers
+// get amber text plus a subtle amber-50 background (no heavy ring), the numeric
+// reference gets a calm slate/blue treatment, everything else stays neutral.
+const TILE_STYLES: Record<CellState, string> = {
+  missing: "border-slate-200 bg-slate-50/60",
+  reference: "border-blue-200 bg-blue-50/60",
+  outlier: "border-amber-200 bg-amber-50",
+  neutral: "border-slate-200 bg-slate-50",
+};
+
+const VALUE_TEXT_STYLES: Record<CellState, string> = {
+  missing: "text-slate-300",
+  reference: "text-slate-900",
+  outlier: "text-amber-900",
+  neutral: "text-slate-900",
+};
+
+function SourceValueTile({
+  source,
+  value,
+  state,
+}: {
+  source: SCSource;
+  value: string | number | null | undefined;
+  state: CellState;
+}) {
+  const missing = state === "missing";
+  return (
+    <div
+      className={cn(
+        "flex min-w-0 flex-col items-start overflow-hidden rounded-md border px-2 py-1.5",
+        TILE_STYLES[state]
+      )}
+    >
+      <span className="flex w-full items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+        {source}
+        {state === "reference" ? (
+          <span className="rounded-sm bg-blue-100 px-1 text-[9px] font-semibold text-blue-700">
+            ref
+          </span>
+        ) : null}
+      </span>
+      <span
+        className={cn(
+          "w-full min-w-0 truncate text-right font-mono text-sm font-medium tabular-nums",
+          VALUE_TEXT_STYLES[state]
+        )}
+        title={missing ? undefined : String(value)}
+      >
+        {missing ? "—" : String(value)}
+      </span>
+    </div>
+  );
+}
+
+function SourceValueRow({
+  source,
+  value,
+  state,
+}: {
+  source: SCSource;
+  value: string | number | null | undefined;
+  state: CellState;
+}) {
+  const missing = state === "missing";
+  return (
+    <div
+      className={cn(
+        "flex w-full min-w-0 items-center gap-2 overflow-hidden rounded-md border px-2 py-1.5",
+        TILE_STYLES[state],
+        // A subtle amber left accent gives outliers a "differs" affordance
+        // without a heavy full-cell treatment.
+        state === "outlier" && "border-l-2 border-l-amber-400"
+      )}
+    >
+      <span className="w-10 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+        {source}
+      </span>
+      <span
+        className={cn(
+          "min-w-0 flex-1 truncate text-sm",
+          missing ? "font-mono text-slate-300" : VALUE_TEXT_STYLES[state]
+        )}
+        title={missing ? undefined : String(value)}
+      >
+        {missing ? "—" : String(value)}
+      </span>
     </div>
   );
 }

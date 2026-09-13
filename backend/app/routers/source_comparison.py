@@ -244,6 +244,42 @@ async def get_review_queue(
     return await sc_review.get_review_queue(limit=limit, offset=offset)
 
 
+@router.get("/source-comparison/review/queue-grouped")
+async def get_review_queue_grouped(
+    limit: int = Query(
+        default=sc_review.DEFAULT_PAGE_LIMIT,
+        ge=1,
+        le=sc_review.MAX_PAGE_LIMIT,
+        description=(
+            f"Page size in GROUPS (default {sc_review.DEFAULT_PAGE_LIMIT}, "
+            f"max {sc_review.MAX_PAGE_LIMIT})"
+        ),
+    ),
+    offset: int = Query(default=0, ge=0, description="Page offset in groups (default 0)"),
+):
+    """Return the pending review queue GROUPED by part/lot for the accordion UI.
+
+    Delegates to :func:`app.services.sc_review.get_review_queue_grouped`, which
+    returns a ``{data, total_count, limit, offset}`` envelope where each ``data``
+    entry is one ``(part_number, lot_number)`` group carrying its pending
+    ``count``, a per-provenance ``provenance_counts`` breakdown, and the group's
+    pending ``discrepancies``. Only ``pending`` discrepancies appear —
+    confirmed/dismissed are excluded, consistent with the flat
+    ``/review/queue``.
+
+    Pagination is by GROUP: ``limit``/``offset`` page the groups (default
+    ``limit`` {DEFAULT_PAGE_LIMIT}, capped at {MAX_PAGE_LIMIT}); ``total_count``
+    is the total number of pending groups so the UI can render paging controls.
+    Groups are ordered by their earliest pending item so panels stay stable
+    across pages.
+
+    This fixed ``/review/queue-grouped`` path is declared **before** the
+    ``/review/{discrepancy_id}`` GET route so it is never matched as a
+    discrepancy id.
+    """
+    return await sc_review.get_review_queue_grouped(limit=limit, offset=offset)
+
+
 @router.post("/source-comparison/review/decide-bulk")
 async def decide_review_bulk(request: BulkDecideRequest):
     """Apply one reviewer decision to many discrepancies at once (Req 6.3).

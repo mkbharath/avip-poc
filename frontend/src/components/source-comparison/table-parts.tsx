@@ -82,6 +82,48 @@ export function ProvenancePill({ provenance }: { provenance: SCProvenance }) {
 }
 
 // ---------------------------------------------------------------------------
+// ProvenancePillCount — a compact chip that reuses the same provenance color /
+// icon mapping as ProvenancePill, but shows a COUNT instead of the full label.
+// Used in group summaries where several provenance types are tallied side by
+// side. Guards gracefully against unknown provenance keys coming from the
+// backend's provenance_counts map.
+// ---------------------------------------------------------------------------
+
+export function ProvenancePillCount({
+  provenance,
+  count,
+}: {
+  provenance: string;
+  count: number;
+}) {
+  const style = PROVENANCE_STYLES[provenance as SCProvenance];
+
+  // Unknown provenance key — render a neutral fallback chip so we never crash.
+  if (!style) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-600 whitespace-nowrap">
+        {provenance}
+        <span className="font-semibold tabular-nums">{count}</span>
+      </span>
+    );
+  }
+
+  const Icon = style.icon;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium whitespace-nowrap",
+        style.className
+      )}
+      title={`${style.label}: ${count}`}
+    >
+      <Icon className={cn("size-3 shrink-0", style.iconClassName)} />
+      <span className="tabular-nums font-semibold">{count}</span>
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // PartLotCell — bold mono part number with a muted lot beneath.
 // ---------------------------------------------------------------------------
 

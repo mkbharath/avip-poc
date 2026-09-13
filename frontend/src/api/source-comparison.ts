@@ -2,6 +2,7 @@ import { api } from "./client";
 import type {
   SCAlignedGroup,
   SCDiscrepancy,
+  SCGroup,
   SCRejectedRecord,
   SCReportHeader,
   SCReportRow,
@@ -68,6 +69,20 @@ export async function getGroup(id: string) {
 export async function getReviewQueue(params?: Pagination) {
   return api.get<Paginated<SCDiscrepancy>>(
     `/source-comparison/review/queue${buildQuery(withPagination(undefined, params))}`
+  );
+}
+
+/**
+ * Grouped review queue: pending discrepancies bucketed by part/lot GROUP.
+ * `total_count` on the response is the number of GROUPS, and pagination
+ * (limit/offset) is applied at the GROUP level. Backend default limit 50,
+ * max 200.
+ */
+export async function getReviewQueueGrouped(params?: Pagination) {
+  return api.get<Paginated<SCGroup>>(
+    `/source-comparison/review/queue-grouped${buildQuery(
+      withPagination(undefined, params)
+    )}`
   );
 }
 

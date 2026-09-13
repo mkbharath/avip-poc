@@ -368,6 +368,163 @@ async def get_review_queue(
     }
 
 
+# ── Grouped pending queue (accordion by part/lot) ────────────────────────────
+#
+# The flat pending queue (list_pending/get_review_queue) is a single stream of
+# discrepancies. The review UI also wants to render an accordion grouped by
+# (part_number, lot_number): one panel per group, showing how many pending
+# findings it holds and a breakdown by provenance, with the group's pending
+# discrepancies inside. These helpers add that GROUPED view without touching the
+# flat queue. Only PENDING discrepancies are included (confirmed/dismissed
+# excluded), consistent with list_pending/get_review_queue.
+
+# The four provenance tags a group's provenance_counts breakdown always carries
+# (zero-filled), so the UI can render a stable set of buckets per group.
+_PROVENANCE_KEYS: tuple[str, ...] = tuple(p.value for p in Provenance)
+
+
+async def count_pending_groups() -> int:
+    """Return the number of DISTINCT (part_number, lot_number) groups that have
+    at least one pending discrepancy.
+
+    This is the grouped analogue of :func:`count_pending`: it counts groups, not
+    rows, so the grouped queue can report the full ``total_count`` of groups
+    alongside a single page of them for paging controls.
+    """
+    db = await get_db()
+    cursor = await db.execute(
+        """SELECT COUNT(*) FROM (
+               SELECT 1
+                 FROM sc_discrepancies
+                WHERE review_state = ?
+                GROUP BY part_number, lot_number
+           )""",
+        (ReviewState.PENDING.value,),
+    )
+    row = await cursor.fetchone()
+    try:
+        return int(row[0]) if row is not None else 0
+    except (TypeError, KeyError, IndexError):
+        return 0
+
+
+async def get_review_queue_grouped(
+    limit: int | None = None,
+    offset: int | None = None,
+) -> dict[str, object]:
+    """Return a page of the pending review queue GROUPED by part/lot (accordion).
+
+    Shape::
+
+        {
+          "data": [
+            {
+              "part_number": str,
+              "lot_number": str,
+              "count": int,                     # pending discrepancies in group
+              "provenance_counts": {            # per-provenance breakdown
+                  "exact-match": int, "numeric-threshold": int,
+                  "llm": int, "llm-unavailable": int
+              },
+              "discrepancies": [ <Discrepancy.model_dump(mode="json")> ... ]
+            }, ...
+          ],
+          "total_count": <count_pending_groups()>,  # total groups (for paging)
+          "limit": <clamped>, "offset": <clamped>
+        }
+
+    Only ``review_state = 'pending'`` discrepancies are included (confirmed and
+    dismissed are excluded), consistent with the flat queue.
+
+    Implementation: the page of GROUP keys is chosen first — groups are ordered
+    by the earliest pending item in each (``MIN(created_at)``), then part, then
+    lot, so groups don't jump around across pages — and limited/offset in SQL.
+    The pending discrepancies for exactly those groups are then fetched in one
+    query and assembled per-group in Python (``count`` + ``provenance_counts``
+    computed from the fetched rows). Reuses :func:`_clamp_limit`,
+    :func:`_clamp_offset`, and :func:`_row_to_discrepancy`.
+    """
+    page_limit = _clamp_limit(limit)
+    page_offset = _clamp_offset(offset)
+    total_count = await count_pending_groups()
+
+    db = await get_db()
+
+    # 1) The page of GROUP keys, ordered by earliest pending item (stable).
+    key_cursor = await db.execute(
+        """SELECT part_number, lot_number
+             FROM sc_discrepancies
+            WHERE review_state = ?
+            GROUP BY part_number, lot_number
+            ORDER BY MIN(created_at) ASC, part_number ASC, lot_number ASC
+            LIMIT ? OFFSET ?""",
+        (ReviewState.PENDING.value, page_limit, page_offset),
+    )
+    key_rows = await key_cursor.fetchall()
+    page_keys: list[tuple[str, str]] = [
+        (r["part_number"], r["lot_number"]) for r in key_rows
+    ]
+
+    if not page_keys:
+        return {
+            "data": [],
+            "total_count": total_count,
+            "limit": page_limit,
+            "offset": page_offset,
+        }
+
+    # 2) Fetch the pending discrepancies for exactly those (part, lot) pairs.
+    #    A per-pair OR of (part_number = ? AND lot_number = ?) keeps this scoped
+    #    to just the page's groups.
+    pair_clause = " OR ".join(
+        ["(part_number = ? AND lot_number = ?)"] * len(page_keys)
+    )
+    pair_params: list[str] = []
+    for part_number, lot_number in page_keys:
+        pair_params.extend((part_number, lot_number))
+
+    disc_cursor = await db.execute(
+        f"""SELECT id, group_id, part_number, lot_number, field_name, field_type,
+                   "values", provenance, review_state
+              FROM sc_discrepancies
+             WHERE review_state = ?
+               AND ({pair_clause})
+             ORDER BY field_name ASC, id ASC""",
+        (ReviewState.PENDING.value, *pair_params),
+    )
+    disc_rows = await disc_cursor.fetchall()
+
+    # 3) Assemble per-group objects, preserving the page's group ordering.
+    groups: dict[tuple[str, str], dict[str, object]] = {}
+    for key in page_keys:
+        groups[key] = {
+            "part_number": key[0],
+            "lot_number": key[1],
+            "count": 0,
+            "provenance_counts": {k: 0 for k in _PROVENANCE_KEYS},
+            "discrepancies": [],
+        }
+
+    for row in disc_rows:
+        key = (row["part_number"], row["lot_number"])
+        bucket = groups.get(key)
+        if bucket is None:  # defensive; every fetched row matches a page key
+            continue
+        discrepancy = _row_to_discrepancy(row)
+        bucket["discrepancies"].append(discrepancy.model_dump(mode="json"))
+        bucket["count"] += 1
+        bucket["provenance_counts"][discrepancy.provenance.value] += 1
+
+    data = [groups[key] for key in page_keys]
+
+    return {
+        "data": data,
+        "total_count": total_count,
+        "limit": page_limit,
+        "offset": page_offset,
+    }
+
+
 async def get_discrepancy(discrepancy_id: str) -> Discrepancy | None:
     """Return one discrepancy (with ``values`` parsed) for the workbench detail.
 

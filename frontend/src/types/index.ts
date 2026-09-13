@@ -320,6 +320,17 @@ export interface SCDiscrepancy {
   decided_at: string | null;
 }
 
+// A part/lot GROUP of pending discrepancies, as returned by the grouped review
+// queue endpoint. `count` is the number of discrepancies in the group and
+// `provenance_counts` tallies them by provenance type.
+export interface SCGroup {
+  part_number: string;
+  lot_number: string;
+  count: number;
+  provenance_counts: Record<string, number>;
+  discrepancies: SCDiscrepancy[];
+}
+
 export type SCAlignmentState = "partial" | "complete" | "unmatched";
 
 export interface SCAlignedGroup {

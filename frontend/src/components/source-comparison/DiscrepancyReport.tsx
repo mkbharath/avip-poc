@@ -236,16 +236,16 @@ export function DiscrepancyReport() {
           <Table className="table-fixed">
             <TableHeader>
               <TableRow className="border-b border-slate-200 bg-slate-50 hover:bg-slate-50">
-                <TableHead className="w-[180px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[150px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Part / Lot
                 </TableHead>
-                <TableHead className="w-[200px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[160px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Field
                 </TableHead>
-                <TableHead className="w-[180px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[160px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   How Flagged
                 </TableHead>
-                <TableHead className="w-[420px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <TableHead className="w-[520px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Source Values
                 </TableHead>
               </TableRow>
@@ -301,8 +301,8 @@ function ReportRow({ row }: { row: SCReportRow }) {
       <TableCell className="px-4 py-3.5 align-top">
         <ProvenancePill provenance={row.provenance} />
       </TableCell>
-      <TableCell className="w-[420px] max-w-[420px] px-4 py-3.5 align-top">
-        <div className="w-full min-w-0 max-w-[388px]">
+      <TableCell className="w-[520px] max-w-[520px] px-4 py-3.5 align-top">
+        <div className="w-full min-w-0">
           <SourceValueCompare values={row.values} fieldType={row.field_type} />
         </div>
       </TableCell>

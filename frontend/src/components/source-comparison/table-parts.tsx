@@ -258,7 +258,7 @@ export function SourceValueCompare({
   }
 
   return (
-    <div className="grid w-full min-w-0 grid-cols-3 gap-1.5">
+    <div className="grid w-full min-w-0 grid-cols-3 gap-2">
       {SOURCE_ORDER.map((source) => {
         const raw = values[source];
         const state = cellState(source, values, reference, outliers);
@@ -300,11 +300,11 @@ function SourceValueTile({
   return (
     <div
       className={cn(
-        "flex min-w-0 flex-col items-start overflow-hidden rounded-md border px-2 py-1.5",
+        "flex min-w-0 flex-col items-start gap-0.5 overflow-hidden rounded-md border px-2.5 py-2",
         TILE_STYLES[state]
       )}
     >
-      <span className="flex w-full items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+      <span className="flex w-full items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
         {source}
         {state === "reference" ? (
           <span className="rounded-sm bg-blue-100 px-1 text-[9px] font-semibold text-blue-700">
@@ -314,7 +314,7 @@ function SourceValueTile({
       </span>
       <span
         className={cn(
-          "w-full min-w-0 truncate text-right font-mono text-sm font-medium tabular-nums",
+          "block w-full min-w-0 truncate text-left font-mono text-sm font-medium tabular-nums",
           VALUE_TEXT_STYLES[state]
         )}
         title={missing ? undefined : String(value)}
@@ -345,7 +345,7 @@ function SourceValueRow({
         state === "outlier" && "border-l-2 border-l-amber-400"
       )}
     >
-      <span className="w-10 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+      <span className="w-12 shrink-0 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
         {source}
       </span>
       <span

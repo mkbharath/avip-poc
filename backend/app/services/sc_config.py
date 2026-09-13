@@ -76,11 +76,16 @@ class ComparisonConfig(BaseModel):
 # Field types are set so classify_field can read them directly. Numeric fields
 # carry a per-field deviation threshold (Req 8.2). SHQ is the numeric reference
 # (assumed — see shq_numeric_benchmark).
+# Per-field numeric deviation thresholds (Req 8.2), sized to be sensible for
+# real machined-part dimensions relative to the simulator baselines
+# (diameter ~10-150mm, thickness ~1-20mm, flatness ~0.00-0.20mm, hardness
+# ~35-60 HRC). A LAIR/FAIR reading is flagged only when it deviates from the
+# SHQ baseline by more than the field's threshold below.
 DEFAULT_NUMERIC_THRESHOLDS: dict[str, float] = {
-    "diameter": 0.05,    # mm
-    "thickness": 0.02,   # mm
-    "flatness": 0.01,    # mm
-    "hardness": 2.0,     # HRC
+    "diameter": 0.10,    # mm
+    "thickness": 0.05,   # mm
+    "flatness": 0.02,    # mm
+    "hardness": 1.5,     # HRC
 }
 
 DEFAULT_FIELDS: dict[str, FieldConfig] = {

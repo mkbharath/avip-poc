@@ -19,11 +19,15 @@ Design (see design.md → "Backend — Source Adapter interface"):
       - categorical (``material_grade`` from the part's material, ``coating_finish``
         / ``surface_visual`` from surface_finish, ``supplier``);
       - free-text (``inspector_notes``, ``comments``).
-  * **SHQ is the numeric reference (assumed — pending client confirmation).** SHQ
-    numeric values ARE the per-part baseline; LAIR / FAIR values are perturbed so
-    a controllable fraction (``discrepancy_rate``) exceed the per-field thresholds.
-    A controllable fraction of categorical mismatches and differing free-text
-    notes are also injected so the review gate and report have meaningful content.
+  * **SHQ is the numeric reference (assumed — pending client confirmation).** A
+    single per-(part, lot) baseline is computed ONCE for each numeric field and
+    SHARED by all three sources: SHQ carries the baseline exactly, and LAIR / FAIR
+    agree with it (within-threshold jitter) unless a discrepancy is injected — in
+    which case that field deviates only modestly beyond the per-field threshold
+    (a believable bad reading). The same holds for categorical/free-text: agreeing
+    sources reuse the SAME value / clean note, and only an injected mismatch
+    differs. A controllable fraction (``discrepancy_rate``) of these discrepancies
+    is injected so the review gate and report have meaningful content.
 
 Config knobs (all with sensible defaults): ``rate_per_sec``, ``discrepancy_rate``,
 ``lots_per_part``, and ``seed`` for determinism.
@@ -115,17 +119,19 @@ class SimulatorAdapter:
     #: This adapter emits all three sources; ``source`` summarizes that.
     source: str = "SIMULATOR(LAIR,FAIR,SHQ)"
 
-    # Fraction by which an injected numeric deviation exceeds the threshold, so a
-    # flagged deviation is unambiguously beyond the boundary.
-    _DEVIATION_MARGIN: float = 1.5
+    # An injected numeric deviation lands at ``threshold * factor`` beyond the
+    # SHQ baseline, with ``factor`` drawn from this range — modestly out of
+    # tolerance (a believable bad reading), never orders of magnitude off. E.g.
+    # a 25.40mm diameter (threshold 0.10mm) becomes ~25.52-25.60mm, not 194mm.
+    _DEVIATION_FACTOR_RANGE: tuple[float, float] = (1.2, 2.0)
     # Fraction of the threshold used for in-tolerance (non-flagged) jitter, so
-    # agreeing values stay safely inside the boundary.
+    # agreeing values stay safely inside the boundary and read as ≈ SHQ.
     _AGREEMENT_MARGIN: float = 0.25
 
     def __init__(
         self,
         rate_per_sec: float = 3.0,
-        discrepancy_rate: float = 0.3,
+        discrepancy_rate: float = 0.25,
         lots_per_part: int = 2,
         seed: int = 1337,
         config: ComparisonConfig | None = None,
@@ -187,13 +193,29 @@ class SimulatorAdapter:
         perturbations are representable.
         """
         base_ranges: dict[str, tuple[float, float]] = {
-            "diameter": (10.0, 200.0),   # mm
-            "thickness": (1.0, 25.0),    # mm
-            "flatness": (0.0, 0.5),      # mm
-            "hardness": (30.0, 65.0),    # HRC
+            "diameter": (10.0, 150.0),   # mm — real machined-part dimensions
+            "thickness": (1.0, 20.0),    # mm
+            "flatness": (0.0, 0.20),     # mm
+            "hardness": (35.0, 60.0),    # HRC
         }
         low, high = base_ranges.get(field_name, (0.0, 100.0))
         return round(part_rng.uniform(low, high), 4)
+
+    def _group_baselines(self, part_rng: random.Random) -> dict[str, float]:
+        """Precompute the per-(part, lot) numeric baseline for EVERY in-scope
+        numeric field ONCE, so all three sources (SHQ, LAIR, FAIR) start from the
+        SAME baseline number.
+
+        This is the crux of the shared-baseline fix: the baselines are drawn from
+        ``part_rng`` here a single time per group, rather than being re-drawn on
+        each per-source ``_build_fields`` call (which advanced the RNG differently
+        per source and produced wildly different numbers for the same part).
+        """
+        return {
+            name: self._numeric_baseline(name, part_rng)
+            for name, fc in self._in_scope_fields().items()
+            if fc.type == FieldType.NUMERIC
+        }
 
     def _numeric_thresholds(self) -> dict[str, float]:
         """Per-field numeric thresholds from config (Req 8.2)."""
@@ -246,20 +268,41 @@ class SimulatorAdapter:
     def _should_discrepate(self) -> bool:
         return self._rng.random() < self.discrepancy_rate
 
+    def _group_agreeing_text(self, part_rng: random.Random) -> dict[str, str]:
+        """Pick ONE clean free-text note per free-text field for the whole group.
+
+        Chosen deterministically from ``part_rng`` (per group), so every source
+        that agrees carries the EXACT same note. Previously each source picked its
+        own "clean" sentence independently, so two genuinely-fine notes ("Surface
+        inspection passed" vs "Part conforms to drawing") were flagged as different.
+        Only a source with an injected discrepancy carries a different (issue) note.
+        """
+        return {
+            name: part_rng.choice(self._NOTES_CLEAN)
+            for name, fc in self._in_scope_fields().items()
+            if fc.type == FieldType.FREE_TEXT
+        }
+
     def _build_fields(
         self,
         source: SourceType,
         part: dict[str, str | None],
         lot_number: str,
         serial_number: str,
-        part_rng: random.Random,
+        baselines: dict[str, float],
+        agreeing_text: dict[str, str],
     ) -> dict[str, object]:
         """Build the comprehensive field set for one source's record.
 
-        SHQ carries the baseline (numeric reference). LAIR / FAIR carry values that
-        agree with SHQ within tolerance, unless a discrepancy is injected — in which
-        case the value deviates beyond the per-field threshold (numeric), differs
-        categorically, or carries a differing free-text note.
+        ``baselines`` and ``agreeing_text`` are precomputed ONCE per (part, lot)
+        group and SHARED by all three sources, so SHQ / LAIR / FAIR start from the
+        identical baseline number and the identical clean note.
+
+        SHQ carries the baseline (numeric reference) / agreeing values exactly.
+        LAIR / FAIR carry those same agreeing values, unless a discrepancy is
+        injected — in which case that field deviates modestly beyond the per-field
+        threshold (numeric), differs categorically, or carries a differing (issue)
+        free-text note.
         """
         is_reference = source == SourceType.SHQ
         thresholds = self._numeric_thresholds()
@@ -267,16 +310,18 @@ class SimulatorAdapter:
 
         for name, fc in self._in_scope_fields().items():
             if fc.type == FieldType.NUMERIC:
-                baseline = self._numeric_baseline(name, part_rng)
+                baseline = baselines[name]
                 threshold = thresholds.get(name, 0.0)
                 if is_reference:
                     value = baseline
                 elif self._should_discrepate():
-                    # Deviate beyond the threshold (flagged vs SHQ).
+                    # Deviate modestly beyond the threshold (flagged vs SHQ): a
+                    # believable out-of-tolerance reading, not a wild number.
                     direction = 1 if self._rng.random() < 0.5 else -1
-                    value = baseline + direction * threshold * self._DEVIATION_MARGIN
+                    factor = self._rng.uniform(*self._DEVIATION_FACTOR_RANGE)
+                    value = baseline + direction * threshold * factor
                 else:
-                    # Jitter within tolerance (agrees with SHQ).
+                    # Jitter within tolerance (agrees with SHQ ≈ baseline).
                     jitter = self._rng.uniform(-1, 1) * threshold * self._AGREEMENT_MARGIN
                     value = baseline + jitter
                 fields[name] = round(value, 4)
@@ -286,13 +331,15 @@ class SimulatorAdapter:
                 if not is_reference and self._should_discrepate():
                     fields[name] = self._categorical_alt(name, part, base)
                 else:
+                    # Agreeing sources share the exact same category value.
                     fields[name] = base
 
             elif fc.type == FieldType.FREE_TEXT:
                 if not is_reference and self._should_discrepate():
                     fields[name] = self._rng.choice(self._NOTES_ISSUE)
                 else:
-                    fields[name] = self._rng.choice(self._NOTES_CLEAN)
+                    # Agreeing sources reuse the single clean note for the group.
+                    fields[name] = agreeing_text[name]
 
             elif fc.type == FieldType.IDENTIFIER:
                 # Identifier fields carried in the fields map echo the record's
@@ -352,6 +399,11 @@ class SimulatorAdapter:
                 for lot_idx in range(self.lots_per_part):
                     lot_number = f"LOT-{part['part_number']}-{cycle:02d}{lot_idx:02d}"
                     part_rng = self._part_rng(str(part["part_number"]), lot_number)
+                    # Precompute the SHARED per-group baselines and the single
+                    # clean free-text note ONCE, so all three sources start from
+                    # the same numbers/notes (fixes the 194/38/48 divergence).
+                    baselines = self._group_baselines(part_rng)
+                    agreeing_text = self._group_agreeing_text(part_rng)
                     for source in source_order:
                         if self._stopped():
                             return
@@ -369,7 +421,12 @@ class SimulatorAdapter:
                             lot_number=lot_number,
                             serial_number=serial_number,
                             fields=self._build_fields(
-                                source, part, lot_number, serial_number, part_rng
+                                source,
+                                part,
+                                lot_number,
+                                serial_number,
+                                baselines,
+                                agreeing_text,
                             ),
                         )
                         emitted += 1

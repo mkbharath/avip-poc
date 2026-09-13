@@ -23,6 +23,14 @@ class Settings(BaseModel):
     openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
     openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o")
 
+    # Source-comparison simulator — feeds the LAIR/FAIR/SHQ pipeline with a
+    # continuous stream of simulated records. Enabled by default for the demo
+    # env; tests and production can disable it (AVIP_SC_SIMULATOR=false) to
+    # avoid the unbounded feed. Mirrors the AVIP_VISION_LLM env pattern.
+    sc_simulator_enabled: bool = (
+        os.getenv("AVIP_SC_SIMULATOR", "true").lower() == "true"
+    )
+
     # Derived paths
     @property
     def db_path(self) -> Path:

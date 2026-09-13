@@ -1,0 +1,390 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Append the `sc_*` tables to the AVIP schema": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210172
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279222133
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789280721915
+      }
+    ],
+    "1.2 Define Pydantic domain and request/response models": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210209
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279223526
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789280722901
+      }
+    ],
+    "1.3 Implement comparison configuration + assumptions registry": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210238
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279224344
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789280723951
+      }
+    ],
+    "2.1 Implement the ingestion service": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210299
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789280729611
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789281205439
+      }
+    ],
+    "2.2 Implement the source-comparison router and ingest endpoint": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210323
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789281224150
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789281776588
+      }
+    ],
+    "3.1 Implement common-key alignment": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210350
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789281223046
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789281777509
+      }
+    ],
+    "3.2 Add aligned-group read endpoints": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210370
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789281787303
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789283001764
+      }
+    ],
+    "4.1 Implement the pluggable LLM provider interface": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210396
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789281222091
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789281778507
+      }
+    ],
+    "4.2 Implement field classification and the three checks": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210421
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789281785375
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789282999776
+      }
+    ],
+    "4.3 Implement group comparison dispatch and persistence": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210446
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789283008453
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789285247967
+      }
+    ],
+    "5.1 Implement the review service + gate": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210470
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789285255761
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789292860843
+      }
+    ],
+    "5.2 Add review endpoints": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210496
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789292867932
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789293562054
+      }
+    ],
+    "6.1 Implement the report service": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210522
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789292866994
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789293563096
+      }
+    ],
+    "6.2 Add report + export + header endpoints": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210576
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789293819273
+      }
+    ],
+    "7.1 Implement the source adapter interface and simulator": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210602
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789281786308
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789282998796
+      }
+    ],
+    "7.2 Implement the background worker": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210628
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789283009103
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789285248625
+      }
+    ],
+    "7.3 Wire worker + simulator into the FastAPI lifespan and add status endpoint": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210653
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789294678836
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789295471444
+      }
+    ],
+    "8. Checkpoint — backend complete": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210678
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789295478038
+      },
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789295690309
+      }
+    ],
+    "9.1 Add TypeScript types and the API module": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210703
+      }
+    ],
+    "10.1 Implement the review list and workbench": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210728
+      }
+    ],
+    "10.2 Implement the discrepancy report and ingestion monitor": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210757
+      }
+    ],
+    "10.3 Wire routes and sidebar entry": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210786
+      }
+    ],
+    "11.1 Validate the full stream against the running simulator": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210810
+      }
+    ],
+    "12. Final checkpoint — ensure all tests pass": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789279210835
+      }
+    ],
+    "1. Data model, schema, and configuration foundation": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789280724018
+      }
+    ],
+    "2. Ingestion service and endpoint": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789281776623
+      }
+    ],
+    "3. Streaming alignment service": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789283001794
+      }
+    ],
+    "4. Comparison service, checks, and pluggable LLM provider": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789285248003
+      }
+    ],
+    "5. Review gate and audit": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789293562092
+      }
+    ],
+    "7. Background worker and simulator adapter": [
+      {
+        "executionId": "76ffd35c-e13a-4e33-a1f1-da69a8bcd151",
+        "chatSessionId": "sess_20b70498-334f-4b6e-8ebd-568f15a4b24b",
+        "timestamp": 1789295471489
+      }
+    ]
+  }
+}

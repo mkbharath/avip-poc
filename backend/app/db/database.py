@@ -124,6 +124,97 @@ CREATE INDEX IF NOT EXISTS idx_inspections_status ON inspections(status);
 CREATE INDEX IF NOT EXISTS idx_inspections_part_id ON inspections(part_id);
 CREATE INDEX IF NOT EXISTS idx_findings_inspection_id ON findings(inspection_id);
 CREATE INDEX IF NOT EXISTS idx_images_inspection_id ON images(inspection_id);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Source Comparison (LAIR / FAIR / SHQ) — feature: avip-source-comparison
+-- New sc_* tables appended additively; existing tables/seed logic untouched.
+-- Conventions: TEXT uuid PKs, ISO TEXT timestamps, JSON-in-TEXT columns,
+-- foreign_keys=ON (set in get_db).
+-- ─────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS sc_source_records (
+    id TEXT PRIMARY KEY,
+    source TEXT NOT NULL,               -- LAIR | FAIR | SHQ
+    external_record_id TEXT NOT NULL,   -- id from the source/adapter
+    part_number TEXT NOT NULL,
+    lot_number TEXT NOT NULL,
+    serial_number TEXT,
+    fields TEXT NOT NULL DEFAULT '{}',  -- JSON: field_name -> raw value
+    group_id TEXT,                      -- FK sc_aligned_groups.id (null until aligned/unmatched)
+    received_at TEXT NOT NULL,
+    FOREIGN KEY (group_id) REFERENCES sc_aligned_groups(id)
+);
+
+CREATE TABLE IF NOT EXISTS sc_aligned_groups (
+    id TEXT PRIMARY KEY,
+    part_number TEXT NOT NULL,
+    lot_number TEXT NOT NULL,
+    present_sources TEXT NOT NULL DEFAULT '[]',  -- JSON list e.g. ["LAIR","SHQ"]
+    alignment_state TEXT NOT NULL,               -- partial | complete | unmatched
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE (part_number, lot_number)
+);
+
+CREATE TABLE IF NOT EXISTS sc_discrepancies (
+    id TEXT PRIMARY KEY,
+    group_id TEXT NOT NULL,
+    part_number TEXT NOT NULL,
+    lot_number TEXT NOT NULL,
+    field_name TEXT NOT NULL,
+    field_type TEXT NOT NULL,           -- numeric | categorical | identifier | free_text
+    "values" TEXT NOT NULL DEFAULT '{}',  -- JSON: source -> value ("values" quoted: reserved word)
+    provenance TEXT NOT NULL,           -- exact-match | numeric-threshold | llm | llm-unavailable
+    review_state TEXT NOT NULL DEFAULT 'pending',
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (group_id) REFERENCES sc_aligned_groups(id),
+    UNIQUE (group_id, field_name)       -- one discrepancy per field per group (idempotent recompare)
+);
+
+CREATE TABLE IF NOT EXISTS sc_review_decisions (
+    id TEXT PRIMARY KEY,
+    discrepancy_id TEXT NOT NULL UNIQUE,
+    decision TEXT NOT NULL,             -- confirmed | dismissed
+    reviewer TEXT NOT NULL,
+    note TEXT,
+    decided_at TEXT NOT NULL,
+    FOREIGN KEY (discrepancy_id) REFERENCES sc_discrepancies(id)
+);
+
+CREATE TABLE IF NOT EXISTS sc_review_audit (
+    id TEXT PRIMARY KEY,
+    discrepancy_id TEXT NOT NULL,
+    decision TEXT NOT NULL,
+    reviewer TEXT NOT NULL,
+    note TEXT,
+    decided_at TEXT NOT NULL,
+    FOREIGN KEY (discrepancy_id) REFERENCES sc_discrepancies(id)
+);
+
+CREATE TABLE IF NOT EXISTS sc_rejected_records (
+    id TEXT PRIMARY KEY,
+    source TEXT,
+    external_record_id TEXT,
+    raw_payload TEXT NOT NULL,          -- JSON of the offending record
+    reason TEXT NOT NULL,
+    rejected_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sc_comparison_config (
+    id TEXT PRIMARY KEY DEFAULT 'default',
+    common_key TEXT NOT NULL DEFAULT '["part_number","lot_number"]',
+    fields TEXT NOT NULL DEFAULT '{}',          -- JSON: field -> {type, in_scope, threshold?}
+    llm_provider TEXT NOT NULL DEFAULT 'mock',
+    assumptions TEXT NOT NULL DEFAULT '[]',     -- JSON list of AssumptionItem
+    updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_sc_source_group ON sc_source_records(group_id);
+CREATE INDEX IF NOT EXISTS idx_sc_source_key ON sc_source_records(part_number, lot_number);
+CREATE INDEX IF NOT EXISTS idx_sc_disc_group ON sc_discrepancies(group_id);
+CREATE INDEX IF NOT EXISTS idx_sc_disc_state ON sc_discrepancies(review_state);
+CREATE INDEX IF NOT EXISTS idx_sc_disc_key ON sc_discrepancies(part_number, lot_number);
+CREATE INDEX IF NOT EXISTS idx_sc_audit_disc ON sc_review_audit(discrepancy_id);
 """
 
 

@@ -360,3 +360,135 @@ function SourceValueRow({
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// SourceValueCompareCard — a card-friendly variant of SourceValueCompare.
+//
+// Cards have more room than table cells, so this variant leans into that:
+//   - numeric / categorical / identifier: a clean 3-up row of taller value
+//     chips (equal width) with the source label small-uppercase ABOVE the
+//     value, and the numeric SHQ reference shown as a neutral "REF".
+//   - free_text: the three sources stacked vertically with the full value
+//     readable across up to three lines (line-clamp-3) instead of a single
+//     truncated line, plus a title tooltip for the complete text.
+//
+// It reuses the exact same referenceSource / computeOutliers / cellState
+// logic as SourceValueCompare — no comparison logic is duplicated or changed.
+// ---------------------------------------------------------------------------
+
+export function SourceValueCompareCard({
+  values,
+  fieldType,
+}: {
+  values: SCValues;
+  fieldType: SCFieldType;
+}) {
+  const reference = referenceSource(values, fieldType);
+  const outliers = computeOutliers(values, fieldType);
+
+  if (fieldType === "free_text") {
+    return (
+      <div className="flex w-full min-w-0 flex-col gap-2">
+        {SOURCE_ORDER.map((source) => {
+          const state = cellState(source, values, reference, outliers);
+          return (
+            <SourceValueCardRow
+              key={source}
+              source={source}
+              value={values[source]}
+              state={state}
+            />
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid w-full min-w-0 grid-cols-3 gap-2">
+      {SOURCE_ORDER.map((source) => {
+        const state = cellState(source, values, reference, outliers);
+        return (
+          <SourceValueCardTile
+            key={source}
+            source={source}
+            value={values[source]}
+            state={state}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function SourceValueCardTile({
+  source,
+  value,
+  state,
+}: {
+  source: SCSource;
+  value: string | number | null | undefined;
+  state: CellState;
+}) {
+  const missing = state === "missing";
+  return (
+    <div
+      className={cn(
+        "flex min-w-0 flex-col items-start gap-1 overflow-hidden rounded-lg border px-3 py-2.5",
+        TILE_STYLES[state]
+      )}
+    >
+      <span className="flex w-full items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+        {source}
+        {state === "reference" ? (
+          <span className="rounded-sm bg-blue-100 px-1 text-[9px] font-semibold text-blue-700">
+            REF
+          </span>
+        ) : null}
+      </span>
+      <span
+        className={cn(
+          "block w-full min-w-0 truncate text-left font-mono text-base font-semibold tabular-nums",
+          VALUE_TEXT_STYLES[state]
+        )}
+        title={missing ? undefined : String(value)}
+      >
+        {missing ? "—" : String(value)}
+      </span>
+    </div>
+  );
+}
+
+function SourceValueCardRow({
+  source,
+  value,
+  state,
+}: {
+  source: SCSource;
+  value: string | number | null | undefined;
+  state: CellState;
+}) {
+  const missing = state === "missing";
+  return (
+    <div
+      className={cn(
+        "flex w-full min-w-0 flex-col gap-1 overflow-hidden rounded-lg border px-3 py-2",
+        TILE_STYLES[state],
+        state === "outlier" && "border-l-2 border-l-amber-400"
+      )}
+    >
+      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+        {source}
+      </span>
+      <span
+        className={cn(
+          "block min-w-0 text-sm leading-snug break-words line-clamp-3",
+          missing ? "font-mono text-slate-300" : VALUE_TEXT_STYLES[state]
+        )}
+        title={missing ? undefined : String(value)}
+      >
+        {missing ? "—" : String(value)}
+      </span>
+    </div>
+  );
+}

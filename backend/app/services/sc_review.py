@@ -220,6 +220,73 @@ async def decide(
     return _row_to_discrepancy(row).model_copy(update={"review_state": new_state})
 
 
+async def decide_many(
+    discrepancy_ids: list[str],
+    decision: Decision,
+    reviewer: str,
+    note: str | None = None,
+) -> dict[str, object]:
+    """Apply one review decision to many discrepancies (Req 6.3, 9.3, Property 6).
+
+    Iterates ``discrepancy_ids`` and calls the same per-item :func:`decide`
+    logic for each, so every decision still updates ``review_state``, upserts
+    ``sc_review_decisions``, and appends an immutable ``sc_review_audit`` row —
+    the full audit trail is preserved for every item, exactly as a single
+    decide would produce.
+
+    The ``decision`` value is validated **once up front** (a bad decision raises
+    :class:`ValueError` before any item is touched — the router maps it to 422).
+    Per-item lookups are resilient: an id with no matching discrepancy is
+    collected into ``not_found`` rather than aborting the batch.
+
+    Args:
+        discrepancy_ids: the discrepancies to decide (may be empty).
+        decision: ``"confirmed"`` or ``"dismissed"`` (validated once, up front).
+        reviewer: the reviewer's identity (recorded per item).
+        note: optional free-text note (recorded per item).
+
+    Returns:
+        A summary dict ``{"updated": <count success>, "not_found": [<missing
+        ids>], "decision": decision}``. An empty ``discrepancy_ids`` yields
+        ``{"updated": 0, "not_found": [], "decision": decision}`` — not an error.
+
+    Raises:
+        ValueError: if ``decision`` is not a valid decision string.
+    """
+    # Validate the decision once, up front (not per item).
+    if decision not in _DECISION_TO_STATE:
+        raise ValueError(
+            f"Invalid decision {decision!r}; expected 'confirmed' or 'dismissed'."
+        )
+
+    updated = 0
+    not_found: list[str] = []
+    for discrepancy_id in discrepancy_ids:
+        try:
+            await decide(
+                discrepancy_id=discrepancy_id,
+                decision=decision,
+                reviewer=reviewer,
+                note=note,
+            )
+            updated += 1
+        except LookupError:
+            # Resilient: a missing id is collected, not fatal to the batch.
+            not_found.append(discrepancy_id)
+
+    logger.info(
+        "Bulk review decision recorded: decision=%s reviewer=%s requested=%d "
+        "updated=%d not_found=%d",
+        decision,
+        reviewer,
+        len(discrepancy_ids),
+        updated,
+        len(not_found),
+    )
+
+    return {"updated": updated, "not_found": not_found, "decision": decision}
+
+
 # ── Read helpers: review queue + detail (task 5.2) ───────────────────────────
 
 

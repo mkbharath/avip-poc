@@ -82,6 +82,18 @@ export async function decideDiscrepancy(
   return api.post<SCDiscrepancy>(`/source-comparison/review/${id}/decide`, payload);
 }
 
+export async function decideBulk(payload: {
+  discrepancy_ids: string[];
+  decision: "confirmed" | "dismissed";
+  reviewer: string;
+  note?: string;
+}) {
+  return api.post<{ updated: number; not_found: string[]; decision: string }>(
+    "/source-comparison/review/decide-bulk",
+    payload
+  );
+}
+
 // ===== Ingestion simulator control =====
 
 export async function startSimulator() {

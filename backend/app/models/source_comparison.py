@@ -104,3 +104,18 @@ class DecideRequest(BaseModel):
     decision: Literal["confirmed", "dismissed"]
     reviewer: str
     note: str | None = None
+
+
+class BulkDecideRequest(BaseModel):
+    """A single review-gate decision applied to many discrepancies at once.
+
+    Mirrors :class:`DecideRequest` but carries a list of ``discrepancy_ids`` so
+    the review UI can confirm/dismiss many findings in one request. The same
+    ``decision`` / ``reviewer`` / ``note`` are recorded against every id (each
+    still writes a full audit trail via the per-item review path).
+    """
+
+    discrepancy_ids: list[str]
+    decision: Literal["confirmed", "dismissed"]
+    reviewer: str
+    note: str | None = None

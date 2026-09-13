@@ -34,7 +34,11 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse, Response
 
 from app.db.database import get_db
-from app.models.source_comparison import AlignmentState, DecideRequest
+from app.models.source_comparison import (
+    AlignmentState,
+    BulkDecideRequest,
+    DecideRequest,
+)
 from app.services import alignment, ingestion, report, sc_review
 from app.services.source_adapters import SimulatorAdapter
 
@@ -238,6 +242,44 @@ async def get_review_queue(
     full ``total_count`` of pending rows for paging controls.
     """
     return await sc_review.get_review_queue(limit=limit, offset=offset)
+
+
+@router.post("/source-comparison/review/decide-bulk")
+async def decide_review_bulk(request: BulkDecideRequest):
+    """Apply one reviewer decision to many discrepancies at once (Req 6.3).
+
+    Body is a :class:`~app.models.source_comparison.BulkDecideRequest`
+    (``discrepancy_ids`` list, ``decision`` ``"confirmed"``|``"dismissed"``,
+    ``reviewer``, optional ``note``). Delegates to
+    :func:`app.services.sc_review.decide_many`, which applies the same per-item
+    review path to each id — every decided discrepancy still updates its
+    ``review_state``, upserts its current-decision row, and appends an immutable
+    audit row (full audit trail preserved per item).
+
+    Returns the summary dict ``{"updated", "not_found", "decision"}``. An empty
+    ``discrepancy_ids`` is a no-op, not an error, returning
+    ``{"updated": 0, "not_found": []}`` (200).
+
+    This fixed-path POST is declared **before** the ``/review/{discrepancy_id}``
+    GET route so ``decide-bulk`` is never mistaken for a discrepancy id (they
+    also differ by method, so there is no real collision).
+
+    Error mapping:
+      * :class:`ValueError` (invalid decision) → ``422`` with the reason.
+    """
+    try:
+        summary = await sc_review.decide_many(
+            discrepancy_ids=request.discrepancy_ids,
+            decision=request.decision,
+            reviewer=request.reviewer,
+            note=request.note,
+        )
+    except ValueError as bad_decision:
+        return JSONResponse(
+            status_code=422,
+            content={"detail": str(bad_decision)},
+        )
+    return summary
 
 
 @router.get("/source-comparison/review/{discrepancy_id}")

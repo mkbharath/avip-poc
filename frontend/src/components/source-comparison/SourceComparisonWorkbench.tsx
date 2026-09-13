@@ -81,7 +81,7 @@ export function SourceComparisonWorkbench() {
             <h1 className="text-sm font-bold text-foreground">
               {discrepancy.part_number} &bull; Lot {discrepancy.lot_number}
             </h1>
-            <p className="text-xs text-muted-foreground capitalize">
+            <p className="text-xs text-slate-600 capitalize">
               {discrepancy.field_name.replace(/_/g, " ")} ({discrepancy.field_type.replace(/_/g, " ")})
             </p>
           </div>
@@ -108,7 +108,7 @@ export function SourceComparisonWorkbench() {
         {needsManualComparison && (
           <div className="flex items-start gap-3 rounded-lg border border-avip-review/40 bg-avip-review/5 px-4 py-3">
             <AlertTriangle className="w-5 h-5 text-avip-review flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-foreground/80">
+            <div className="text-sm text-slate-700">
               {discrepancy.provenance === "llm-unavailable" ? (
                 <>
                   <span className="font-semibold">Automated comparison unavailable.</span> The LLM
@@ -127,16 +127,16 @@ export function SourceComparisonWorkbench() {
 
         {/* Source values side by side */}
         <div>
-          <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+          <h3 className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-3">
             Source Values
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {Object.entries(discrepancy.values).map(([source, value]) => (
-              <Card key={source} className="p-4">
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              <Card key={source} className="p-4 bg-slate-100 border-slate-200">
+                <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
                   {source}
                 </div>
-                <div className="mt-1 text-lg font-mono font-semibold text-foreground break-words">
+                <div className="mt-1 text-lg font-mono font-semibold text-slate-900 break-words">
                   {value === null ? "—" : String(value)}
                 </div>
               </Card>
@@ -149,7 +149,7 @@ export function SourceComparisonWorkbench() {
           <h3 className="text-sm font-semibold text-foreground">Review Decision</h3>
 
           {alreadyDecided ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-slate-700">
               This discrepancy has already been {discrepancy.review_state}
               {discrepancy.reviewer ? ` by ${discrepancy.reviewer}` : ""}
               {discrepancy.reviewer_note ? ` — "${discrepancy.reviewer_note}"` : ""}.
@@ -217,7 +217,10 @@ function ProvenanceBadge({ provenance }: { provenance: SCProvenance }) {
           ? "LLM"
           : "LLM Unavailable";
   return (
-    <Badge variant={variant} className="text-xs">
+    <Badge
+      variant={variant}
+      className={variant === "outline" ? "text-xs text-slate-700 border-slate-300" : "text-xs"}
+    >
       {label}
     </Badge>
   );

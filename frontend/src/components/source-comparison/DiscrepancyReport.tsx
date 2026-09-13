@@ -112,7 +112,7 @@ export function DiscrepancyReport() {
           <h1 className="text-xl font-bold text-foreground tracking-tight">
             Confirmed Discrepancy Report
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-sm text-slate-600 mt-0.5">
             Reviewer-confirmed differences across LAIR, FAIR, and SHQ records
             {" · "}
             {rows.length} row{rows.length === 1 ? "" : "s"}
@@ -231,12 +231,12 @@ export function DiscrepancyReport() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead className="text-xs uppercase">Part / Lot</TableHead>
-                <TableHead className="text-xs uppercase">Field</TableHead>
-                <TableHead className="text-xs uppercase">Type</TableHead>
-                <TableHead className="text-xs uppercase">How Flagged</TableHead>
+                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Part / Lot</TableHead>
+                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Field</TableHead>
+                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Type</TableHead>
+                <TableHead className="text-xs uppercase text-slate-600 font-semibold">How Flagged</TableHead>
                 {SOURCE_COLUMNS.map((s) => (
-                  <TableHead key={s} className="text-xs uppercase">
+                  <TableHead key={s} className="text-xs uppercase text-slate-600 font-semibold">
                     {s}
                   </TableHead>
                 ))}
@@ -259,26 +259,33 @@ function ReportRow({ row }: { row: SCReportRow }) {
     <TableRow>
       <TableCell>
         <div className="flex flex-col">
-          <span className="text-sm font-mono font-bold text-foreground">{row.part_number}</span>
-          <span className="text-xs text-muted-foreground font-mono">Lot {row.lot_number}</span>
+          <span className="text-sm font-mono font-bold text-slate-900">{row.part_number}</span>
+          <span className="text-xs text-slate-600 font-mono">Lot {row.lot_number}</span>
         </div>
       </TableCell>
       <TableCell>
-        <span className="text-sm font-medium text-foreground">{row.field_name}</span>
+        <span className="text-sm font-medium text-slate-900">{row.field_name}</span>
       </TableCell>
       <TableCell>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm text-slate-600">
           {FIELD_TYPE_LABELS[row.field_type] ?? row.field_type}
         </span>
       </TableCell>
       <TableCell>
-        <Badge variant={PROVENANCE_VARIANTS[row.provenance] ?? "outline"} className="text-xs">
+        <Badge
+          variant={PROVENANCE_VARIANTS[row.provenance] ?? "outline"}
+          className={
+            (PROVENANCE_VARIANTS[row.provenance] ?? "outline") === "outline"
+              ? "text-xs text-slate-700 border-slate-300"
+              : "text-xs"
+          }
+        >
           {PROVENANCE_LABELS[row.provenance] ?? row.provenance}
         </Badge>
       </TableCell>
       {SOURCE_COLUMNS.map((s) => (
         <TableCell key={s}>
-          <span className="text-sm font-mono text-foreground">{formatValue(row.values[s])}</span>
+          <span className="text-sm font-mono font-medium text-slate-900">{formatValue(row.values[s])}</span>
         </TableCell>
       ))}
     </TableRow>
@@ -297,7 +304,7 @@ function AssumptionsBanner({ assumptions }: { assumptions: SCAssumption[] }) {
             <p className="text-sm font-semibold text-amber-900">
               Assumptions in effect — pending client confirmation
             </p>
-            <p className="text-xs text-amber-800/80 mt-0.5">
+            <p className="text-xs text-amber-800 mt-0.5">
               The results below rely on the following working assumptions. Please confirm them.
             </p>
           </div>
@@ -306,13 +313,13 @@ function AssumptionsBanner({ assumptions }: { assumptions: SCAssumption[] }) {
               <li key={a.key} className="flex items-start gap-2 text-xs text-amber-900">
                 <Badge
                   variant="outline"
-                  className="border-amber-300 bg-amber-100 text-amber-800"
+                  className="border-amber-300 bg-amber-100 text-amber-900 font-semibold"
                 >
                   {a.status === "unresolved" ? "unresolved" : "assumed"}
                 </Badge>
                 <span>
                   <span className="font-medium">{a.label}</span>
-                  {a.value ? <span className="text-amber-800/80"> — {a.value}</span> : null}
+                  {a.value ? <span className="text-amber-800"> — {a.value}</span> : null}
                 </span>
               </li>
             ))}

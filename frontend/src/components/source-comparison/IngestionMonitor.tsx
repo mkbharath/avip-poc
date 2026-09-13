@@ -38,7 +38,7 @@ export function IngestionMonitor() {
       {/* Page header */}
       <div>
         <h1 className="text-xl font-bold text-foreground tracking-tight">Ingestion Monitor</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
+        <p className="text-sm text-slate-600 mt-0.5">
           Live status of the LAIR / FAIR / SHQ record feed
         </p>
       </div>
@@ -91,8 +91,8 @@ export function IngestionMonitor() {
                   if (!active || !payload?.length) return null;
                   return (
                     <div className="bg-card border border-border rounded-lg shadow-elevated px-4 py-2.5 text-sm">
-                      <p className="font-semibold">{label}</p>
-                      <p className="text-muted-foreground">{payload[0].value} groups</p>
+                      <p className="font-semibold text-slate-900">{label}</p>
+                      <p className="text-slate-600">{payload[0].value} groups</p>
                     </div>
                   );
                 }}
@@ -140,7 +140,7 @@ function MetricTile({
   return (
     <Card className="relative overflow-hidden">
       <CardContent className="pt-5 pb-5 text-center relative z-10">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
           {label}
         </p>
         <p className={`text-3xl font-bold mt-2 tracking-tight ${colorClass}`}>{value}</p>
@@ -172,13 +172,13 @@ function AssumptionsBanner({ assumptions }: { assumptions: SCAssumption[] }) {
               <li key={a.key} className="flex items-start gap-2 text-xs text-amber-900">
                 <Badge
                   variant="outline"
-                  className="border-amber-300 bg-amber-100 text-amber-800"
+                  className="border-amber-300 bg-amber-100 text-amber-900 font-semibold"
                 >
                   {a.status === "unresolved" ? "unresolved" : "assumed"}
                 </Badge>
                 <span>
                   <span className="font-medium">{a.label}</span>
-                  {a.value ? <span className="text-amber-800/80"> — {a.value}</span> : null}
+                  {a.value ? <span className="text-amber-800"> — {a.value}</span> : null}
                 </span>
               </li>
             ))}

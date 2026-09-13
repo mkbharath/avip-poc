@@ -54,11 +54,11 @@ export function SourceComparisonReview() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead className="text-xs uppercase">Part / Lot</TableHead>
-                <TableHead className="text-xs uppercase">Field</TableHead>
-                <TableHead className="text-xs uppercase">Type</TableHead>
-                <TableHead className="text-xs uppercase">Provenance</TableHead>
-                <TableHead className="text-xs uppercase">Source Values</TableHead>
+                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Part / Lot</TableHead>
+                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Field</TableHead>
+                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Type</TableHead>
+                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Provenance</TableHead>
+                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Source Values</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -79,17 +79,17 @@ function DiscrepancyRow({ item }: { item: SCDiscrepancy }) {
     <TableRow className="group cursor-pointer">
       <TableCell>
         <div className="flex flex-col">
-          <span className="text-sm font-mono font-bold text-foreground">{item.part_number}</span>
-          <span className="text-xs text-muted-foreground">Lot {item.lot_number}</span>
+          <span className="text-sm font-mono font-bold text-slate-900">{item.part_number}</span>
+          <span className="text-xs text-slate-600 font-mono">Lot {item.lot_number}</span>
         </div>
       </TableCell>
       <TableCell>
-        <span className="text-sm font-medium text-foreground capitalize">
+        <span className="text-sm font-medium text-slate-900 capitalize">
           {item.field_name.replace(/_/g, " ")}
         </span>
       </TableCell>
       <TableCell>
-        <span className="text-xs text-muted-foreground capitalize">
+        <span className="text-xs text-slate-600 capitalize">
           {item.field_type.replace(/_/g, " ")}
         </span>
       </TableCell>
@@ -107,7 +107,6 @@ function DiscrepancyRow({ item }: { item: SCDiscrepancy }) {
         <Button
           variant="default"
           size="xs"
-          className="opacity-0 group-hover:opacity-100 transition-opacity"
           render={<Link to={`/source-comparison/review/${item.id}`} />}
         >
           Review
@@ -119,9 +118,9 @@ function DiscrepancyRow({ item }: { item: SCDiscrepancy }) {
 
 function SourceValueChip({ source, value }: { source: string; value: string | number | null }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-[11px]">
-      <span className="font-semibold text-muted-foreground">{source}</span>
-      <span className="font-mono text-foreground">
+    <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-xs">
+      <span className="font-semibold text-slate-600">{source}</span>
+      <span className="font-mono font-medium text-slate-900">
         {value === null ? "—" : String(value)}
       </span>
     </span>
@@ -144,7 +143,10 @@ function ProvenanceBadge({ provenance }: { provenance: SCProvenance }) {
           ? "LLM"
           : "LLM Unavailable";
   return (
-    <Badge variant={variant} className="text-xs">
+    <Badge
+      variant={variant}
+      className={variant === "outline" ? "text-xs text-slate-700 border-slate-300" : "text-xs"}
+    >
       {label}
     </Badge>
   );

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   keepPreviousData,
   useMutation,
@@ -6,54 +7,40 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import {
-  AlertTriangle,
+  ArrowUpRight,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  ChevronRight as ChevronToggle,
   Loader2,
+  MessageSquarePlus,
+  ThumbsDown,
+  ThumbsUp,
 } from "lucide-react";
-import {
-  decideBulk,
-  decideDiscrepancy,
-  getReviewQueueGrouped,
-} from "../../api/source-comparison";
+import { decideDiscrepancy, getReviewQueue } from "../../api/source-comparison";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { SCDiscrepancy, SCGroup } from "../../types";
-import {
-  FieldLabel,
-  ProvenancePill,
-  ProvenancePillCount,
-  SourceValueCompareCard,
-} from "./table-parts";
+import type { SCDiscrepancy } from "../../types";
+import { cardAccent, computeHeadline, SpotlightValues } from "./table-parts";
 
 const PAGE_SIZE = 50;
 const DEFAULT_REVIEWER = "IQA Inspector";
 
 type Decision = "confirmed" | "dismissed";
 
-// A stable key for a part/lot group. Expand state is keyed by this so that
-// open panels stay open across refetches (as long as the group still exists).
-function groupKey(group: Pick<SCGroup, "part_number" | "lot_number">): string {
-  return `${group.part_number}|${group.lot_number}`;
-}
-
 // ---------------------------------------------------------------------------
-// SourceComparisonReview — an ACCORDION review surface grouped by part/lot.
+// SourceComparisonReview — an attractive CARD FEED review surface.
 //
-// Each part/lot GROUP is a collapsible panel. The panel header shows the
-// part/lot, a difference count, and per-provenance count chips, plus
-// group-level "Confirm all" / "Dismiss all" bulk actions. Expanding a panel
-// reveals every pending discrepancy in that group at full width, each with its
-// own Confirm / Dismiss buttons.
+// The FLAT per-discrepancy queue (getReviewQueue) drives a responsive grid of
+// cards, one card per pending difference. Each card leads with a plain-language
+// HEADLINE describing the difference in human terms, a colored accent bar tinted
+// by how the difference was detected, and a spotlighted "odd one out" value so
+// the reviewer instantly sees which source disagrees. Two plain-language actions
+// ("Looks wrong" / "Not an issue") decide the card; on success the ["sc"] query
+// key is invalidated and the card drops out.
 //
-// Pagination is by GROUP (total_count is the number of groups). Multiple panels
-// may be open at once. After any decision, the ["sc"] query key is invalidated
-// so groups and counts refetch; a group that empties out drops away.
-//
-// Presentation + API wiring only — all comparison rendering is reused from
+// Pagination is per DISCREPANCY (total_count is the number of discrepancies).
+// Presentation + API wiring only — all comparison logic is reused from
 // ./table-parts and the existing source-comparison API module.
 // ---------------------------------------------------------------------------
 
@@ -61,74 +48,52 @@ export function SourceComparisonReview() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
   const [reviewer, setReviewer] = useState(DEFAULT_REVIEWER);
-  // Controlled expand state — a Set of "part|lot" keys. Multiple open allowed.
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const { data, isLoading } = useQuery({
-    queryKey: ["sc", "review-queue-grouped", page],
-    queryFn: () =>
-      getReviewQueueGrouped({ limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
+    queryKey: ["sc", "review-queue", page],
+    queryFn: () => getReviewQueue({ limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
     refetchInterval: 5_000,
     placeholderData: keepPreviousData,
   });
 
-  const groups = useMemo(() => data?.data ?? [], [data]);
-  const totalCount = data?.total_count ?? 0; // number of GROUPS
+  const items = useMemo(() => data?.data ?? [], [data]);
+  const totalCount = data?.total_count ?? 0;
   const rangeStart = totalCount === 0 ? 0 : page * PAGE_SIZE + 1;
-  const rangeEnd = page * PAGE_SIZE + groups.length;
+  const rangeEnd = page * PAGE_SIZE + items.length;
   const canPrev = page > 0;
   const canNext = (page + 1) * PAGE_SIZE < totalCount;
 
-  const effectiveReviewer = () => reviewer.trim() || DEFAULT_REVIEWER;
-
-  const invalidateAll = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["sc"] });
-  }, [queryClient]);
-
-  const toggleGroup = useCallback((key: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  }, []);
-
-  // ---- Per-item decision --------------------------------------------------
+  const effectiveReviewer = useCallback(
+    () => reviewer.trim() || DEFAULT_REVIEWER,
+    [reviewer]
+  );
 
   const decideMutation = useMutation({
-    mutationFn: ({ id, decision }: { id: string; decision: Decision }) =>
-      decideDiscrepancy(id, { decision, reviewer: effectiveReviewer() }),
-    onSuccess: invalidateAll,
-  });
-
-  // ---- Group-level bulk decision ------------------------------------------
-
-  const bulkMutation = useMutation({
     mutationFn: ({
-      ids,
+      id,
       decision,
+      note,
     }: {
-      ids: string[];
+      id: string;
       decision: Decision;
-      key: string;
+      note?: string;
     }) =>
-      decideBulk({
-        discrepancy_ids: ids,
+      decideDiscrepancy(id, {
         decision,
         reviewer: effectiveReviewer(),
+        note: note?.trim() ? note.trim() : undefined,
       }),
-    onSuccess: invalidateAll,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sc"] }),
   });
 
-  // Track which group is mid-bulk so we can disable just that group's buttons.
-  const bulkPendingKey =
-    bulkMutation.isPending && bulkMutation.variables
-      ? bulkMutation.variables.key
+  // Track which card is mid-decision so only that card shows a spinner.
+  const pendingId =
+    decideMutation.isPending && decideMutation.variables
+      ? decideMutation.variables.id
       : null;
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden bg-slate-50/50">
+    <div className="flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden bg-slate-50">
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-3">
         <div className="min-w-0">
@@ -137,8 +102,7 @@ export function SourceComparisonReview() {
           </h1>
           <p className="text-sm text-muted-foreground">
             <span className="font-semibold text-slate-900">{totalCount}</span>{" "}
-            part/lot {totalCount === 1 ? "group" : "groups"} with pending
-            differences
+            pending {totalCount === 1 ? "difference" : "differences"} to review
           </p>
         </div>
         <label className="flex shrink-0 items-center gap-2">
@@ -152,52 +116,33 @@ export function SourceComparisonReview() {
         </label>
       </div>
 
-      {/* Accordion body (own scroll) */}
+      {/* Card feed (own scroll) */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 className="size-6 animate-spin text-lam-navy" />
           </div>
         ) : totalCount === 0 ? (
-          <div className="px-6 py-24 text-center">
-            <CheckCircle2 className="mx-auto mb-3 size-12 text-slate-300" />
-            <h3 className="text-sm font-medium text-slate-600">
-              No pending discrepancies
-            </h3>
-            <p className="mt-1 text-xs text-slate-400">
-              All flagged discrepancies have been reviewed
-            </p>
-          </div>
+          <EmptyState />
         ) : (
-          <div className="mx-auto w-full max-w-5xl space-y-3 p-4 sm:p-6">
-            {groups.map((group) => {
-              const key = groupKey(group);
-              return (
-                <GroupPanel
-                  key={key}
-                  group={group}
-                  open={expanded.has(key)}
-                  onToggle={() => toggleGroup(key)}
-                  onDecideItem={(id, decision) =>
-                    decideMutation.mutate({ id, decision })
+          <div className="mx-auto w-full max-w-7xl p-5 sm:p-6">
+            <div className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3">
+              {items.map((item) => (
+                <DiscrepancyCard
+                  key={item.id}
+                  item={item}
+                  onDecide={(decision, note) =>
+                    decideMutation.mutate({ id: item.id, decision, note })
                   }
-                  onBulk={(decision) =>
-                    bulkMutation.mutate({
-                      ids: group.discrepancies.map((d) => d.id),
-                      decision,
-                      key,
-                    })
-                  }
-                  itemPending={decideMutation.isPending}
-                  bulkPending={bulkPendingKey === key}
+                  isPending={pendingId === item.id}
                 />
-              );
-            })}
+              ))}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Pagination footer (by GROUP) */}
+      {/* Pagination footer */}
       <PaginationFooter
         rangeStart={rangeStart}
         rangeEnd={rangeEnd}
@@ -212,193 +157,144 @@ export function SourceComparisonReview() {
 }
 
 // ---------------------------------------------------------------------------
-// GroupPanel — one collapsible accordion panel for a part/lot group.
+// DiscrepancyCard — one attractive card for a single pending difference.
+//
+// Anatomy (top -> bottom):
+//   1. Thin colored ACCENT BAR tinted by detection type.
+//   2. HEADER: muted part · lot line + bold plain-language HEADLINE + a tiny
+//      quiet "how detected" tag.
+//   3. BODY: spotlighted odd value(s) with the agreeing / reference values
+//      shown small and muted.
+//   4. FOOTER: "Looks wrong" (confirm, green) + "Not an issue" (dismiss,
+//      outline), an unobtrusive "add note" toggle, and a ghost Details link.
 // ---------------------------------------------------------------------------
 
-function GroupPanel({
-  group,
-  open,
-  onToggle,
-  onDecideItem,
-  onBulk,
-  itemPending,
-  bulkPending,
-}: {
-  group: SCGroup;
-  open: boolean;
-  onToggle: () => void;
-  onDecideItem: (id: string, decision: Decision) => void;
-  onBulk: (decision: Decision) => void;
-  itemPending: boolean;
-  bulkPending: boolean;
-}) {
-  const provenanceEntries = Object.entries(group.provenance_counts).filter(
-    ([, count]) => count > 0
-  );
-  const panelId = `group-panel-${group.part_number}-${group.lot_number}`;
-
-  return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      {/* Trigger header */}
-      <div
-        className={cn(
-          "flex items-center gap-3 px-4 py-3 transition-colors",
-          open ? "bg-slate-50" : "bg-white hover:bg-slate-50/70"
-        )}
-      >
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-expanded={open}
-          aria-controls={panelId}
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-lam-navy/40"
-        >
-          <ChevronToggle
-            className={cn(
-              "size-4 shrink-0 text-slate-400 transition-transform duration-200",
-              open && "rotate-90"
-            )}
-          />
-          <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate font-mono text-sm font-bold text-slate-900">
-              {group.part_number}
-            </span>
-            <span className="truncate font-mono text-xs text-slate-500">
-              Lot {group.lot_number}
-            </span>
-          </div>
-          <div className="ml-2 flex min-w-0 items-center gap-2">
-            <span className="whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
-              {group.count} {group.count === 1 ? "difference" : "differences"}
-            </span>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {provenanceEntries.map(([provenance, count]) => (
-                <ProvenancePillCount
-                  key={provenance}
-                  provenance={provenance}
-                  count={count}
-                />
-              ))}
-            </div>
-          </div>
-        </button>
-
-        {/* Group-level bulk actions — stop propagation so clicks don't toggle. */}
-        <div
-          className="flex shrink-0 items-center gap-2"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Button
-            size="sm"
-            className="h-7 bg-avip-pass px-2.5 text-xs text-white hover:bg-avip-pass/90"
-            onClick={() => onBulk("confirmed")}
-            disabled={bulkPending}
-          >
-            {bulkPending ? (
-              <Loader2 className="mr-1 size-3.5 animate-spin" />
-            ) : null}
-            Confirm all
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 px-2.5 text-xs"
-            onClick={() => onBulk("dismissed")}
-            disabled={bulkPending}
-          >
-            Dismiss all
-          </Button>
-        </div>
-      </div>
-
-      {/* Body */}
-      {open && (
-        <div
-          id={panelId}
-          className="divide-y divide-slate-100 border-t border-slate-200"
-        >
-          {group.discrepancies.map((item) => (
-            <DiscrepancyRow
-              key={item.id}
-              item={item}
-              onConfirm={() => onDecideItem(item.id, "confirmed")}
-              onDismiss={() => onDecideItem(item.id, "dismissed")}
-              isPending={itemPending}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// DiscrepancyRow — one full-width discrepancy inside an expanded group.
-// ---------------------------------------------------------------------------
-
-function DiscrepancyRow({
+function DiscrepancyCard({
   item,
-  onConfirm,
-  onDismiss,
+  onDecide,
   isPending,
 }: {
   item: SCDiscrepancy;
-  onConfirm: () => void;
-  onDismiss: () => void;
+  onDecide: (decision: Decision, note?: string) => void;
   isPending: boolean;
 }) {
-  const needsManualCheck =
-    item.provenance === "llm-unavailable" || item.provenance === "llm";
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [note, setNote] = useState("");
+
+  const accent = cardAccent(item.provenance);
+  const headline = computeHeadline(item);
 
   return (
-    <div className="space-y-3 px-4 py-4 sm:px-5">
-      {/* Field label + provenance + per-item actions */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <FieldLabel name={item.field_name} type={item.field_type} />
-          <ProvenancePill provenance={item.provenance} />
+    <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
+      {/* 1. Accent bar */}
+      <div className={cn("h-1 w-full", accent.bar)} />
+
+      <div className="flex flex-1 flex-col gap-4 p-5">
+        {/* 2. Header */}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400">
+            <span className="truncate font-mono">
+              {item.part_number} · Lot {item.lot_number}
+            </span>
+          </div>
+          <h3 className="mt-1 text-base font-semibold leading-snug text-slate-900">
+            {headline}
+          </h3>
+          <span
+            className={cn(
+              "mt-1 inline-block text-[11px] font-medium",
+              accent.tagText
+            )}
+          >
+            {accent.detectLabel}
+          </span>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+
+        {/* 3. Spotlighted values */}
+        <SpotlightValues values={item.values} fieldType={item.field_type} />
+
+        {/* Optional note input */}
+        {noteOpen && (
+          <Input
+            autoFocus
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Add an optional note…"
+            className="h-8 text-sm"
+            aria-label="Optional reviewer note"
+          />
+        )}
+
+        {/* 4. Footer actions */}
+        <div className="mt-auto flex items-center gap-2 pt-1">
           <Button
             size="sm"
-            className="h-8 bg-avip-pass px-3 text-xs text-white hover:bg-avip-pass/90"
-            onClick={onConfirm}
+            className="h-9 flex-1 bg-avip-pass text-white hover:bg-avip-pass/90"
+            onClick={() => onDecide("confirmed", note)}
             disabled={isPending}
           >
-            Confirm
+            {isPending ? (
+              <Loader2 className="mr-1.5 size-4 animate-spin" />
+            ) : (
+              <ThumbsUp className="mr-1.5 size-4" />
+            )}
+            Looks wrong
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="h-8 px-3 text-xs"
-            onClick={onDismiss}
+            className="h-9 flex-1"
+            onClick={() => onDecide("dismissed", note)}
             disabled={isPending}
           >
-            Dismiss
+            <ThumbsDown className="mr-1.5 size-4" />
+            Not an issue
           </Button>
         </div>
-      </div>
 
-      {/* Manual-check note for LLM provenance */}
-      {needsManualCheck && (
-        <div className="flex items-start gap-2 rounded-lg border border-avip-review/40 bg-avip-review/5 px-3 py-2 text-xs text-slate-700">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-avip-review" />
-          <span>
-            {item.provenance === "llm-unavailable"
-              ? "Automated comparison unavailable — review the source values manually before deciding."
-              : "LLM-assisted flag — confirm the values genuinely differ before deciding."}
-          </span>
+        {/* Unobtrusive: add-note toggle + Details link */}
+        <div className="flex items-center justify-between text-xs">
+          <button
+            type="button"
+            onClick={() => setNoteOpen((o) => !o)}
+            className="inline-flex items-center gap-1 text-slate-400 transition-colors hover:text-slate-600"
+          >
+            <MessageSquarePlus className="size-3.5" />
+            {noteOpen ? "Hide note" : "Add note"}
+          </button>
+          <Link
+            to={`/source-comparison/review/${item.id}`}
+            className="inline-flex items-center gap-0.5 text-slate-400 opacity-0 transition-opacity hover:text-slate-600 group-hover:opacity-100"
+          >
+            Details
+            <ArrowUpRight className="size-3.5" />
+          </Link>
         </div>
-      )}
-
-      {/* Source values — full width, nothing truncated */}
-      <SourceValueCompareCard values={item.values} fieldType={item.field_type} />
+      </div>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// PaginationFooter — Prev / Next + range readout, by GROUP.
+// EmptyState — friendly "all caught up" panel.
+// ---------------------------------------------------------------------------
+
+function EmptyState() {
+  return (
+    <div className="px-6 py-24 text-center">
+      <CheckCircle2 className="mx-auto mb-3 size-12 text-avip-pass/70" />
+      <h3 className="text-base font-semibold text-slate-700">
+        All caught up — no differences to review
+      </h3>
+      <p className="mt-1 text-sm text-slate-400">
+        New differences will appear here automatically as they are flagged.
+      </p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PaginationFooter — Prev / Next + range readout.
 // ---------------------------------------------------------------------------
 
 function PaginationFooter({
@@ -424,7 +320,7 @@ function PaginationFooter({
         Showing{" "}
         <span className="font-semibold text-slate-900">{rangeStart}</span>–
         <span className="font-semibold text-slate-900">{rangeEnd}</span> of{" "}
-        <span className="font-semibold text-slate-900">{totalCount}</span> groups
+        <span className="font-semibold text-slate-900">{totalCount}</span>
       </p>
       <div className="flex items-center gap-1.5">
         <Button

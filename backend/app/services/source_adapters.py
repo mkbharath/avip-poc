@@ -404,14 +404,18 @@ class SimulatorAdapter:
                     # the same numbers/notes (fixes the 194/38/48 divergence).
                     baselines = self._group_baselines(part_rng)
                     agreeing_text = self._group_agreeing_text(part_rng)
+                    # ONE shared serial number per (part, lot) group — the physical
+                    # part's serial. All three sources (SHQ / LAIR / FAIR) carry
+                    # this IDENTICAL value so serial_number AGREES like the other
+                    # identifiers (part_number / lot_number) and stops being noise.
+                    # (external_record_id below still carries the source; that is
+                    # not compared.)
+                    serial_number = f"SN-{part['part_number']}-{cycle:02d}{lot_idx:02d}"
                     for source in source_order:
                         if self._stopped():
                             return
                         if limit is not None and emitted >= limit:
                             return
-                        serial_number = (
-                            f"SN-{part['part_number']}-{cycle:02d}{lot_idx:02d}-{source.value}"
-                        )
                         record = IngestRecord(
                             source=source,
                             external_record_id=(

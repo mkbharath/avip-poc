@@ -17,7 +17,7 @@ import type { SCFieldType, SCProvenance, SCSource, SCValues } from "../../types"
 // ---------------------------------------------------------------------------
 
 // The three sources, rendered in a consistent order everywhere.
-const SOURCE_ORDER: SCSource[] = ["LAIR", "FAIR", "SHQ"];
+export const SOURCE_ORDER: SCSource[] = ["LAIR", "FAIR", "SHQ"];
 
 // Non-technical-reviewer-friendly labels for the field types.
 const FIELD_TYPE_LABELS: Record<string, string> = {
@@ -166,7 +166,7 @@ export function FieldLabel({ name, type }: { name: string; type: SCFieldType }) 
 // 3-up grid, highlighting the value(s) that differ from the others.
 // ---------------------------------------------------------------------------
 
-function isMissing(value: string | number | null | undefined): boolean {
+export function isMissing(value: string | number | null | undefined): boolean {
   return value === null || value === undefined || value === "";
 }
 
@@ -182,7 +182,7 @@ function normalize(value: string | number | null | undefined): string | null {
  * calm neutral style (never amber) and only the OTHER sources that deviate
  * from it are emphasized.
  */
-function referenceSource(
+export function referenceSource(
   values: SCValues,
   fieldType: SCFieldType
 ): SCSource | null {
@@ -206,7 +206,7 @@ function referenceSource(
  * Works with either 2 or 3 present sources. If every present source agrees,
  * nothing is highlighted.
  */
-function computeOutliers(
+export function computeOutliers(
   values: SCValues,
   fieldType: SCFieldType
 ): Set<SCSource> {
@@ -258,9 +258,9 @@ function computeOutliers(
 }
 
 // The visual state a single source cell can take.
-type CellState = "missing" | "reference" | "outlier" | "neutral";
+export type CellState = "missing" | "reference" | "outlier" | "neutral";
 
-function cellState(
+export function cellState(
   source: SCSource,
   values: SCValues,
   reference: SCSource | null,
@@ -531,6 +531,347 @@ function SourceValueCardRow({
       >
         {missing ? "—" : String(value)}
       </span>
+    </div>
+  );
+}
+
+// ===========================================================================
+// CARD-FEED HELPERS
+//
+// The pieces below power the "Source Comparison Review" CARD FEED. They are
+// pure presentation + tiny pure functions that REUSE the exact same
+// referenceSource / computeOutliers / cellState comparison logic above — no
+// comparison rule is duplicated or changed here.
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// Accent color per detection type — drives the card's colored accent bar and
+// the quiet "how detected" tag so the reviewer can scan by color:
+//   numeric-threshold -> blue, exact-match -> indigo,
+//   llm (AI text)     -> amber, llm-unavailable -> red.
+// ---------------------------------------------------------------------------
+
+export interface CardAccent {
+  /** Tailwind bg-* for the thin top accent bar. */
+  bar: string;
+  /** Muted text color for the tiny "how detected" tag. */
+  tagText: string;
+  /** Plain-words description of how the difference was detected. */
+  detectLabel: string;
+}
+
+const CARD_ACCENTS: Record<SCProvenance, CardAccent> = {
+  "numeric-threshold": {
+    bar: "bg-blue-500",
+    tagText: "text-blue-600",
+    detectLabel: "Measurement check",
+  },
+  "exact-match": {
+    bar: "bg-indigo-500",
+    tagText: "text-indigo-600",
+    detectLabel: "Exact match",
+  },
+  llm: {
+    bar: "bg-amber-500",
+    tagText: "text-amber-600",
+    detectLabel: "AI text review",
+  },
+  "llm-unavailable": {
+    bar: "bg-red-500",
+    tagText: "text-red-600",
+    detectLabel: "Needs manual check",
+  },
+};
+
+export function cardAccent(provenance: SCProvenance): CardAccent {
+  return (
+    CARD_ACCENTS[provenance] ?? {
+      bar: "bg-slate-300",
+      tagText: "text-slate-500",
+      detectLabel: "Flagged",
+    }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// humanizeField — "coating_finish" -> "Coating Finish".
+// ---------------------------------------------------------------------------
+
+export function humanizeField(name: string): string {
+  return name
+    .replace(/_/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
+
+// ---------------------------------------------------------------------------
+// numericDelta — for numeric fields, the signed difference between an outlier
+// source and the SHQ reference, formatted compactly. Returns null when it
+// cannot be computed safely (missing values, non-numeric, no reference).
+// ---------------------------------------------------------------------------
+
+function toNumber(value: string | number | null | undefined): number | null {
+  if (isMissing(value)) return null;
+  const n = typeof value === "number" ? value : Number(String(value).trim());
+  return Number.isFinite(n) ? n : null;
+}
+
+function formatDelta(delta: number): string {
+  // Trim trailing zeros while keeping small deltas readable.
+  const abs = Math.abs(delta);
+  const str =
+    abs >= 1
+      ? abs.toFixed(2).replace(/\.?0+$/, "")
+      : abs.toPrecision(2).replace(/\.?0+$/, "");
+  return str;
+}
+
+// ---------------------------------------------------------------------------
+// computeHeadline — the plain-language, human-terms headline for a card.
+//
+//   numeric      : "Diameter is off by 0.03" (delta vs SHQ) or
+//                  "Diameter reading disagrees" fallback.
+//   categorical  : "Coating Finish disagrees"
+//   identifier   : "Serial Number doesn't match"
+//   free_text    : "Inspector notes differ"
+//
+// It never throws and always returns a safe, readable sentence.
+// ---------------------------------------------------------------------------
+
+export function computeHeadline(item: {
+  field_name: string;
+  field_type: SCFieldType;
+  values: SCValues;
+}): string {
+  const field = humanizeField(item.field_name);
+
+  if (item.field_type === "free_text") {
+    return "Inspector notes differ";
+  }
+
+  if (item.field_type === "numeric") {
+    const reference = referenceSource(item.values, "numeric");
+    const outliers = computeOutliers(item.values, "numeric");
+    const ref = toNumber(item.values.SHQ);
+    if (reference === "SHQ" && ref !== null && outliers.size > 0) {
+      // Use the largest deviation from SHQ across highlighted sources.
+      let biggest: number | null = null;
+      for (const source of outliers) {
+        const v = toNumber(item.values[source]);
+        if (v === null) continue;
+        const d = v - ref;
+        if (biggest === null || Math.abs(d) > Math.abs(biggest)) biggest = d;
+      }
+      if (biggest !== null && biggest !== 0) {
+        return `${field} is off by ${formatDelta(biggest)}`;
+      }
+    }
+    return `${field} reading disagrees`;
+  }
+
+  // categorical / identifier
+  if (item.field_type === "identifier") {
+    return `${field} doesn't match`;
+  }
+  return `${field} disagrees`;
+}
+
+// ---------------------------------------------------------------------------
+// SpotlightValues — the value presentation for a card. It SPOTLIGHTS the odd
+// source(s) and DE-EMPHASIZES the agreeing ones so the reviewer instantly sees
+// which source is out of line.
+//
+//   - Highlighted (outlier) sources render as a larger colored chip carrying
+//     the source label + value (+ signed delta vs SHQ for numeric fields).
+//   - The neutral / reference / agreeing sources render small and muted.
+//   - free_text: the differing note is shown prominently; agreeing notes stay
+//     quiet and clamped.
+//   - If nothing computes as an outlier, all values render cleanly in the calm
+//     muted style (no forced amber).
+//
+// Reuses referenceSource / computeOutliers / cellState verbatim.
+// ---------------------------------------------------------------------------
+
+export function SpotlightValues({
+  values,
+  fieldType,
+}: {
+  values: SCValues;
+  fieldType: SCFieldType;
+}) {
+  const reference = referenceSource(values, fieldType);
+  const outliers = computeOutliers(values, fieldType);
+  const refNum = fieldType === "numeric" ? toNumber(values.SHQ) : null;
+
+  const present = SOURCE_ORDER.filter((s) => !isMissing(values[s]));
+  const spotlighted = present.filter((s) => outliers.has(s));
+  const quiet = present.filter((s) => !outliers.has(s));
+
+  if (fieldType === "free_text") {
+    return (
+      <div className="flex flex-col gap-2">
+        {spotlighted.map((source) => (
+          <FreeTextSpotlight
+            key={source}
+            source={source}
+            value={values[source]}
+            emphasized
+          />
+        ))}
+        {quiet.map((source) => (
+          <FreeTextSpotlight
+            key={source}
+            source={source}
+            value={values[source]}
+            emphasized={false}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      {/* Spotlighted odd-one-out value(s) — larger colored chips. */}
+      {spotlighted.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {spotlighted.map((source) => {
+            const delta =
+              refNum !== null ? computeSignedDelta(values[source], refNum) : null;
+            return (
+              <ValueSpotlightChip
+                key={source}
+                source={source}
+                value={values[source]}
+                delta={delta}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Quiet, agreeing / reference values — small muted row. */}
+      {quiet.length > 0 && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          {quiet.map((source) => {
+            const state = cellState(source, values, reference, outliers);
+            return (
+              <QuietValue
+                key={source}
+                source={source}
+                value={values[source]}
+                isReference={state === "reference"}
+              />
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function computeSignedDelta(
+  value: string | number | null | undefined,
+  ref: number
+): string | null {
+  const v = toNumber(value);
+  if (v === null) return null;
+  const d = v - ref;
+  if (d === 0) return null;
+  return `${d > 0 ? "+" : "−"}${formatDelta(d)}`;
+}
+
+// A bold, colored chip for the differing value — the visual focal point.
+function ValueSpotlightChip({
+  source,
+  value,
+  delta,
+}: {
+  source: SCSource;
+  value: string | number | null | undefined;
+  delta: string | null;
+}) {
+  return (
+    <div className="inline-flex items-baseline gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2">
+      <span className="text-[10px] font-bold uppercase tracking-wide text-amber-700">
+        {source}
+      </span>
+      <span className="font-mono text-lg font-semibold tabular-nums text-amber-900 [overflow-wrap:anywhere]">
+        {isMissing(value) ? "—" : String(value)}
+      </span>
+      {delta ? (
+        <span className="font-mono text-xs font-semibold tabular-nums text-amber-600">
+          {delta}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+// A small muted inline value for the sources that agree / the reference.
+function QuietValue({
+  source,
+  value,
+  isReference,
+}: {
+  source: SCSource;
+  value: string | number | null | undefined;
+  isReference: boolean;
+}) {
+  return (
+    <span className="inline-flex items-baseline gap-1.5 text-xs text-slate-500">
+      <span className="font-semibold uppercase tracking-wide text-slate-400">
+        {source}
+      </span>
+      <span className="font-mono tabular-nums text-slate-600 [overflow-wrap:anywhere]">
+        {isMissing(value) ? "—" : String(value)}
+      </span>
+      {isReference ? (
+        <span className="rounded-sm bg-blue-100 px-1 text-[9px] font-semibold text-blue-700">
+          REF
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+// Free-text: the differing note prominent, agreeing notes quiet + clamped.
+function FreeTextSpotlight({
+  source,
+  value,
+  emphasized,
+}: {
+  source: SCSource;
+  value: string | number | null | undefined;
+  emphasized: boolean;
+}) {
+  const missing = isMissing(value);
+  if (emphasized) {
+    return (
+      <div className="rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2.5">
+        <span className="text-[10px] font-bold uppercase tracking-wide text-amber-700">
+          {source}
+        </span>
+        <p className="mt-0.5 text-sm leading-snug text-amber-900 [overflow-wrap:anywhere]">
+          {missing ? "—" : String(value)}
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-lg px-1">
+      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+        {source}
+      </span>
+      <p
+        className="mt-0.5 text-xs leading-snug text-slate-500 line-clamp-2 [overflow-wrap:anywhere]"
+        title={missing ? undefined : String(value)}
+      >
+        {missing ? "—" : String(value)}
+      </p>
     </div>
   );
 }

@@ -434,7 +434,7 @@ function SourceValueCardTile({
   return (
     <div
       className={cn(
-        "flex min-w-0 flex-col items-start gap-1 overflow-hidden rounded-lg border px-3 py-2.5",
+        "flex min-w-0 flex-col items-start gap-1 rounded-lg border px-3 py-2.5",
         TILE_STYLES[state]
       )}
     >
@@ -448,7 +448,7 @@ function SourceValueCardTile({
       </span>
       <span
         className={cn(
-          "block w-full min-w-0 truncate text-left font-mono text-base font-semibold tabular-nums",
+          "block w-full min-w-0 break-words [overflow-wrap:anywhere] text-left font-mono text-sm font-medium tabular-nums",
           VALUE_TEXT_STYLES[state]
         )}
         title={missing ? undefined : String(value)}
@@ -472,7 +472,7 @@ function SourceValueCardRow({
   return (
     <div
       className={cn(
-        "flex w-full min-w-0 flex-col gap-1 overflow-hidden rounded-lg border px-3 py-2",
+        "flex w-full min-w-0 flex-col gap-1 rounded-lg border px-3 py-2",
         TILE_STYLES[state],
         state === "outlier" && "border-l-2 border-l-amber-400"
       )}
@@ -482,7 +482,7 @@ function SourceValueCardRow({
       </span>
       <span
         className={cn(
-          "block min-w-0 text-sm leading-snug break-words line-clamp-3",
+          "block w-full min-w-0 text-sm leading-snug break-words [overflow-wrap:anywhere] line-clamp-3",
           missing ? "font-mono text-slate-300" : VALUE_TEXT_STYLES[state]
         )}
         title={missing ? undefined : String(value)}

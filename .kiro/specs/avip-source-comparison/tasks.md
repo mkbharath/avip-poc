@@ -360,8 +360,8 @@ optional (`*`); core implementation sub-tasks are not.
       export link and shows the assumptions banner
     - _Requirements: 6.1, 6.3, 7.1, 7.2, 7.3, 7.4, 8.5_
 
-- [ ] 11. End-to-end wiring and validation
-  - [-] 11.1 Validate the full stream against the running simulator
+- [x] 11. End-to-end wiring and validation
+  - [x] 11.1 Validate the full stream against the running simulator
     - With the simulator feeding records, confirm ingestion → alignment →
       comparison → review gate → confirmed report works end to end, the
       assumptions banner shows both "assumed — pending client confirmation"
@@ -375,7 +375,7 @@ optional (`*`); core implementation sub-tasks are not.
       contains only confirmed rows with complete columns
     - _Requirements: 1.4, 2.1, 4.1, 6.1, 7.2_
 
-- [~] 12. Final checkpoint — ensure all tests pass
+- [x] 12. Final checkpoint — ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

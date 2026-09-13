@@ -22,8 +22,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { SCAssumption, SCProvenance, SCReportRow, SCSource } from "../../types";
+import {
+  FieldLabel,
+  PartLotCell,
+  ProvenancePill,
+  SourceValueCompare,
+} from "./table-parts";
 
-// The three sources shown as dedicated value columns, in a consistent order.
+// The three sources, used to populate the source filter dropdown.
 const SOURCE_COLUMNS: SCSource[] = ["LAIR", "FAIR", "SHQ"];
 
 // Non-technical-reviewer-friendly labels for the provenance codes (Req 7.5):
@@ -34,29 +40,6 @@ const PROVENANCE_LABELS: Record<SCProvenance, string> = {
   llm: "AI text review",
   "llm-unavailable": "Needs manual check",
 };
-
-const PROVENANCE_VARIANTS: Record<
-  SCProvenance,
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  "exact-match": "secondary",
-  "numeric-threshold": "secondary",
-  llm: "outline",
-  "llm-unavailable": "destructive",
-};
-
-// Non-technical-reviewer-friendly labels for the field types (Req 7.5).
-const FIELD_TYPE_LABELS: Record<string, string> = {
-  numeric: "Measurement",
-  categorical: "Category",
-  identifier: "Identifier",
-  free_text: "Free text",
-};
-
-function formatValue(value: string | number | null | undefined): string {
-  if (value === null || value === undefined || value === "") return "—";
-  return String(value);
-}
 
 export function DiscrepancyReport() {
   const [partFilter, setPartFilter] = useState("");
@@ -128,7 +111,7 @@ export function DiscrepancyReport() {
       <AssumptionsBanner assumptions={header?.assumptions ?? []} />
 
       {/* Filters row */}
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted-foreground">Part Number</label>
           <Input
@@ -227,22 +210,25 @@ export function DiscrepancyReport() {
           </p>
         </div>
       ) : (
-        <Card className="overflow-hidden p-0">
+        <Card className="overflow-hidden rounded-xl border border-slate-200 p-0 shadow-sm">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Part / Lot</TableHead>
-                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Field</TableHead>
-                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Type</TableHead>
-                <TableHead className="text-xs uppercase text-slate-600 font-semibold">How Flagged</TableHead>
-                {SOURCE_COLUMNS.map((s) => (
-                  <TableHead key={s} className="text-xs uppercase text-slate-600 font-semibold">
-                    {s}
-                  </TableHead>
-                ))}
+              <TableRow className="border-b border-slate-200 bg-slate-50 hover:bg-slate-50">
+                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  Part / Lot
+                </TableHead>
+                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  Field
+                </TableHead>
+                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  How Flagged
+                </TableHead>
+                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  Source Values
+                </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="divide-y divide-slate-100">
               {rows.map((row) => (
                 <ReportRow key={row.id} row={row} />
               ))}
@@ -256,38 +242,21 @@ export function DiscrepancyReport() {
 
 function ReportRow({ row }: { row: SCReportRow }) {
   return (
-    <TableRow>
-      <TableCell>
-        <div className="flex flex-col">
-          <span className="text-sm font-mono font-bold text-slate-900">{row.part_number}</span>
-          <span className="text-xs text-slate-600 font-mono">Lot {row.lot_number}</span>
+    <TableRow className="border-0 transition-colors hover:bg-slate-50/70">
+      <TableCell className="px-4 py-3.5 align-top">
+        <PartLotCell partNumber={row.part_number} lotNumber={row.lot_number} />
+      </TableCell>
+      <TableCell className="px-4 py-3.5 align-top">
+        <FieldLabel name={row.field_name} type={row.field_type} />
+      </TableCell>
+      <TableCell className="px-4 py-3.5 align-top">
+        <ProvenancePill provenance={row.provenance} />
+      </TableCell>
+      <TableCell className="px-4 py-3.5 align-top">
+        <div className="min-w-[280px]">
+          <SourceValueCompare values={row.values} fieldType={row.field_type} />
         </div>
       </TableCell>
-      <TableCell>
-        <span className="text-sm font-medium text-slate-900">{row.field_name}</span>
-      </TableCell>
-      <TableCell>
-        <span className="text-sm text-slate-600">
-          {FIELD_TYPE_LABELS[row.field_type] ?? row.field_type}
-        </span>
-      </TableCell>
-      <TableCell>
-        <Badge
-          variant={PROVENANCE_VARIANTS[row.provenance] ?? "outline"}
-          className={
-            (PROVENANCE_VARIANTS[row.provenance] ?? "outline") === "outline"
-              ? "text-xs text-slate-700 border-slate-300"
-              : "text-xs"
-          }
-        >
-          {PROVENANCE_LABELS[row.provenance] ?? row.provenance}
-        </Badge>
-      </TableCell>
-      {SOURCE_COLUMNS.map((s) => (
-        <TableCell key={s}>
-          <span className="text-sm font-mono font-medium text-slate-900">{formatValue(row.values[s])}</span>
-        </TableCell>
-      ))}
     </TableRow>
   );
 }

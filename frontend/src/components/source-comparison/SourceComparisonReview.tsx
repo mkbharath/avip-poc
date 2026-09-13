@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import { getReviewQueue } from "../../api/source-comparison";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -13,7 +12,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { SCDiscrepancy, SCProvenance } from "../../types";
+import type { SCDiscrepancy } from "../../types";
+import {
+  FieldLabel,
+  PartLotCell,
+  ProvenancePill,
+  SourceValueCompare,
+} from "./table-parts";
 
 export function SourceComparisonReview() {
   const { data, isLoading } = useQuery({
@@ -50,19 +55,28 @@ export function SourceComparisonReview() {
           </p>
         </div>
       ) : (
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden rounded-xl border border-slate-200 p-0 shadow-sm">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Part / Lot</TableHead>
-                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Field</TableHead>
-                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Type</TableHead>
-                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Provenance</TableHead>
-                <TableHead className="text-xs uppercase text-slate-600 font-semibold">Source Values</TableHead>
-                <TableHead></TableHead>
+              <TableRow className="border-b border-slate-200 bg-slate-50 hover:bg-slate-50">
+                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  Part / Lot
+                </TableHead>
+                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  Field
+                </TableHead>
+                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  How Flagged
+                </TableHead>
+                <TableHead className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  Source Values
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  Action
+                </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="divide-y divide-slate-100">
               {queue.map((item) => (
                 <DiscrepancyRow key={item.id} item={item} />
               ))}
@@ -76,78 +90,30 @@ export function SourceComparisonReview() {
 
 function DiscrepancyRow({ item }: { item: SCDiscrepancy }) {
   return (
-    <TableRow className="group cursor-pointer">
-      <TableCell>
-        <div className="flex flex-col">
-          <span className="text-sm font-mono font-bold text-slate-900">{item.part_number}</span>
-          <span className="text-xs text-slate-600 font-mono">Lot {item.lot_number}</span>
+    <TableRow className="border-0 transition-colors hover:bg-slate-50/70">
+      <TableCell className="px-4 py-3.5 align-top">
+        <PartLotCell partNumber={item.part_number} lotNumber={item.lot_number} />
+      </TableCell>
+      <TableCell className="px-4 py-3.5 align-top">
+        <FieldLabel name={item.field_name} type={item.field_type} />
+      </TableCell>
+      <TableCell className="px-4 py-3.5 align-top">
+        <ProvenancePill provenance={item.provenance} />
+      </TableCell>
+      <TableCell className="px-4 py-3.5 align-top">
+        <div className="min-w-[280px]">
+          <SourceValueCompare values={item.values} fieldType={item.field_type} />
         </div>
       </TableCell>
-      <TableCell>
-        <span className="text-sm font-medium text-slate-900 capitalize">
-          {item.field_name.replace(/_/g, " ")}
-        </span>
-      </TableCell>
-      <TableCell>
-        <span className="text-xs text-slate-600 capitalize">
-          {item.field_type.replace(/_/g, " ")}
-        </span>
-      </TableCell>
-      <TableCell>
-        <ProvenanceBadge provenance={item.provenance} />
-      </TableCell>
-      <TableCell>
-        <div className="flex gap-1.5 flex-wrap">
-          {Object.entries(item.values).map(([source, value]) => (
-            <SourceValueChip key={source} source={source} value={value} />
-          ))}
-        </div>
-      </TableCell>
-      <TableCell>
+      <TableCell className="px-4 py-3.5 text-right align-top">
         <Button
           variant="default"
-          size="xs"
+          size="sm"
           render={<Link to={`/source-comparison/review/${item.id}`} />}
         >
           Review
         </Button>
       </TableCell>
     </TableRow>
-  );
-}
-
-function SourceValueChip({ source, value }: { source: string; value: string | number | null }) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-xs">
-      <span className="font-semibold text-slate-600">{source}</span>
-      <span className="font-mono font-medium text-slate-900">
-        {value === null ? "—" : String(value)}
-      </span>
-    </span>
-  );
-}
-
-function ProvenanceBadge({ provenance }: { provenance: SCProvenance }) {
-  const variant =
-    provenance === "llm-unavailable"
-      ? "destructive"
-      : provenance === "llm"
-        ? "secondary"
-        : "outline";
-  const label =
-    provenance === "exact-match"
-      ? "Exact Match"
-      : provenance === "numeric-threshold"
-        ? "Numeric Threshold"
-        : provenance === "llm"
-          ? "LLM"
-          : "LLM Unavailable";
-  return (
-    <Badge
-      variant={variant}
-      className={variant === "outline" ? "text-xs text-slate-700 border-slate-300" : "text-xs"}
-    >
-      {label}
-    </Badge>
   );
 }

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bar,
   BarChart,
@@ -10,8 +10,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { AlertTriangle } from "lucide-react";
-import { getStatus } from "../../api/source-comparison";
+import { AlertTriangle, Pause, Play } from "lucide-react";
+import { getStatus, startSimulator, stopSimulator } from "../../api/source-comparison";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,11 +37,14 @@ export function IngestionMonitor() {
   return (
     <div className="p-6 space-y-6">
       {/* Page header */}
-      <div>
-        <h1 className="text-xl font-bold text-foreground tracking-tight">Ingestion Monitor</h1>
-        <p className="text-sm text-slate-600 mt-0.5">
-          Live status of the LAIR / FAIR / SHQ record feed
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">Ingestion Monitor</h1>
+          <p className="text-sm text-slate-600 mt-0.5">
+            Live status of the LAIR / FAIR / SHQ record feed
+          </p>
+        </div>
+        <IngestionControl running={data.simulator_running} />
       </div>
 
       {/* Assumptions banner (Req 8.5) */}
@@ -115,6 +119,56 @@ export function IngestionMonitor() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function IngestionControl({ running }: { running: boolean }) {
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: () => (running ? stopSimulator() : startSimulator()),
+    onSuccess: () => {
+      // Refresh status immediately, plus any counts derived from the feed.
+      queryClient.invalidateQueries({ queryKey: ["sc", "status"] });
+      queryClient.invalidateQueries({ queryKey: ["sc"] });
+    },
+  });
+
+  return (
+    <div className="flex items-center gap-3">
+      {running ? (
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-avip-pass">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-avip-pass opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-avip-pass" />
+          </span>
+          Streaming
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
+          <span className="h-2 w-2 rounded-full bg-slate-400" />
+          Paused
+        </span>
+      )}
+      <Button
+        variant={running ? "outline" : "default"}
+        size="sm"
+        disabled={isPending}
+        onClick={() => mutate()}
+      >
+        {running ? (
+          <>
+            <Pause className="mr-1.5" />
+            Stop ingestion
+          </>
+        ) : (
+          <>
+            <Play className="mr-1.5" />
+            Start ingestion
+          </>
+        )}
+      </Button>
     </div>
   );
 }

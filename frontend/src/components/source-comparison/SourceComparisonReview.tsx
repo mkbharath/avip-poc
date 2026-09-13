@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2 } from "lucide-react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { getReviewQueue } from "../../api/source-comparison";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,14 +21,24 @@ import {
   SourceValueCompare,
 } from "./table-parts";
 
+const PAGE_SIZE = 50;
+
 export function SourceComparisonReview() {
+  const [page, setPage] = useState(0);
+
   const { data, isLoading } = useQuery({
-    queryKey: ["sc", "review-queue"],
-    queryFn: getReviewQueue,
+    queryKey: ["sc", "review-queue", page],
+    queryFn: () => getReviewQueue({ limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
     refetchInterval: 5_000,
+    placeholderData: keepPreviousData,
   });
 
   const queue = data?.data ?? [];
+  const totalCount = data?.total_count ?? 0;
+  const rangeStart = totalCount === 0 ? 0 : page * PAGE_SIZE + 1;
+  const rangeEnd = page * PAGE_SIZE + queue.length;
+  const canPrev = page > 0;
+  const canNext = (page + 1) * PAGE_SIZE < totalCount;
 
   return (
     <div className="p-6 space-y-6">
@@ -37,7 +48,7 @@ export function SourceComparisonReview() {
           Source Comparison Review
         </h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          {queue.length} pending {queue.length === 1 ? "discrepancy" : "discrepancies"} awaiting review
+          {totalCount} pending {totalCount === 1 ? "discrepancy" : "discrepancies"} awaiting review
         </p>
       </div>
 
@@ -82,8 +93,55 @@ export function SourceComparisonReview() {
               ))}
             </TableBody>
           </Table>
+          <PaginationFooter
+            rangeStart={rangeStart}
+            rangeEnd={rangeEnd}
+            totalCount={totalCount}
+            canPrev={canPrev}
+            canNext={canNext}
+            onPrev={() => setPage((p) => Math.max(0, p - 1))}
+            onNext={() => setPage((p) => p + 1)}
+          />
         </Card>
       )}
+    </div>
+  );
+}
+
+function PaginationFooter({
+  rangeStart,
+  rangeEnd,
+  totalCount,
+  canPrev,
+  canNext,
+  onPrev,
+  onNext,
+}: {
+  rangeStart: number;
+  rangeEnd: number;
+  totalCount: number;
+  canPrev: boolean;
+  canNext: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-4 py-3">
+      <p className="text-xs text-slate-600">
+        Showing <span className="font-semibold text-slate-900">{rangeStart}</span>–
+        <span className="font-semibold text-slate-900">{rangeEnd}</span> of{" "}
+        <span className="font-semibold text-slate-900">{totalCount}</span>
+      </p>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" disabled={!canPrev} onClick={onPrev}>
+          <ChevronLeft className="mr-1" />
+          Prev
+        </Button>
+        <Button variant="outline" size="sm" disabled={!canNext} onClick={onNext}>
+          Next
+          <ChevronRight className="ml-1" />
+        </Button>
+      </div>
     </div>
   );
 }

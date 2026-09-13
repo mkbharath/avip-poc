@@ -78,8 +78,11 @@ def _discrepancy_to_row(d: Discrepancy) -> dict[str, Any]:
 
 async def build_report(
     filters: dict[str, Any] | None = None,
-) -> list[dict[str, Any]]:
-    """Assemble the confirmed-only discrepancy report (Req 7.1, 7.2, 7.3).
+    *,
+    limit: int | None = sc_review.DEFAULT_PAGE_LIMIT,
+    offset: int | None = 0,
+) -> tuple[list[dict[str, Any]], int]:
+    """Assemble a page of the confirmed-only discrepancy report (Req 7.1-7.3).
 
     Delegates to :func:`sc_review.list_confirmed` so **only** confirmed
     discrepancies are included — pending and dismissed never reach the report
@@ -93,9 +96,18 @@ async def build_report(
             everything. Both the short (``part``) and long (``part_number``)
             aliases are accepted so callers and the endpoint (6.2) can use the
             requirement's filter names directly.
+        limit: page size. Defaults to :data:`sc_review.DEFAULT_PAGE_LIMIT` and
+            is capped at :data:`sc_review.MAX_PAGE_LIMIT` by the read helper.
+            Pass ``limit=None`` to fetch ALL matching confirmed rows — the CSV
+            export uses this so the download stays complete rather than being
+            truncated to one page.
+        offset: page offset (default 0). Ignored when ``limit is None``.
 
     Returns:
-        A list of serializable row dicts, ordered by part, lot, then field.
+        A ``(rows, total_count)`` tuple: ``rows`` is one page of serializable
+        row dicts (ordered by part, lot, then field); ``total_count`` is the
+        number of matching confirmed discrepancies across ALL pages so callers
+        can render paging controls.
     """
     filters = filters or {}
     part_number = filters.get("part_number") or filters.get("part")
@@ -104,26 +116,31 @@ async def build_report(
     source = filters.get("source")
     provenance = filters.get("provenance")
 
-    confirmed = await sc_review.list_confirmed(
+    confirmed, total_count = await sc_review.list_confirmed(
         part_number=part_number,
         lot_number=lot_number,
         source=source,
         field_name=field_name,
         provenance=provenance,
+        limit=limit,
+        offset=offset,
     )
     rows = [_discrepancy_to_row(d) for d in confirmed]
 
     logger.info(
-        "Report assembled: confirmed_only rows=%d filters part=%s lot=%s "
-        "source=%s field=%s provenance=%s",
+        "Report assembled: confirmed_only rows=%d total=%d limit=%s offset=%s "
+        "filters part=%s lot=%s source=%s field=%s provenance=%s",
         len(rows),
+        total_count,
+        limit,
+        offset,
         part_number,
         lot_number,
         source,
         field_name,
         provenance,
     )
-    return rows
+    return rows, total_count
 
 
 def render_report_csv(rows: list[dict[str, Any]]) -> str:

@@ -10,10 +10,31 @@ import type {
 
 type Filters = Record<string, string>;
 
+interface Pagination {
+  limit?: number;
+  offset?: number;
+}
+
+/** Shape returned by paginated list endpoints. */
+export interface Paginated<T> {
+  data: T[];
+  total_count: number;
+  limit: number;
+  offset: number;
+}
+
 function buildQuery(params?: Filters): string {
   if (!params) return "";
   const query = new URLSearchParams(params).toString();
   return query ? `?${query}` : "";
+}
+
+/** Merge optional pagination values into a plain string filter map. */
+function withPagination(filters?: Filters, pagination?: Pagination): Filters {
+  const merged: Filters = { ...(filters ?? {}) };
+  if (pagination?.limit !== undefined) merged.limit = String(pagination.limit);
+  if (pagination?.offset !== undefined) merged.offset = String(pagination.offset);
+  return merged;
 }
 
 // ===== Status =====
@@ -44,9 +65,9 @@ export async function getGroup(id: string) {
 
 // ===== Review =====
 
-export async function getReviewQueue() {
-  return api.get<{ data: SCDiscrepancy[]; total_count: number }>(
-    "/source-comparison/review/queue"
+export async function getReviewQueue(params?: Pagination) {
+  return api.get<Paginated<SCDiscrepancy>>(
+    `/source-comparison/review/queue${buildQuery(withPagination(undefined, params))}`
   );
 }
 
@@ -61,11 +82,21 @@ export async function decideDiscrepancy(
   return api.post<SCDiscrepancy>(`/source-comparison/review/${id}/decide`, payload);
 }
 
+// ===== Ingestion simulator control =====
+
+export async function startSimulator() {
+  return api.post<{ running: boolean }>("/source-comparison/simulator/start");
+}
+
+export async function stopSimulator() {
+  return api.post<{ running: boolean }>("/source-comparison/simulator/stop");
+}
+
 // ===== Report =====
 
-export async function getReport(filters?: Filters) {
-  return api.get<{ data: SCReportRow[]; total_count: number }>(
-    `/source-comparison/report${buildQuery(filters)}`
+export async function getReport(filters?: Filters, pagination?: Pagination) {
+  return api.get<Paginated<SCReportRow>>(
+    `/source-comparison/report${buildQuery(withPagination(filters, pagination))}`
   );
 }
 

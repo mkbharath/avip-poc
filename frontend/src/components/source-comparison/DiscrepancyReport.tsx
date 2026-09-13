@@ -1,6 +1,13 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Download, FileSearch, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileSearch,
+  X,
+} from "lucide-react";
 import { getReport, getReportHeader, exportReportUrl } from "../../api/source-comparison";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +39,8 @@ import {
 // The three sources, used to populate the source filter dropdown.
 const SOURCE_COLUMNS: SCSource[] = ["LAIR", "FAIR", "SHQ"];
 
+const PAGE_SIZE = 50;
+
 // Non-technical-reviewer-friendly labels for the provenance codes (Req 7.5):
 // each explains, in plain language, how the flag was determined.
 const PROVENANCE_LABELS: Record<SCProvenance, string> = {
@@ -59,9 +68,17 @@ export function DiscrepancyReport() {
     return f;
   }, [partFilter, lotFilter, sourceFilter, fieldFilter, provenanceFilter]);
 
+  const [page, setPage] = useState(0);
+
+  // Reset to the first page whenever the active filters change.
+  useEffect(() => {
+    setPage(0);
+  }, [filters]);
+
   const { data: reportData, isLoading } = useQuery({
-    queryKey: ["sc", "report", filters],
-    queryFn: () => getReport(filters),
+    queryKey: ["sc", "report", filters, page],
+    queryFn: () => getReport(filters, { limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
+    placeholderData: keepPreviousData,
   });
 
   const { data: header } = useQuery({
@@ -70,6 +87,11 @@ export function DiscrepancyReport() {
   });
 
   const rows: SCReportRow[] = reportData?.data ?? [];
+  const totalCount = reportData?.total_count ?? 0;
+  const rangeStart = totalCount === 0 ? 0 : page * PAGE_SIZE + 1;
+  const rangeEnd = page * PAGE_SIZE + rows.length;
+  const canPrev = page > 0;
+  const canNext = (page + 1) * PAGE_SIZE < totalCount;
 
   // Field and provenance option lists derived from the current result set so the
   // filter dropdowns stay relevant.
@@ -98,7 +120,7 @@ export function DiscrepancyReport() {
           <p className="text-sm text-slate-600 mt-0.5">
             Reviewer-confirmed differences across LAIR, FAIR, and SHQ records
             {" · "}
-            {rows.length} row{rows.length === 1 ? "" : "s"}
+            {totalCount} row{totalCount === 1 ? "" : "s"}
           </p>
         </div>
         <Button variant="default" render={<a href={exportReportUrl(filters)} download />}>
@@ -234,6 +256,33 @@ export function DiscrepancyReport() {
               ))}
             </TableBody>
           </Table>
+          <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-4 py-3">
+            <p className="text-xs text-slate-600">
+              Showing <span className="font-semibold text-slate-900">{rangeStart}</span>–
+              <span className="font-semibold text-slate-900">{rangeEnd}</span> of{" "}
+              <span className="font-semibold text-slate-900">{totalCount}</span>
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!canPrev}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+              >
+                <ChevronLeft className="mr-1" />
+                Prev
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!canNext}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Next
+                <ChevronRight className="ml-1" />
+              </Button>
+            </div>
+          </div>
         </Card>
       )}
     </div>

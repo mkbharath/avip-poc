@@ -26,6 +26,7 @@ for structurally malformed input as well as for schema-valid-but-incomplete
 records. FastAPI therefore never rejects the body ahead of us.
 """
 
+import asyncio
 import json
 import logging
 
@@ -35,6 +36,7 @@ from fastapi.responses import JSONResponse, Response
 from app.db.database import get_db
 from app.models.source_comparison import AlignmentState, DecideRequest
 from app.services import alignment, ingestion, report, sc_review
+from app.services.source_adapters import SimulatorAdapter
 
 logger = logging.getLogger("app.source_comparison.router")
 
@@ -210,16 +212,32 @@ async def get_aligned_group(group_id: str):
 
 
 @router.get("/source-comparison/review/queue")
-async def get_review_queue():
-    """Return the pending discrepancy review queue (Req 6.1, 6.2).
+async def get_review_queue(
+    limit: int = Query(
+        default=sc_review.DEFAULT_PAGE_LIMIT,
+        ge=1,
+        le=sc_review.MAX_PAGE_LIMIT,
+        description=(
+            f"Page size (default {sc_review.DEFAULT_PAGE_LIMIT}, "
+            f"max {sc_review.MAX_PAGE_LIMIT})"
+        ),
+    ),
+    offset: int = Query(default=0, ge=0, description="Page offset (default 0)"),
+):
+    """Return a page of the pending discrepancy review queue (Req 6.1, 6.2).
 
     Delegates to :func:`app.services.sc_review.get_review_queue`, which returns
-    the ``{data, total_count}`` envelope shaped like AVIP's existing review
-    queue so the workbench UI can reuse the native review patterns. Only
-    ``pending`` discrepancies appear — confirmed/dismissed ones are excluded so
-    the queue shows exactly the outstanding review work.
+    a ``{data, total_count, limit, offset}`` envelope shaped like AVIP's
+    existing review queue so the workbench UI can reuse the native review
+    patterns. Only ``pending`` discrepancies appear — confirmed/dismissed ones
+    are excluded so the queue shows exactly the outstanding review work.
+
+    Pagination is the real fix for the queue hanging the frontend: the pending
+    set can be very large, so a single page (default ``limit``
+    {DEFAULT_PAGE_LIMIT}, capped at {MAX_PAGE_LIMIT}) is returned alongside the
+    full ``total_count`` of pending rows for paging controls.
     """
-    return await sc_review.get_review_queue()
+    return await sc_review.get_review_queue(limit=limit, offset=offset)
 
 
 @router.get("/source-comparison/review/{discrepancy_id}")
@@ -325,8 +343,18 @@ async def get_report(
         description="Filter by provenance "
         "(exact-match | numeric-threshold | llm | llm-unavailable)",
     ),
+    limit: int = Query(
+        default=sc_review.DEFAULT_PAGE_LIMIT,
+        ge=1,
+        le=sc_review.MAX_PAGE_LIMIT,
+        description=(
+            f"Page size (default {sc_review.DEFAULT_PAGE_LIMIT}, "
+            f"max {sc_review.MAX_PAGE_LIMIT})"
+        ),
+    ),
+    offset: int = Query(default=0, ge=0, description="Page offset (default 0)"),
 ):
-    """Return the confirmed-only discrepancy report (Req 7.1, 7.2, 7.3).
+    """Return a page of the confirmed-only discrepancy report (Req 7.1, 7.2, 7.3).
 
     Optional query filters (all ANDed, each matching all when omitted):
     ``part`` → ``part_number``, ``lot`` → ``lot_number``, ``source`` (keep only
@@ -336,12 +364,22 @@ async def get_report(
     field name + type, the per-source ``values`` dict, and provenance
     (Property 8, Req 7.2).
 
-    Response envelope ``{data, total_count}`` matches the other list endpoints.
+    Pagination (default ``limit`` {DEFAULT_PAGE_LIMIT}, capped at
+    {MAX_PAGE_LIMIT}) works alongside every filter; the response envelope
+    ``{data, total_count, limit, offset}`` carries the full match count so the
+    UI can page. The CSV export path deliberately stays un-paginated.
     """
-    rows = await report.build_report(
-        _report_filters(part, lot, source, field, provenance)
+    rows, total_count = await report.build_report(
+        _report_filters(part, lot, source, field, provenance),
+        limit=limit,
+        offset=offset,
     )
-    return {"data": rows, "total_count": len(rows)}
+    return {
+        "data": rows,
+        "total_count": total_count,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @router.get("/source-comparison/report/export")
@@ -382,8 +420,12 @@ async def export_report(
             },
         )
 
-    rows = await report.build_report(
-        _report_filters(part, lot, source, field, provenance)
+    # The export is a download, not a page: pass limit=None so build_report
+    # returns ALL matching confirmed rows and the CSV stays complete regardless
+    # of the queue/report default page size.
+    rows, _total_count = await report.build_report(
+        _report_filters(part, lot, source, field, provenance),
+        limit=None,
     )
     csv_text = report.render_report_csv(rows)
     return Response(
@@ -421,8 +463,101 @@ async def get_report_header():
 # shown in the report banner are shown here.
 
 
+def _simulator_running(request: Request) -> bool:
+    """True if a simulator task exists on ``app.state`` and is not yet done.
+
+    Reads ``app.state.sc_simulator_task`` via the request (never imports the
+    app). Treats a missing/None task as "not running". Used by ``/status`` and
+    the start/stop endpoints to decide idempotently.
+    """
+    task = getattr(request.app.state, "sc_simulator_task", None)
+    return task is not None and not task.done()
+
+
+async def _stop_simulator(request: Request) -> None:
+    """Stop the running simulator (if any) and clear its ``app.state`` handles.
+
+    Signals the adapter to stop, cancels the background task, awaits it, then
+    clears ``sc_simulator`` / ``sc_simulator_task`` so the pipeline reports
+    stopped. Idempotent: safe to call when nothing is running. Each step is
+    guarded so a failure in one does not leave stale state behind. Shared by the
+    stop endpoint and reused for a clean restart.
+    """
+    state = request.app.state
+    simulator = getattr(state, "sc_simulator", None)
+    sim_task = getattr(state, "sc_simulator_task", None)
+
+    if simulator is not None:
+        try:
+            simulator.stop()
+        except Exception:  # noqa: BLE001
+            logger.exception("Failed to signal source-comparison simulator stop")
+
+    if sim_task is not None:
+        try:
+            sim_task.cancel()
+            await asyncio.gather(sim_task, return_exceptions=True)
+            logger.info("Source-comparison simulator stopped via API")
+        except Exception:  # noqa: BLE001
+            logger.exception("Failed to stop source-comparison simulator task")
+
+    state.sc_simulator = None
+    state.sc_simulator_task = None
+
+
+@router.post("/source-comparison/simulator/stop")
+async def stop_simulator(request: Request):
+    """Stop the running simulator so ingestion can be halted from the app.
+
+    Signals the adapter and cancels its background task, then clears the
+    ``app.state`` handles so ``/status`` reports ``simulator_running: false``.
+    Idempotent — stopping when already stopped is a no-op that still returns
+    ``{running: false}``.
+    """
+    await _stop_simulator(request)
+    return {"running": False}
+
+
+@router.post("/source-comparison/simulator/start")
+async def start_simulator(request: Request):
+    """(Re)start the simulator, pushing records through the ingestion path.
+
+    Idempotent / guarded against double-start: if a simulator task is already
+    running, this is a no-op returning ``{running: true}``. Otherwise it creates
+    a fresh :class:`SimulatorAdapter`, launches
+    ``asyncio.create_task(sim.run_forever(push_fn=ingestion.ingest))``, and
+    stores the adapter + task on ``app.state`` so ``/status`` and the stop
+    endpoint can reach them.
+    """
+    state = request.app.state
+
+    if _simulator_running(request):
+        logger.info("Simulator start requested but already running (no-op)")
+        return {"running": True}
+
+    # Clear any finished/stale handles before starting a fresh run.
+    await _stop_simulator(request)
+
+    try:
+        simulator = SimulatorAdapter()
+        sim_task = asyncio.create_task(
+            simulator.run_forever(push_fn=ingestion.ingest),
+            name="sc-simulator",
+        )
+        state.sc_simulator = simulator
+        state.sc_simulator_task = sim_task
+        logger.info("Source-comparison simulator started via API")
+    except Exception:  # noqa: BLE001 — a failed start must not 500 the endpoint
+        logger.exception("Failed to start source-comparison simulator via API")
+        state.sc_simulator = None
+        state.sc_simulator_task = None
+        return {"running": False}
+
+    return {"running": True}
+
+
 @router.get("/source-comparison/status")
-async def get_status():
+async def get_status(request: Request):
     """Return a pipeline status snapshot for the ingestion monitor (Req 9.4).
 
     Fields (matching the design's ``SCStatus`` shape):
@@ -435,6 +570,9 @@ async def get_status():
         ``partial``.
       * ``groups_complete`` — aligned groups whose ``alignment_state`` is
         ``complete``.
+      * ``simulator_running`` — ``true`` when a simulator task exists on
+        ``app.state`` and has not finished, so the monitor can show/toggle the
+        feed.
       * ``assumptions`` — the assumptions/open-items snapshot (same items as the
         report header banner), so the monitor can surface the
         "assumed — pending client confirmation" items.
@@ -468,13 +606,16 @@ async def get_status():
     # report banner exactly (comparison_config.assumptions).
     assumptions = report.report_header().get("assumptions", [])
 
+    simulator_running = _simulator_running(request)
+
     logger.info(
         "status snapshot: ingested=%d rejected=%d groups_partial=%d "
-        "groups_complete=%d assumptions=%d",
+        "groups_complete=%d simulator_running=%s assumptions=%d",
         ingested,
         rejected,
         groups_partial,
         groups_complete,
+        simulator_running,
         len(assumptions),
     )
 
@@ -483,5 +624,6 @@ async def get_status():
         "rejected": rejected,
         "groups_partial": groups_partial,
         "groups_complete": groups_complete,
+        "simulator_running": simulator_running,
         "assumptions": assumptions,
     }

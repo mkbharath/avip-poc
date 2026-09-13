@@ -367,6 +367,7 @@ export interface SCStatus {
   rejected: number;
   groups_partial: number;
   groups_complete: number;
+  simulator_running: boolean;
   assumptions: SCAssumption[];
 }
 

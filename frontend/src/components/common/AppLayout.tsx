@@ -8,6 +8,8 @@ import {
   Cpu,
   Play,
   FlaskConical,
+  GitCompare,
+  Activity,
   ChevronRight,
 } from "lucide-react";
 import {
@@ -44,6 +46,14 @@ const NAV_GROUPS = [
       { label: "Defects", to: "/dashboard/defects", icon: AlertTriangle },
       { label: "Suppliers", to: "/dashboard/suppliers", icon: Building2 },
       { label: "AI Performance", to: "/dashboard/ai", icon: Cpu },
+    ],
+  },
+  {
+    label: "Source Comparison",
+    items: [
+      { label: "Discrepancy Report", to: "/source-comparison/report", icon: GitCompare },
+      { label: "Review", to: "/source-comparison/review", icon: ClipboardCheck },
+      { label: "Ingestion Monitor", to: "/source-comparison/monitor", icon: Activity },
     ],
   },
   {
@@ -179,5 +189,9 @@ function getPageTitle(path: string): string {
   if (path === "/dashboard/ai") return "AI Performance";
   if (path === "/demo") return "Demo Panel";
   if (path === "/ai-lab") return "AI Lab";
+  if (path === "/source-comparison/report") return "Discrepancy Report";
+  if (path.startsWith("/source-comparison/review/")) return "Review Discrepancy";
+  if (path === "/source-comparison/review") return "Source Comparison Review";
+  if (path === "/source-comparison/monitor") return "Ingestion Monitor";
   return "AVIP";
 }

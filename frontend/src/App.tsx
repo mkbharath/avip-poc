@@ -12,6 +12,10 @@ import { SupplierDashboard } from "./components/dashboard/SupplierDashboard";
 import { AIPerformanceDashboard } from "./components/dashboard/AIPerformanceDashboard";
 import { PresenterPanel } from "./components/demo/PresenterPanel";
 import { AILab } from "./components/ai-lab/AILab";
+import { SourceComparisonReview } from "./components/source-comparison/SourceComparisonReview";
+import { SourceComparisonWorkbench } from "./components/source-comparison/SourceComparisonWorkbench";
+import { DiscrepancyReport } from "./components/source-comparison/DiscrepancyReport";
+import { IngestionMonitor } from "./components/source-comparison/IngestionMonitor";
 
 function App() {
   return (
@@ -33,6 +37,11 @@ function App() {
         <Route path="/dashboard" element={<Navigate to="/dashboard/inspection" replace />} />
         <Route path="/demo" element={<PresenterPanel />} />
         <Route path="/ai-lab" element={<AILab />} />
+        <Route path="/source-comparison/report" element={<DiscrepancyReport />} />
+        <Route path="/source-comparison/review" element={<SourceComparisonReview />} />
+        <Route path="/source-comparison/review/:id" element={<SourceComparisonWorkbench />} />
+        <Route path="/source-comparison/monitor" element={<IngestionMonitor />} />
+        <Route path="/source-comparison" element={<Navigate to="/source-comparison/report" replace />} />
       </Route>
     </Routes>
   );

@@ -318,8 +318,8 @@ optional (`*`); core implementation sub-tasks are not.
 - [x] 8. Checkpoint — backend complete
   - Ensure all backend tests pass, ask the user if questions arise.
 
-- [ ] 9. Frontend types, API module, and hooks
-  - [~] 9.1 Add TypeScript types and the API module
+- [x] 9. Frontend types, API module, and hooks
+  - [x] 9.1 Add TypeScript types and the API module
     - Add `SCFieldType`, `SCProvenance`, `SCReviewState`, `SCSourceValue`,
       `SCDiscrepancy`, `SCAssumption`, `SCStatus` to `frontend/src/types/index.ts`
       (strict), and create `frontend/src/api/source-comparison.ts` with typed
@@ -332,15 +332,15 @@ optional (`*`); core implementation sub-tasks are not.
       wrappers build the expected URLs/params
     - _Requirements: 7.2, 7.4_
 
-- [ ] 10. Frontend review, workbench, report, and monitor components
-  - [~] 10.1 Implement the review list and workbench
+- [x] 10. Frontend review, workbench, report, and monitor components
+  - [x] 10.1 Implement the review list and workbench
     - Create `frontend/src/components/source-comparison/SourceComparisonReview.tsx`
       (pending list, reuses `ReviewQueue` patterns, `refetchInterval` polling) and
       `SourceComparisonWorkbench.tsx` (single-discrepancy confirm/dismiss + note,
       reuses `ReviewWorkbench` patterns; decide mutation invalidates queries)
     - _Requirements: 6.1, 6.2, 6.3_
 
-  - [~] 10.2 Implement the discrepancy report and ingestion monitor
+  - [x] 10.2 Implement the discrepancy report and ingestion monitor
     - Create `DiscrepancyReport.tsx` (filterable by part/lot/source/field/
       provenance, export link, assumptions banner from `report/header`,
       dashboard/table + Recharts styling, interpretable by a non-technical
@@ -348,7 +348,7 @@ optional (`*`); core implementation sub-tasks are not.
       assumptions banner) from the status endpoint
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 8.5_
 
-  - [~] 10.3 Wire routes and sidebar entry
+  - [x] 10.3 Wire routes and sidebar entry
     - Add the three `/source-comparison/*` routes inside `<AppLayout>` in
       `frontend/src/App.tsx`, and add the sidebar entry to `NAV_GROUPS` plus a
       `getPageTitle` case in `AppLayout.tsx`
@@ -361,7 +361,7 @@ optional (`*`); core implementation sub-tasks are not.
     - _Requirements: 6.1, 6.3, 7.1, 7.2, 7.3, 7.4, 8.5_
 
 - [ ] 11. End-to-end wiring and validation
-  - [~] 11.1 Validate the full stream against the running simulator
+  - [-] 11.1 Validate the full stream against the running simulator
     - With the simulator feeding records, confirm ingestion → alignment →
       comparison → review gate → confirmed report works end to end, the
       assumptions banner shows both "assumed — pending client confirmation"

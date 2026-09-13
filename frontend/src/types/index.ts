@@ -284,3 +284,97 @@ export const OVERRIDE_REASONS = [
   { code: "OR-06", label: "Wrong part-family model applied" },
   { code: "OR-07", label: "Other (comment mandatory)" },
 ] as const;
+// ===== Source Comparison (LAIR / FAIR / SHQ) =====
+
+export type SCSource = "LAIR" | "FAIR" | "SHQ";
+
+export type SCFieldType = "numeric" | "categorical" | "identifier" | "free_text";
+
+export type SCProvenance = "exact-match" | "numeric-threshold" | "llm" | "llm-unavailable";
+
+export type SCReviewState = "pending" | "confirmed" | "dismissed";
+
+// Helper type for a single source's value. The backend returns `values` as an
+// object keyed by source (see SCValues below), not an array of these; this type
+// is retained for convenience when iterating a source/value pair.
+export interface SCSourceValue {
+  source: SCSource;
+  value: string | number | null;
+}
+
+// The actual backend JSON shape: `values` is an object keyed by source name.
+export type SCValues = Record<string, string | number | null>;
+
+export interface SCDiscrepancy {
+  id: string;
+  group_id: string;
+  part_number: string;
+  lot_number: string;
+  field_name: string;
+  field_type: SCFieldType;
+  values: SCValues;
+  provenance: SCProvenance;
+  review_state: SCReviewState;
+  reviewer: string | null;
+  reviewer_note: string | null;
+  decided_at: string | null;
+}
+
+export type SCAlignmentState = "partial" | "complete" | "unmatched";
+
+export interface SCAlignedGroup {
+  id: string;
+  part_number: string;
+  lot_number: string;
+  present_sources: SCSource[];
+  alignment_state: SCAlignmentState;
+  records: SCSourceRecord[];
+}
+
+export interface SCSourceRecord {
+  id: string;
+  source: SCSource;
+  part_number: string;
+  lot_number: string;
+  fields: Record<string, string | number | null>;
+}
+
+export interface SCReportRow {
+  id: string;
+  group_id: string;
+  part_number: string;
+  lot_number: string;
+  field_name: string;
+  field_type: SCFieldType;
+  values: SCValues;
+  provenance: SCProvenance;
+}
+
+export interface SCReportHeader {
+  assumptions: SCAssumption[];
+  total_count: number;
+}
+
+export interface SCAssumption {
+  key: string;
+  label: string;
+  status: "assumed" | "unresolved";
+  value: string | null;
+}
+
+export interface SCStatus {
+  ingested: number;
+  rejected: number;
+  groups_partial: number;
+  groups_complete: number;
+  assumptions: SCAssumption[];
+}
+
+export interface SCRejectedRecord {
+  id: string;
+  source: SCSource;
+  external_record_id: string | null;
+  raw_payload: unknown;
+  reason: string;
+  created_at: string;
+}

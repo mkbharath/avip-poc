@@ -6,7 +6,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { SCFieldType, SCProvenance, SCSource, SCValues } from "../../types";
+import type {
+  SCFieldType,
+  SCPartContext,
+  SCProvenance,
+  SCSource,
+  SCValues,
+} from "../../types";
 
 // ---------------------------------------------------------------------------
 // Shared presentational pieces for the Source Comparison feature.
@@ -127,19 +133,55 @@ export function ProvenancePillCount({
 // PartLotCell — bold mono part number with a muted lot beneath.
 // ---------------------------------------------------------------------------
 
+// Trim + collapse a nullable string into a usable display value, or null when
+// it is missing/blank. Keeps callers from ever rendering "· undefined".
+export function cleanContextField(
+  value: string | null | undefined
+): string | null {
+  if (value == null) return null;
+  const trimmed = String(value).trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+// A short "Rev X" label when a revision is present, else null.
+export function revisionLabel(
+  context: SCPartContext | null | undefined
+): string | null {
+  const rev = cleanContextField(context?.revision);
+  return rev ? `Rev ${rev}` : null;
+}
+
 export function PartLotCell({
   partNumber,
   lotNumber,
+  context,
 }: {
   partNumber: string;
   lotNumber: string;
+  context?: SCPartContext | null;
 }) {
+  const description = cleanContextField(context?.description);
+  const rev = revisionLabel(context);
+
   return (
     <div className="flex flex-col leading-tight">
-      <span className="font-mono text-sm font-bold text-slate-900">
+      {description ? (
+        <span className="text-sm font-medium text-slate-700">
+          {description}
+          {rev ? (
+            <span className="ml-1.5 font-normal text-slate-500">· {rev}</span>
+          ) : null}
+        </span>
+      ) : null}
+      <span
+        className={cn(
+          "font-mono text-sm font-bold text-slate-900",
+          description && "text-xs font-semibold"
+        )}
+      >
         {partNumber}
       </span>
-      <span className="font-mono text-xs text-slate-500">Lot {lotNumber}</span>
+      <span className="font-mono text-xs text-slate-600">Lot {lotNumber}</span>
     </div>
   );
 }
@@ -822,11 +864,11 @@ function QuietValue({
   isReference: boolean;
 }) {
   return (
-    <span className="inline-flex items-baseline gap-1.5 text-xs text-slate-500">
-      <span className="font-semibold uppercase tracking-wide text-slate-400">
+    <span className="inline-flex items-baseline gap-1.5 text-xs text-slate-600">
+      <span className="font-semibold uppercase tracking-wide text-slate-600">
         {source}
       </span>
-      <span className="font-mono tabular-nums text-slate-600 [overflow-wrap:anywhere]">
+      <span className="font-mono tabular-nums text-slate-700 [overflow-wrap:anywhere]">
         {isMissing(value) ? "—" : String(value)}
       </span>
       {isReference ? (
@@ -863,11 +905,11 @@ function FreeTextSpotlight({
   }
   return (
     <div className="rounded-lg px-1">
-      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">
         {source}
       </span>
       <p
-        className="mt-0.5 text-xs leading-snug text-slate-500 line-clamp-2 [overflow-wrap:anywhere]"
+        className="mt-0.5 text-xs leading-snug text-slate-600 line-clamp-2 [overflow-wrap:anywhere]"
         title={missing ? undefined : String(value)}
       >
         {missing ? "—" : String(value)}

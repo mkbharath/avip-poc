@@ -66,6 +66,14 @@ def client(tmp_path, monkeypatch):
     from app.main import app
 
     with TestClient(app) as c:
+        # ``app`` is a shared module-level singleton across tests. If an earlier
+        # test in the session started the simulator, its handles leak onto
+        # ``app.state`` and make this test's startup assertions order-dependent.
+        # Clear any leaked handles so we always start from a known-stopped state.
+        if getattr(app.state, "sc_simulator_task", None) is not None:
+            app.state.sc_simulator_task.cancel()
+        app.state.sc_simulator = None
+        app.state.sc_simulator_task = None
         yield c
 
     # Teardown: close the DB so the process exits cleanly.

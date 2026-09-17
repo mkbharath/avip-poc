@@ -52,6 +52,7 @@ from app.models.source_comparison import (
     Provenance,
     ReviewState,
 )
+from app.services.part_context import get_part_context_map
 
 logger = logging.getLogger("app.source_comparison.review")
 
@@ -359,7 +360,15 @@ async def get_review_queue(
     page_offset = _clamp_offset(offset)
     total_count = await count_pending()
     pending = await list_pending(limit=page_limit, offset=page_offset)
-    data = [d.model_dump(mode="json") for d in pending]
+    # Batch-fetch human-readable part context for the distinct part numbers on
+    # this page (one query, no N+1) and attach it to each serialized row. A part
+    # number with no matching parts row yields part_context = None.
+    context_map = await get_part_context_map([d.part_number for d in pending])
+    data = []
+    for d in pending:
+        row = d.model_dump(mode="json")
+        row["part_context"] = context_map.get(d.part_number)
+        data.append(row)
     return {
         "data": data,
         "total_count": total_count,
@@ -494,6 +503,12 @@ async def get_review_queue_grouped(
     )
     disc_rows = await disc_cursor.fetchall()
 
+    # Batch-fetch human-readable part context for every part number on the page
+    # (one query, no N+1) so each serialized discrepancy can carry part_context.
+    context_map = await get_part_context_map(
+        [row["part_number"] for row in disc_rows]
+    )
+
     # 3) Assemble per-group objects, preserving the page's group ordering.
     groups: dict[tuple[str, str], dict[str, object]] = {}
     for key in page_keys:
@@ -511,7 +526,9 @@ async def get_review_queue_grouped(
         if bucket is None:  # defensive; every fetched row matches a page key
             continue
         discrepancy = _row_to_discrepancy(row)
-        bucket["discrepancies"].append(discrepancy.model_dump(mode="json"))
+        serialized = discrepancy.model_dump(mode="json")
+        serialized["part_context"] = context_map.get(discrepancy.part_number)
+        bucket["discrepancies"].append(serialized)
         bucket["count"] += 1
         bucket["provenance_counts"][discrepancy.provenance.value] += 1
 
@@ -672,3 +689,256 @@ async def list_confirmed(
         )
     rows = await cursor.fetchall()
     return [_row_to_discrepancy(r) for r in rows], total_count
+
+
+# ── State-filtered query helper for the report explorer (dismissed + reopen) ─
+#
+# ``list_confirmed`` (above) is intentionally confirmed-only so the default
+# report and Property 5 stay locked to reviewer-confirmed findings. This helper
+# is the OPT-IN path the report explorer uses when a reviewer picks a review
+# status other than the default: it returns rows in the SAME shape as
+# ``list_confirmed`` (so the report/UI code is unchanged) but filtered to an
+# explicit ``state`` — "confirmed" | "dismissed" | "pending" — or to "all"
+# (no state filter). ``list_confirmed`` itself is left untouched.
+
+_STATE_VALUES: dict[str, ReviewState] = {
+    "confirmed": ReviewState.CONFIRMED,
+    "dismissed": ReviewState.DISMISSED,
+    "pending": ReviewState.PENDING,
+}
+
+
+def _state_where(
+    state: str,
+    part_number: str | None,
+    lot_number: str | None,
+    field_name: str | None,
+    provenance: str | None,
+) -> tuple[str, list[str]]:
+    """Build the WHERE clause + params for a state-filtered discrepancy query.
+
+    ``state`` is one of ``"confirmed"`` | ``"dismissed"`` | ``"pending"`` (an
+    exact ``review_state`` match) or ``"all"`` (no ``review_state`` predicate).
+    The optional part / lot / field / provenance filters mirror
+    :func:`_confirmed_where` exactly (the ``source`` filter is applied in Python
+    since it inspects the JSON-in-TEXT ``values`` dict).
+    """
+    clauses: list[str] = []
+    params: list[str] = []
+    if state != "all":
+        clauses.append("review_state = ?")
+        params.append(_STATE_VALUES[state].value)
+    if part_number is not None:
+        clauses.append("part_number = ?")
+        params.append(part_number)
+    if lot_number is not None:
+        clauses.append("lot_number = ?")
+        params.append(lot_number)
+    if field_name is not None:
+        clauses.append("field_name = ?")
+        params.append(field_name)
+    if provenance is not None:
+        clauses.append("provenance = ?")
+        params.append(provenance)
+    where = " AND ".join(clauses) if clauses else "1 = 1"
+    return where, params
+
+
+async def list_by_state(
+    state: str,
+    *,
+    part_number: str | None = None,
+    lot_number: str | None = None,
+    source: str | None = None,
+    field_name: str | None = None,
+    provenance: str | None = None,
+    limit: int | None = None,
+    offset: int | None = None,
+) -> tuple[list[Discrepancy], int]:
+    """Return a page of discrepancies for an explicit review ``state`` + total.
+
+    The opt-in counterpart to :func:`list_confirmed`: rows are shaped
+    IDENTICALLY (same columns, ``values`` parsed, ``review_state`` / ``id``
+    present) so the report service and UI need no per-state branching. Unlike
+    ``list_confirmed`` (which is hard-wired to confirmed-only for Property 5),
+    this helper filters to the requested ``state``:
+
+      * ``"confirmed"`` | ``"dismissed"`` | ``"pending"`` — exact
+        ``review_state`` match.
+      * ``"all"`` — no ``review_state`` filter (every state).
+
+    All the same optional filters apply and are ANDed (omitted match all):
+    ``part_number`` / ``lot_number`` / ``field_name`` / ``provenance`` in SQL,
+    and ``source`` in Python (keep rows carrying a value from that source).
+    Pagination matches ``list_confirmed``: ``limit=None`` returns every matching
+    row; a positive ``limit`` is capped at :data:`MAX_PAGE_LIMIT` and ``offset``
+    defaults to 0. Ordering is stable (``part_number, lot_number, field_name,
+    id``).
+
+    Returns a ``(rows, total_count)`` tuple where ``total_count`` is the number
+    of matching discrepancies across ALL pages (after the ``source`` filter).
+
+    Raises:
+        ValueError: if ``state`` is not one of the accepted values.
+    """
+    if state not in _STATE_VALUES and state != "all":
+        raise ValueError(
+            f"Invalid review state {state!r}; expected one of "
+            "'confirmed', 'dismissed', 'pending', 'all'."
+        )
+
+    where, params = _state_where(
+        state, part_number, lot_number, field_name, provenance
+    )
+    db = await get_db()
+
+    order_by = "ORDER BY part_number ASC, lot_number ASC, field_name ASC, id ASC"
+
+    if source is not None:
+        # The `source` filter inspects the JSON-in-TEXT `values` dict, which SQL
+        # can't query, so materialise matches, filter in Python for the true
+        # total, then slice the page — mirrors list_confirmed's source path.
+        cursor = await db.execute(
+            f"""SELECT id, group_id, part_number, lot_number, field_name,
+                       field_type, "values", provenance, review_state
+                  FROM sc_discrepancies
+                 WHERE {where}
+                 {order_by}""",
+            tuple(params),
+        )
+        rows = await cursor.fetchall()
+        filtered = [
+            d for d in (_row_to_discrepancy(r) for r in rows) if source in d.values
+        ]
+        total_count = len(filtered)
+        if limit is None:
+            return filtered, total_count
+        page_offset = _clamp_offset(offset)
+        page_limit = _clamp_limit(limit)
+        return filtered[page_offset : page_offset + page_limit], total_count
+
+    count_cursor = await db.execute(
+        f"SELECT COUNT(*) FROM sc_discrepancies WHERE {where}", tuple(params)
+    )
+    count_row = await count_cursor.fetchone()
+    try:
+        total_count = int(count_row[0]) if count_row is not None else 0
+    except (TypeError, KeyError, IndexError):
+        total_count = 0
+
+    base_select = (
+        f"""SELECT id, group_id, part_number, lot_number, field_name, field_type,
+                   "values", provenance, review_state
+              FROM sc_discrepancies
+             WHERE {where}
+             {order_by}"""
+    )
+    if limit is None:
+        cursor = await db.execute(base_select, tuple(params))
+    else:
+        page_limit = _clamp_limit(limit)
+        page_offset = _clamp_offset(offset)
+        cursor = await db.execute(
+            base_select + " LIMIT ? OFFSET ?",
+            tuple(params) + (page_limit, page_offset),
+        )
+    rows = await cursor.fetchall()
+    return [_row_to_discrepancy(r) for r in rows], total_count
+
+
+# ── Reopen: return a decided discrepancy to pending (mirrors decide) ──────────
+
+
+async def reopen(
+    discrepancy_id: str,
+    reviewer: str,
+    note: str | None = None,
+) -> Discrepancy:
+    """Return a decided discrepancy to ``pending`` (Req 6.3, 9.3, Property 6).
+
+    The inverse of :func:`decide`: sets the discrepancy's ``review_state`` back
+    to ``pending``, upserts the single current-decision row with decision
+    ``"reopened"`` (latest decision wins), and **always** appends a new
+    immutable ``sc_review_audit`` row with decision ``"reopened"`` so the full
+    decision history — including the reopen — is retained append-only. Mirrors
+    the ``decide`` audit pattern exactly.
+
+    A reopened discrepancy re-enters the pending queue and drops out of the
+    confirmed-only report (Property 5 preserved), so a reviewer can decide it
+    again.
+
+    Args:
+        discrepancy_id: the discrepancy to reopen.
+        reviewer: the reviewer's identity (recorded on the decision + audit).
+        note: optional free-text note (recorded on the decision + audit).
+
+    Returns:
+        The updated :class:`Discrepancy` with ``review_state = pending``.
+
+    Raises:
+        LookupError: if no discrepancy exists with ``discrepancy_id`` (the
+            router maps this to a 404).
+    """
+    db = await get_db()
+
+    cursor = await db.execute(
+        """SELECT id, group_id, part_number, lot_number, field_name, field_type,
+                  "values", provenance, review_state
+             FROM sc_discrepancies
+            WHERE id = ?""",
+        (discrepancy_id,),
+    )
+    row = await cursor.fetchone()
+    if row is None:
+        logger.warning(
+            "Reopen rejected: discrepancy not found: discrepancy_id=%s",
+            discrepancy_id,
+        )
+        raise LookupError(f"Discrepancy not found: {discrepancy_id}")
+
+    reopened_at = _now_iso()
+
+    # 1) Update the discrepancy's review_state back to pending.
+    await db.execute(
+        "UPDATE sc_discrepancies SET review_state = ? WHERE id = ?",
+        (ReviewState.PENDING.value, discrepancy_id),
+    )
+
+    # 2) Upsert the single current-decision row (latest decision wins).
+    decision_id = str(uuid.uuid4())
+    await db.execute(
+        """INSERT INTO sc_review_decisions
+               (id, discrepancy_id, decision, reviewer, note, decided_at)
+           VALUES (?, ?, ?, ?, ?, ?)
+           ON CONFLICT(discrepancy_id) DO UPDATE SET
+               decision = excluded.decision,
+               reviewer = excluded.reviewer,
+               note = excluded.note,
+               decided_at = excluded.decided_at""",
+        (decision_id, discrepancy_id, "reopened", reviewer, note, reopened_at),
+    )
+
+    # 3) ALWAYS append an immutable audit row (full history retained).
+    audit_id = str(uuid.uuid4())
+    await db.execute(
+        """INSERT INTO sc_review_audit
+               (id, discrepancy_id, decision, reviewer, note, decided_at)
+           VALUES (?, ?, ?, ?, ?, ?)""",
+        (audit_id, discrepancy_id, "reopened", reviewer, note, reopened_at),
+    )
+
+    await db.commit()
+
+    logger.info(
+        "Review reopened: discrepancy_id=%s reviewer=%s note=%s reopened_at=%s "
+        "audit_id=%s",
+        discrepancy_id,
+        reviewer,
+        note if note is not None else "",
+        reopened_at,
+        audit_id,
+    )
+
+    return _row_to_discrepancy(row).model_copy(
+        update={"review_state": ReviewState.PENDING}
+    )

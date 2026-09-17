@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { SCProvenance } from "../../types";
+import { cleanContextField, revisionLabel } from "./table-parts";
 
 export function SourceComparisonWorkbench() {
   const { id } = useParams<{ id: string }>();
@@ -62,6 +63,11 @@ export function SourceComparisonWorkbench() {
     );
   }
 
+  // Human-readable part context (present when the part number is in the parts
+  // table); falls back to just the identifiers when absent.
+  const partDescription = cleanContextField(discrepancy.part_context?.description);
+  const partRev = revisionLabel(discrepancy.part_context);
+
   const alreadyDecided = discrepancy.review_state !== "pending";
   const needsManualComparison =
     discrepancy.provenance === "llm-unavailable" || discrepancy.provenance === "llm";
@@ -78,7 +84,15 @@ export function SourceComparisonWorkbench() {
           </Button>
           <div className="w-px h-5 bg-border" />
           <div>
-            <h1 className="text-sm font-bold text-foreground">
+            {partDescription ? (
+              <p className="text-xs font-medium text-slate-700">
+                {partDescription}
+                {partRev ? (
+                  <span className="ml-1.5 font-normal text-slate-500">· {partRev}</span>
+                ) : null}
+              </p>
+            ) : null}
+            <h1 className="text-base font-bold text-foreground">
               {discrepancy.part_number} &bull; Lot {discrepancy.lot_number}
             </h1>
             <p className="text-xs text-slate-600 capitalize">
@@ -127,7 +141,7 @@ export function SourceComparisonWorkbench() {
 
         {/* Source values side by side */}
         <div>
-          <h3 className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-600 mb-3">
             Source Values
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

@@ -39,7 +39,14 @@ from app.models.source_comparison import (
     BulkDecideRequest,
     DecideRequest,
 )
-from app.services import alignment, ingestion, report, sc_review
+from app.services import (
+    alignment,
+    ingestion,
+    report,
+    sc_review,
+    threshold_config,
+)
+from app.services.part_context import get_part_context_map
 from app.services.source_adapters import SimulatorAdapter
 
 logger = logging.getLogger("app.source_comparison.router")
@@ -333,7 +340,12 @@ async def get_review_discrepancy(discrepancy_id: str):
             status_code=404,
             content={"detail": f"Discrepancy not found: {discrepancy_id}"},
         )
-    return discrepancy.model_dump(mode="json")
+    detail = discrepancy.model_dump(mode="json")
+    # Attach human-readable part context (description + revision + material +
+    # supplier). A part_number with no matching parts row yields None.
+    context_map = await get_part_context_map([discrepancy.part_number])
+    detail["part_context"] = context_map.get(discrepancy.part_number)
+    return detail
 
 
 @router.post("/source-comparison/review/{discrepancy_id}/decide")
@@ -371,6 +383,36 @@ async def decide_review_discrepancy(discrepancy_id: str, request: DecideRequest)
     return updated.model_dump(mode="json")
 
 
+@router.post("/source-comparison/review/{discrepancy_id}/reopen")
+async def reopen_review_discrepancy(discrepancy_id: str, request: DecideRequest):
+    """Return a decided discrepancy to ``pending`` (Req 6.3, 9.3).
+
+    Body reuses :class:`~app.models.source_comparison.DecideRequest` for its
+    ``reviewer`` (required) and optional ``note``; the ``decision`` field is
+    ignored — reopen always sets the discrepancy back to ``pending``. Delegates
+    to :func:`app.services.sc_review.reopen`, which flips ``review_state`` to
+    pending, upserts the current-decision row, and writes an immutable
+    ``sc_review_audit`` row (decision ``"reopened"``) — the same audit pattern
+    as decide. A reopened discrepancy re-enters the pending queue and drops out
+    of the confirmed-only report. On success returns the updated discrepancy.
+
+    Error mapping:
+      * :class:`LookupError` (unknown discrepancy id) → ``404`` naming the id.
+    """
+    try:
+        updated = await sc_review.reopen(
+            discrepancy_id=discrepancy_id,
+            reviewer=request.reviewer,
+            note=request.note,
+        )
+    except LookupError:
+        return JSONResponse(
+            status_code=404,
+            content={"detail": f"Discrepancy not found: {discrepancy_id}"},
+        )
+    return updated.model_dump(mode="json")
+
+
 # ── Report + export + header endpoints (task 6.2) ────────────────────────────
 #
 # The confirmed-only discrepancy report screen and its CSV export (Req 7.1–7.5),
@@ -387,12 +429,14 @@ def _report_filters(
     source: str | None,
     field: str | None,
     provenance: str | None,
+    supplier: str | None = None,
 ) -> dict[str, str]:
     """Build the ``build_report`` filter dict from optional query params.
 
     Only non-``None`` filters are included so omitted params match everything
     (Req 7.3). The service accepts the requirement's short filter names
-    (``part``, ``lot``, ``field``) directly.
+    (``part``, ``lot``, ``field``) directly. ``supplier`` is joined from the
+    ``parts`` table (via part_context) and applied in Python by the service.
     """
     filters: dict[str, str] = {}
     if part is not None:
@@ -405,6 +449,8 @@ def _report_filters(
         filters["field"] = field
     if provenance is not None:
         filters["provenance"] = provenance
+    if supplier is not None:
+        filters["supplier"] = supplier
     return filters
 
 
@@ -421,6 +467,17 @@ async def get_report(
         description="Filter by provenance "
         "(exact-match | numeric-threshold | llm | llm-unavailable)",
     ),
+    supplier: str | None = Query(
+        default=None,
+        description="Filter by the part's supplier (joined from the parts "
+        "table; case-insensitive exact match). Applied in Python after "
+        "attaching part context.",
+    ),
+    review_state: str | None = Query(
+        default=None,
+        description="Review status to view (confirmed | dismissed | pending | "
+        "all). Omitted = confirmed-only (default report behaviour).",
+    ),
     limit: int = Query(
         default=sc_review.DEFAULT_PAGE_LIMIT,
         ge=1,
@@ -432,7 +489,13 @@ async def get_report(
     ),
     offset: int = Query(default=0, ge=0, description="Page offset (default 0)"),
 ):
-    """Return a page of the confirmed-only discrepancy report (Req 7.1, 7.2, 7.3).
+    """Return a page of the discrepancy report (Req 7.1, 7.2, 7.3).
+
+    By DEFAULT (``review_state`` omitted) this is the confirmed-only report
+    (Property 5). Supplying ``review_state`` (``confirmed`` | ``dismissed`` |
+    ``pending`` | ``all``) is an opt-in that surfaces the requested review
+    status instead, with each row also carrying ``review_state`` + ``id`` so the
+    UI can offer a Reopen action.
 
     Optional query filters (all ANDed, each matching all when omitted):
     ``part`` → ``part_number``, ``lot`` → ``lot_number``, ``source`` (keep only
@@ -447,11 +510,82 @@ async def get_report(
     ``{data, total_count, limit, offset}`` carries the full match count so the
     UI can page. The CSV export path deliberately stays un-paginated.
     """
-    rows, total_count = await report.build_report(
-        _report_filters(part, lot, source, field, provenance),
-        limit=limit,
-        offset=offset,
-    )
+    # DEFAULT behaviour (review_state omitted) is confirmed-only: delegate to
+    # the existing build_report path so current behaviour, Property 5, and the
+    # existing tests are unchanged.
+    if review_state is None:
+        rows, total_count = await report.build_report(
+            _report_filters(part, lot, source, field, provenance, supplier),
+            limit=limit,
+            offset=offset,
+        )
+        return {
+            "data": rows,
+            "total_count": total_count,
+            "limit": limit,
+            "offset": offset,
+        }
+
+    # Opt-in path: an explicit review_state routes through list_by_state, which
+    # returns rows shaped identically to the confirmed report. We enrich each
+    # row with review_state + id so the UI can drive the Reopen action.
+    #
+    # Supplier lives in the parts table (via part_context), not in
+    # sc_discrepancies, so — exactly like build_report's supplier path — when a
+    # supplier filter is present we must fetch the FULL matching set (limit=None),
+    # attach part_context, filter by supplier in Python, then slice the page so
+    # pages/counts are correct. Without a supplier filter we keep the efficient
+    # SQL-paginated path unchanged.
+    fetch_limit = None if supplier is not None else limit
+    fetch_offset = None if supplier is not None else offset
+    try:
+        discrepancies, total_count = await sc_review.list_by_state(
+            review_state,
+            part_number=part,
+            lot_number=lot,
+            source=source,
+            field_name=field,
+            provenance=provenance,
+            limit=fetch_limit,
+            offset=fetch_offset,
+        )
+    except ValueError as bad_state:
+        return JSONResponse(status_code=422, content={"detail": str(bad_state)})
+
+    # Batch-fetch human-readable part context for the distinct part numbers on
+    # this page (one query, no N+1) and attach it to each row, consistent with
+    # the confirmed-only report path. A part_number with no matching parts row
+    # yields part_context = None.
+    context_map = await get_part_context_map([d.part_number for d in discrepancies])
+    rows = [
+        {
+            "id": d.id,
+            "group_id": d.group_id,
+            "part_number": d.part_number,
+            "lot_number": d.lot_number,
+            "field_name": d.field_name,
+            "field_type": d.field_type.value,
+            "values": dict(d.values),
+            "provenance": d.provenance.value,
+            "review_state": d.review_state.value,
+            "part_context": context_map.get(d.part_number),
+        }
+        for d in discrepancies
+    ]
+
+    if supplier is not None:
+        supplier_key = supplier.strip().casefold()
+        rows = [
+            r
+            for r in rows
+            if (r["part_context"] or {}).get("supplier") is not None
+            and str((r["part_context"] or {}).get("supplier")).strip().casefold()
+            == supplier_key
+        ]
+        total_count = len(rows)
+        page_offset = offset if (offset is not None and offset > 0) else 0
+        rows = rows[page_offset : page_offset + limit]
+
     return {
         "data": rows,
         "total_count": total_count,
@@ -473,6 +607,11 @@ async def export_report(
         default=None,
         description="Filter by provenance "
         "(exact-match | numeric-threshold | llm | llm-unavailable)",
+    ),
+    supplier: str | None = Query(
+        default=None,
+        description="Filter by the part's supplier (joined from the parts "
+        "table; case-insensitive exact match).",
     ),
 ):
     """Export the confirmed-only report as a downloadable CSV (Req 7.4, 7.5).
@@ -502,7 +641,7 @@ async def export_report(
     # returns ALL matching confirmed rows and the CSV stays complete regardless
     # of the queue/report default page size.
     rows, _total_count = await report.build_report(
-        _report_filters(part, lot, source, field, provenance),
+        _report_filters(part, lot, source, field, provenance, supplier),
         limit=None,
     )
     csv_text = report.render_report_csv(rows)
@@ -527,6 +666,307 @@ async def get_report_header():
     ``{"assumptions": [...], "total_count": N}``.
     """
     return report.report_header()
+
+
+@router.get("/source-comparison/report/supplier-summary")
+async def get_supplier_summary(
+    part: str | None = Query(default=None, description="Filter by part_number"),
+    lot: str | None = Query(default=None, description="Filter by lot_number"),
+    source: str | None = Query(
+        default=None, description="Keep rows carrying a value from this source"
+    ),
+    field: str | None = Query(default=None, description="Filter by field_name"),
+    provenance: str | None = Query(
+        default=None,
+        description="Filter by provenance "
+        "(exact-match | numeric-threshold | llm | llm-unavailable)",
+    ),
+):
+    """Return the confirmed-only discrepancy rollup grouped by supplier (Req 7).
+
+    Delegates to :func:`app.services.report.supplier_summary`, which rolls up
+    the **confirmed-only** discrepancies (Property 5) by the supplier joined
+    from the ``parts`` table (via part_context). It respects the same optional
+    filters as ``GET /source-comparison/report`` — ``part`` → ``part_number``,
+    ``lot`` → ``lot_number``, ``source``, ``field`` → ``field_name``, and
+    ``provenance`` — but deliberately NOT a supplier filter (the rollup is what
+    surfaces every supplier). Rows whose part has no supplier are grouped under
+    ``"(unknown)"``.
+
+    Returns ``{"data": [...supplier rollup...], "total_count": N}`` where each
+    entry carries ``supplier``, ``discrepancy_count``, ``part_count`` (distinct
+    part numbers), and a per-provenance ``provenance_counts`` breakdown, sorted
+    by ``discrepancy_count`` descending.
+    """
+    data = await report.supplier_summary(
+        _report_filters(part, lot, source, field, provenance),
+    )
+    return {"data": data, "total_count": len(data)}
+
+
+# ── Threshold-configuration endpoints (Req 8.1, 8.2) ─────────────────────────
+#
+# Runtime-editable numeric-threshold configuration over HTTP. These expose the
+# already-built ``app.services.threshold_config`` service so the effective
+# per-field default and per-part overrides can be edited from the app and every
+# change is auditable (Req 8.1, 8.2; full auditability). The service layer is
+# the single source of truth for the effective threshold; these endpoints only
+# translate between HTTP and the service's functions + errors.
+#
+# ``changed_by`` is a typed reviewer-identity string supplied by the caller —
+# the portal-wide auth story is intentionally deferred, so ``changed_by`` is the
+# self-declared editor identity recorded in the audit trail and must NOT be
+# mistaken for an authenticated principal. Every config endpoint that mutates
+# requires a non-empty ``changed_by`` and 422s naming the problem when it is
+# missing, matching the review-gate error convention.
+
+
+@router.get("/source-comparison/config")
+async def get_config():
+    """Return the current effective comparison config (Req 8.1, 8.2).
+
+    Delegates to :func:`app.services.threshold_config.load_config`, which loads
+    the persisted config row (seeding it from the defaults on first access), and
+    returns the in-scope field set as a list of
+    ``{field_name, type, in_scope, threshold}`` entries. ``threshold`` is the
+    per-field default (``None`` for non-numeric fields). Fields are ordered by
+    name for stable output. Per-part overrides are exposed separately via
+    ``/config/overrides`` — this endpoint reports the field defaults only.
+    """
+    config = await threshold_config.load_config()
+    fields = [
+        {
+            "field_name": name,
+            "type": fc.type.value,
+            "in_scope": fc.in_scope,
+            "threshold": fc.threshold,
+        }
+        for name, fc in sorted(config.fields.items())
+    ]
+    return {"fields": fields, "total_count": len(fields)}
+
+
+@router.put("/source-comparison/config/field/{field_name}")
+async def put_field_default(field_name: str, request: Request):
+    """Edit a field's default ``threshold`` and/or ``in_scope`` (Req 8.1, 8.2).
+
+    Body: ``{threshold?: number, in_scope?: boolean, changed_by: string,
+    note?: string}``. Both ``threshold`` and ``in_scope`` are optional edits —
+    pass a value to change it, omit (or ``null``) to leave that aspect untouched.
+    Delegates to :func:`app.services.threshold_config.set_field_default`, which
+    validates a supplied ``threshold`` as a positive number, persists the edit,
+    and appends an immutable config-audit row per changed aspect (full audit
+    trail).
+
+    ``changed_by`` is the self-declared editor identity recorded in the audit
+    trail (portal-wide auth is intentionally deferred — this is NOT an
+    authenticated principal). It is required.
+
+    Error mapping (422 with a ``detail`` naming the problem):
+      * missing / blank ``changed_by``.
+      * malformed JSON body.
+      * invalid ``threshold`` or unknown ``field_name`` (:class:`ValueError`
+        from the service).
+
+    On success returns the updated field config
+    ``{field_name, type, in_scope, threshold}``.
+    """
+    try:
+        body = await request.json()
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError):
+        return JSONResponse(
+            status_code=422,
+            content={"detail": "malformed request body: not valid JSON"},
+        )
+    if not isinstance(body, dict):
+        return JSONResponse(
+            status_code=422,
+            content={"detail": "request body must be a JSON object"},
+        )
+
+    changed_by = body.get("changed_by")
+    if not isinstance(changed_by, str) or not changed_by.strip():
+        return JSONResponse(
+            status_code=422,
+            content={"detail": "changed_by is required and must be a non-empty string"},
+        )
+
+    try:
+        updated = await threshold_config.set_field_default(
+            field_name=field_name,
+            threshold=body.get("threshold"),
+            in_scope=body.get("in_scope"),
+            changed_by=changed_by,
+            note=body.get("note"),
+        )
+    except ValueError as bad:
+        return JSONResponse(status_code=422, content={"detail": str(bad)})
+
+    return {
+        "field_name": field_name,
+        "type": updated.type.value,
+        "in_scope": updated.in_scope,
+        "threshold": updated.threshold,
+    }
+
+
+@router.get("/source-comparison/config/overrides")
+async def list_config_overrides(
+    part_number: str | None = Query(
+        default=None, description="Filter overrides to a single part_number"
+    ),
+):
+    """List per-part threshold overrides — all, or one part (Req 8.1, 8.2).
+
+    Delegates to :func:`app.services.threshold_config.list_overrides`. When
+    ``part_number`` is omitted every override is returned; when supplied only
+    that part's overrides are returned. Each item is
+    ``{id, part_number, field_name, threshold, updated_at}``. The response
+    envelope ``{data, total_count}`` matches the other list endpoints.
+    """
+    overrides = await threshold_config.list_overrides(part_number=part_number)
+    return {"data": overrides, "total_count": len(overrides)}
+
+
+@router.post("/source-comparison/config/overrides")
+async def post_config_override(request: Request):
+    """Create / update a per-part threshold override (Req 8.1, 8.2).
+
+    Body: ``{part_number, field_name, threshold, changed_by, note?}``. A per-part
+    override wins over the field default for that part during resolution.
+    Delegates to :func:`app.services.threshold_config.set_part_override`, which
+    validates ``threshold`` as a positive number, upserts the override keyed
+    ``(part_number, field_name)``, and appends an immutable config-audit row.
+
+    ``changed_by`` is the self-declared editor identity recorded in the audit
+    trail (portal-wide auth is intentionally deferred — NOT an authenticated
+    principal). It is required.
+
+    Error mapping (422 with a ``detail`` naming the problem):
+      * malformed JSON body.
+      * missing / blank ``part_number``, ``field_name``, or ``changed_by``.
+      * invalid ``threshold`` (:class:`ValueError` from the service).
+
+    On success returns the created/updated override
+    ``{part_number, field_name, threshold, changed_by, note}``.
+    """
+    try:
+        body = await request.json()
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError):
+        return JSONResponse(
+            status_code=422,
+            content={"detail": "malformed request body: not valid JSON"},
+        )
+    if not isinstance(body, dict):
+        return JSONResponse(
+            status_code=422,
+            content={"detail": "request body must be a JSON object"},
+        )
+
+    part_number = body.get("part_number")
+    field_name = body.get("field_name")
+    changed_by = body.get("changed_by")
+    for name, value in (
+        ("part_number", part_number),
+        ("field_name", field_name),
+        ("changed_by", changed_by),
+    ):
+        if not isinstance(value, str) or not value.strip():
+            return JSONResponse(
+                status_code=422,
+                content={"detail": f"{name} is required and must be a non-empty string"},
+            )
+
+    try:
+        await threshold_config.set_part_override(
+            part_number=part_number,
+            field_name=field_name,
+            threshold=body.get("threshold"),
+            changed_by=changed_by,
+            note=body.get("note"),
+        )
+    except ValueError as bad:
+        return JSONResponse(status_code=422, content={"detail": str(bad)})
+
+    return {
+        "part_number": part_number,
+        "field_name": field_name,
+        "threshold": float(body.get("threshold")),
+        "changed_by": changed_by,
+        "note": body.get("note"),
+    }
+
+
+@router.delete("/source-comparison/config/overrides")
+async def delete_config_override(
+    part_number: str = Query(description="Part number of the override to delete"),
+    field_name: str = Query(description="Field name of the override to delete"),
+    changed_by: str = Query(
+        description="Self-declared editor identity recorded in the audit trail "
+        "(portal-wide auth is intentionally deferred — NOT an authenticated "
+        "principal)"
+    ),
+    note: str | None = Query(default=None, description="Optional audit note"),
+):
+    """Delete a per-part threshold override (Req 8.1, 8.2).
+
+    The override identifiers (``part_number``, ``field_name``) plus
+    ``changed_by`` and the optional ``note`` are taken as **query params** to
+    keep the delete simple and cache-safe. Delegates to
+    :func:`app.services.threshold_config.delete_part_override`, which removes the
+    override row (if present) and appends an immutable config-audit row only when
+    a row is actually removed.
+
+    ``changed_by`` is the self-declared editor identity recorded in the audit
+    trail (portal-wide auth is intentionally deferred — NOT an authenticated
+    principal). It is required.
+
+    Returns ``{"deleted": true}`` when an override existed and was removed,
+    ``{"deleted": false}`` when there was nothing to delete.
+    """
+    deleted = await threshold_config.delete_part_override(
+        part_number=part_number,
+        field_name=field_name,
+        changed_by=changed_by,
+        note=note,
+    )
+    return {"deleted": deleted}
+
+
+@router.get("/source-comparison/config/audit")
+async def get_config_audit(
+    limit: int = Query(
+        default=sc_review.DEFAULT_PAGE_LIMIT,
+        ge=1,
+        le=sc_review.MAX_PAGE_LIMIT,
+        description=(
+            f"Page size (default {sc_review.DEFAULT_PAGE_LIMIT}, "
+            f"max {sc_review.MAX_PAGE_LIMIT})"
+        ),
+    ),
+    offset: int = Query(default=0, ge=0, description="Page offset (default 0)"),
+):
+    """Return a page of the append-only config-audit trail, newest first.
+
+    Delegates to :func:`app.services.threshold_config.list_audit`, which returns
+    the ``sc_config_audit`` rows ordered by ``changed_at`` descending. Each row
+    captures who (``changed_by``) / when (``changed_at``) / old→new for every
+    field-default, part-override, and field-scope change (full auditability).
+
+    Pagination matches the review queue: ``limit`` defaults to
+    {DEFAULT_PAGE_LIMIT}, is capped at {MAX_PAGE_LIMIT} by the query validator,
+    and ``offset`` defaults to 0. The response envelope
+    ``{data, total_count, limit, offset}`` mirrors the review-queue envelope;
+    ``total_count`` is the count of ALL audit rows so the UI can page.
+    """
+    total_count = await threshold_config.count_audit()
+    data = await threshold_config.list_audit(limit=limit, offset=offset)
+    return {
+        "data": data,
+        "total_count": total_count,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 # ── Status endpoint (task 7.3) ───────────────────────────────────────────────

@@ -41,7 +41,8 @@ export function IngestionMonitor() {
         <div>
           <h1 className="text-xl font-bold text-foreground tracking-tight">Ingestion Monitor</h1>
           <p className="text-sm text-slate-600 mt-0.5">
-            Live status of the LAIR / FAIR / SHQ record feed
+            Live status of the LAIR (Last Article), FAIR (First Article) and SHQ
+            (statistical tool) record feed
           </p>
         </div>
         <IngestionControl running={data.simulator_running} />
@@ -218,24 +219,45 @@ function AssumptionsBanner({ assumptions }: { assumptions: SCAssumption[] }) {
       <div className="flex items-start gap-3">
         <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
         <div className="space-y-2">
-          <p className="text-sm font-semibold text-amber-900">
-            Assumptions in effect — pending client confirmation
-          </p>
+          <div>
+            <p className="text-sm font-semibold text-amber-900">Data assumptions</p>
+            <p className="text-xs text-amber-800 mt-0.5">
+              Some items below are confirmed by the client; others are working
+              assumptions still pending client confirmation.
+            </p>
+          </div>
           <ul className="space-y-1.5">
-            {assumptions.map((a) => (
-              <li key={a.key} className="flex items-start gap-2 text-xs text-amber-900">
-                <Badge
-                  variant="outline"
-                  className="border-amber-300 bg-amber-100 text-amber-900 font-semibold"
+            {assumptions.map((a) => {
+              const confirmed = a.status === "confirmed";
+              return (
+                <li
+                  key={a.key}
+                  className={`flex items-start gap-2 text-xs ${
+                    confirmed ? "text-emerald-900" : "text-amber-900"
+                  }`}
                 >
-                  {a.status === "unresolved" ? "unresolved" : "assumed"}
-                </Badge>
-                <span>
-                  <span className="font-medium">{a.label}</span>
-                  {a.value ? <span className="text-amber-800"> — {a.value}</span> : null}
-                </span>
-              </li>
-            ))}
+                  <Badge
+                    variant="outline"
+                    className={`font-semibold ${
+                      confirmed
+                        ? "border-emerald-300 bg-emerald-100 text-emerald-900"
+                        : "border-amber-300 bg-amber-100 text-amber-900"
+                    }`}
+                  >
+                    {a.status}
+                  </Badge>
+                  <span>
+                    <span className="font-medium">{a.label}</span>
+                    {a.value ? (
+                      <span className={confirmed ? "text-emerald-800" : "text-amber-800"}>
+                        {" "}
+                        — {a.value}
+                      </span>
+                    ) : null}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>

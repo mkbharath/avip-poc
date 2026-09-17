@@ -1,12 +1,17 @@
 import { api } from "./client";
 import type {
   SCAlignedGroup,
+  SCComparisonConfig,
+  SCConfigAuditPage,
   SCDiscrepancy,
+  SCFieldConfig,
   SCGroup,
   SCRejectedRecord,
   SCReportHeader,
   SCReportRow,
   SCStatus,
+  SCSupplierSummaryRow,
+  SCThresholdOverride,
 } from "../types";
 
 type Filters = Record<string, string>;
@@ -109,6 +114,20 @@ export async function decideBulk(payload: {
   );
 }
 
+/**
+ * Return a decided (confirmed or dismissed) discrepancy to `pending`. The
+ * backend reuses the decide request shape but ignores `decision` — reopen
+ * always sets the discrepancy back to pending and writes a "reopened" audit
+ * row. Callers should invalidate the ["sc","report"] and ["sc","review"]
+ * queries afterwards so the report and pending queue refresh.
+ */
+export async function reopenDiscrepancy(
+  id: string,
+  payload: { reviewer: string; note?: string }
+) {
+  return api.post<SCDiscrepancy>(`/source-comparison/review/${id}/reopen`, payload);
+}
+
 // ===== Ingestion simulator control =====
 
 export async function startSimulator() {
@@ -121,6 +140,12 @@ export async function stopSimulator() {
 
 // ===== Report =====
 
+/**
+ * Fetch a page of the discrepancy report. `filters` is a plain string map and
+ * supports `part_number`, `lot_number`, `source`, `field`, `provenance`,
+ * `review_state`, and `supplier` (the part's supplier, joined from the parts
+ * table and matched case-insensitively on the backend).
+ */
 export async function getReport(filters?: Filters, pagination?: Pagination) {
   return api.get<Paginated<SCReportRow>>(
     `/source-comparison/report${buildQuery(withPagination(filters, pagination))}`
@@ -131,7 +156,86 @@ export async function getReportHeader() {
   return api.get<SCReportHeader>("/source-comparison/report/header");
 }
 
+/**
+ * Fetch the confirmed-only discrepancy rollup grouped by supplier. Accepts the
+ * same optional filters as `getReport` (part_number, lot_number, source, field,
+ * provenance) — a `supplier` filter is intentionally ignored by the backend
+ * since the rollup surfaces every supplier. Returns rows sorted by
+ * discrepancy_count descending.
+ */
+export async function getSupplierSummary(filters?: Filters) {
+  return api.get<{ data: SCSupplierSummaryRow[]; total_count: number }>(
+    `/source-comparison/report/supplier-summary${buildQuery(filters)}`
+  );
+}
+
 export function exportReportUrl(filters?: Filters): string {
   const params = new URLSearchParams({ format: "csv", ...(filters ?? {}) });
   return `/api/v1/source-comparison/report/export?${params.toString()}`;
+}
+
+// ===== Threshold configuration =====
+
+/** Fetch the per-field comparison configuration (defaults + scope). */
+export async function getComparisonConfig() {
+  return api.get<SCComparisonConfig>("/source-comparison/config");
+}
+
+/** Update a field's default threshold and/or in-scope flag. */
+export async function updateFieldDefault(
+  fieldName: string,
+  body: { threshold?: number; in_scope?: boolean; changed_by: string; note?: string }
+) {
+  return api.put<SCFieldConfig>(
+    `/source-comparison/config/field/${encodeURIComponent(fieldName)}`,
+    body
+  );
+}
+
+/** List part-number threshold overrides, optionally filtered by part number. */
+export async function listOverrides(partNumber?: string): Promise<SCThresholdOverride[]> {
+  const filters: Filters | undefined =
+    partNumber !== undefined ? { part_number: partNumber } : undefined;
+  const res = await api.get<{ data: SCThresholdOverride[]; total_count: number }>(
+    `/source-comparison/config/overrides${buildQuery(filters)}`
+  );
+  return res.data;
+}
+
+/** Create or update a part-number threshold override. */
+export async function setOverride(body: {
+  part_number: string;
+  field_name: string;
+  threshold: number;
+  changed_by: string;
+  note?: string;
+}) {
+  return api.post<SCThresholdOverride>("/source-comparison/config/overrides", body);
+}
+
+/** Delete a part-number threshold override. */
+export async function deleteOverride(params: {
+  part_number: string;
+  field_name: string;
+  changed_by: string;
+  note?: string;
+}) {
+  const filters: Filters = {
+    part_number: params.part_number,
+    field_name: params.field_name,
+    changed_by: params.changed_by,
+  };
+  if (params.note !== undefined) filters.note = params.note;
+  return api.delete<{ deleted: boolean }>(
+    `/source-comparison/config/overrides${buildQuery(filters)}`
+  );
+}
+
+/** Fetch the paginated configuration audit log. */
+export async function getConfigAudit(limit?: number, offset?: number) {
+  return api.get<SCConfigAuditPage>(
+    `/source-comparison/config/audit${buildQuery(
+      withPagination(undefined, { limit, offset })
+    )}`
+  );
 }

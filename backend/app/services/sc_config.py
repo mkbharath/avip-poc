@@ -5,18 +5,26 @@ Everything the comparison behavior depends on is read from configuration rather
 than hardcoded (Req 8.1-8.4): the in-scope field set with types, per-field
 numeric thresholds, the common-key definition, and the selected LLM provider.
 
-Two previously-open items are resolved **by explicit assumption** and are never
-silently defaulted (Req 8.5). They are seeded into the `assumptions` registry
-with status ``"assumed"`` and label ``"assumed — pending client confirmation"``:
+The `assumptions` registry surfaces open items rather than silently defaulting
+them (Req 8.5). Each item carries a ``status`` and a human-facing ``label``:
 
-  (a) ``shq_numeric_benchmark`` — SHQ is the numeric reference / source-of-truth
-      for numeric-threshold checks (deviation measured against SHQ's value).
-  (b) ``latency_target`` — ~5s per record end-to-end under a simulated feed of a
-      few records/second.
+  (a) ``shq_numeric_benchmark`` — **confirmed by client**: SHQ is the client's
+      statistical tool and the confirmed numeric reference / source-of-truth.
+      (The per-field numeric threshold *values* themselves remain assumed —
+      see ``threshold_values``.)
+  (b) ``latency_target`` — assumed: ~5s per record end-to-end under a simulated
+      feed of a few records/second.
+  (c) ``threshold_values`` — assumed: the per-field numeric deviation thresholds
+      (diameter 0.10mm, thickness 0.05mm, flatness 0.02mm, hardness 1.5 HRC) are
+      working assumptions pending client confirmation.
+  (d) ``ingestion_shape`` — assumed: the honest hybrid ingestion reality — SHQ
+      (statistical tool) is near-real-time capable, while FAIR and LAIR are
+      inspection reports ingested on report submission (event-on-submission).
 
-``validate_assumptions`` emits a logged warning for any assumption still
-``"unresolved"`` at a placeholder value and returns the registry so it can be
-surfaced in the report header banner — a default is never substituted silently.
+``validate_assumptions`` logs ``"assumed"`` and ``"confirmed"`` items at info
+level and emits a logged warning only for items still ``"unresolved"`` at a
+placeholder value. It returns the registry so it can be surfaced in the report
+header banner — a default is never substituted silently.
 """
 
 import logging
@@ -30,6 +38,9 @@ logger = logging.getLogger("app.source_comparison.config")
 
 # Human-facing label for items resolved by assumption pending client sign-off.
 ASSUMED_LABEL = "assumed — pending client confirmation"
+
+# Human-facing label for items the client has explicitly confirmed.
+CONFIRMED_LABEL = "confirmed by client"
 
 # Placeholder sentinel: an assumption still carrying this value is unresolved.
 UNRESOLVED_PLACEHOLDER = "[CONFIRM]"
@@ -52,13 +63,15 @@ class AssumptionItem(BaseModel):
     """A registry entry surfacing an open item resolved by assumption (Req 8.5).
 
     ``status="assumed"`` items are decided pending client confirmation and carry
-    ``ASSUMED_LABEL``. ``status="unresolved"`` items are still at a placeholder
-    value and MUST be logged and surfaced rather than silently defaulted.
+    ``ASSUMED_LABEL``. ``status="confirmed"`` items have been explicitly
+    confirmed by the client and carry ``CONFIRMED_LABEL``. ``status="unresolved"``
+    items are still at a placeholder value and MUST be logged and surfaced rather
+    than silently defaulted.
     """
 
     key: str
     label: str
-    status: Literal["assumed", "unresolved"]
+    status: Literal["assumed", "confirmed", "unresolved"]
     value: str | None = None
 
 
@@ -110,20 +123,23 @@ DEFAULT_FIELDS: dict[str, FieldConfig] = {
 
 
 def default_assumptions() -> list[AssumptionItem]:
-    """The two resolved-by-assumption items, seeded as ``"assumed"`` (Req 8.5).
+    """The seeded registry of open/confirmed items (Req 8.5).
 
-    Never silently defaulted: both are surfaced in the report header banner and
-    emitted in structured logs.
+    Never silently defaulted: every item is surfaced in the report header banner
+    and emitted in structured logs. ``shq_numeric_benchmark`` is now confirmed by
+    the client; the remaining items stay assumed pending client confirmation.
     """
     return [
         AssumptionItem(
             key="shq_numeric_benchmark",
-            label=ASSUMED_LABEL,
-            status="assumed",
+            label=CONFIRMED_LABEL,
+            status="confirmed",
             value=(
-                "SHQ is the numeric reference / source-of-truth; numeric "
-                "deviation is measured against SHQ's value and flagged when it "
-                "exceeds the per-field threshold."
+                "SHQ is the client's statistical tool and the confirmed numeric "
+                "reference / source-of-truth; numeric deviation is measured "
+                "against SHQ's value. The per-field numeric threshold VALUES used "
+                "for that comparison remain assumed pending client confirmation "
+                "(see threshold_values)."
             ),
         ),
         AssumptionItem(
@@ -133,6 +149,27 @@ def default_assumptions() -> list[AssumptionItem]:
             value=(
                 "~5s per record end-to-end under a simulated feed of a few "
                 "records/second."
+            ),
+        ),
+        AssumptionItem(
+            key="threshold_values",
+            label=ASSUMED_LABEL,
+            status="assumed",
+            value=(
+                "The per-field numeric deviation thresholds (diameter 0.10mm, "
+                "thickness 0.05mm, flatness 0.02mm, hardness 1.5 HRC) are working "
+                "assumptions pending client confirmation."
+            ),
+        ),
+        AssumptionItem(
+            key="ingestion_shape",
+            label=ASSUMED_LABEL,
+            status="assumed",
+            value=(
+                "Hybrid ingestion: SHQ (the client's statistical tool) is "
+                "near-real-time capable via pull/push, while FAIR and LAIR are "
+                "inspection reports ingested on report submission "
+                "(event-on-submission), not a continuous stream."
             ),
         ),
     ]
@@ -157,12 +194,13 @@ def validate_assumptions(config: ComparisonConfig) -> list[AssumptionItem]:
     Emits a logged warning for any assumption still ``"unresolved"`` at a
     placeholder value, naming the item — never substituting a default silently.
     Returns the assumptions so callers (e.g. the report header) can surface
-    them. Items with status ``"assumed"`` are logged at info level so the
-    resolved-by-assumption decisions remain observable.
+    them. Items with status ``"assumed"`` or ``"confirmed"`` are logged at info
+    level so the resolved / confirmed decisions remain observable.
     """
+    non_warning = {"assumed", "confirmed"}
     for item in config.assumptions:
         is_placeholder = item.value is None or item.value == UNRESOLVED_PLACEHOLDER
-        if item.status == "unresolved" or (is_placeholder and item.status != "assumed"):
+        if item.status == "unresolved" or (is_placeholder and item.status not in non_warning):
             logger.warning(
                 "Unresolved configuration item '%s' at placeholder value; "
                 "surfacing in report header rather than substituting a default.",

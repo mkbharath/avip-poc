@@ -21,7 +21,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { SCDiscrepancy } from "../../types";
-import { cardAccent, computeHeadline, SpotlightValues } from "./table-parts";
+import {
+  cardAccent,
+  cleanContextField,
+  computeHeadline,
+  revisionLabel,
+  SpotlightValues,
+} from "./table-parts";
 
 const PAGE_SIZE = 50;
 const DEFAULT_REVIEWER = "IQA Inspector";
@@ -184,6 +190,10 @@ function DiscrepancyCard({
   const accent = cardAccent(item.provenance);
   const headline = computeHeadline(item);
 
+  // Human-readable part context (falls back gracefully when absent).
+  const description = cleanContextField(item.part_context?.description);
+  const rev = revisionLabel(item.part_context);
+
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
       {/* 1. Accent bar */}
@@ -192,7 +202,23 @@ function DiscrepancyCard({
       <div className="flex flex-1 flex-col gap-4 p-5">
         {/* 2. Header */}
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400">
+          {/* Line 1 (primary, readable): the human-readable part description +
+              revision. When no description is available, the part number takes
+              this prominent slot instead. */}
+          {description ? (
+            <p className="truncate text-sm font-medium text-slate-700">
+              {description}
+              {rev ? (
+                <span className="ml-1.5 font-normal text-slate-500">· {rev}</span>
+              ) : null}
+            </p>
+          ) : (
+            <p className="truncate font-mono text-sm font-medium text-slate-700">
+              {item.part_number}
+            </p>
+          )}
+          {/* Line 2 (secondary): identifiers beneath, in a readable muted tone. */}
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
             <span className="truncate font-mono">
               {item.part_number} · Lot {item.lot_number}
             </span>
@@ -257,14 +283,14 @@ function DiscrepancyCard({
           <button
             type="button"
             onClick={() => setNoteOpen((o) => !o)}
-            className="inline-flex items-center gap-1 text-slate-400 transition-colors hover:text-slate-600"
+            className="inline-flex items-center gap-1 text-slate-500 transition-colors hover:text-slate-600"
           >
             <MessageSquarePlus className="size-3.5" />
             {noteOpen ? "Hide note" : "Add note"}
           </button>
           <Link
             to={`/source-comparison/review/${item.id}`}
-            className="inline-flex items-center gap-0.5 text-slate-400 opacity-0 transition-opacity hover:text-slate-600 group-hover:opacity-100"
+            className="inline-flex items-center gap-0.5 text-slate-500 hover:text-slate-700"
           >
             Details
             <ArrowUpRight className="size-3.5" />
@@ -286,7 +312,7 @@ function EmptyState() {
       <h3 className="text-base font-semibold text-slate-700">
         All caught up — no differences to review
       </h3>
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-sm text-slate-500">
         New differences will appear here automatically as they are flagged.
       </p>
     </div>
@@ -316,7 +342,7 @@ function PaginationFooter({
 }) {
   return (
     <div className="flex shrink-0 items-center justify-between border-t border-slate-200 bg-white px-4 py-2.5">
-      <p className="text-[11px] text-slate-600">
+      <p className="text-xs text-slate-600">
         Showing{" "}
         <span className="font-semibold text-slate-900">{rangeStart}</span>–
         <span className="font-semibold text-slate-900">{rangeEnd}</span> of{" "}

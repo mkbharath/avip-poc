@@ -507,6 +507,13 @@ async def compare_group(
     # provider construction which is not needed unless compare_group runs).
     from app.services.llm_provider import get_llm_provider
 
+    # threshold_config is the single source of truth for the effective numeric
+    # threshold (per-part override → persisted field default → None). Imported
+    # lazily here — mirroring the get_llm_provider pattern above — to avoid a
+    # circular import at module load (threshold_config imports sc_config, which
+    # this module also imports).
+    from app.services import threshold_config
+
     cfg = config if config is not None else comparison_config
     provider = llm if llm is not None else get_llm_provider(cfg)
 
@@ -532,7 +539,15 @@ async def compare_group(
         if field_type is FieldType.FREE_TEXT:
             discrepancy = await check_free_text(group, field, provider)
         else:
-            threshold = _field_threshold(cfg, field)
+            # Numeric threshold resolution now honours per-part overrides:
+            # resolve_threshold applies (per-part override → persisted field
+            # default → None) and gracefully falls back to the in-memory field
+            # default (equivalent to _field_threshold below) when no override /
+            # persisted config is reachable, so behavior is unchanged when no
+            # override exists.
+            threshold = await threshold_config.resolve_threshold(
+                group.part_number, field
+            )
             discrepancy = _make_discrepancy_for_field(
                 group, field, field_type, threshold, provider
             )

@@ -1,0 +1,9 @@
+FIXTURE PENDING REAL CLIENT SAMPLES — pcba-tpi-generation. Placeholder only.
+[CONFIRM] Visual-input format unconfirmed (CAD export / PDF / image). This .txt
+stand-in lets the pipeline run; ingestion detects and reports the format.
+
+Circuit diagram (text stand-in) — PCBA 622-073891-010 (Sensor Interface Breakout Board)
+- J3 5 V primary -> isolated DC-DC U4 -> 5 V secondary rail
+- Analog inputs -> unity buffers -> output header
+- Isolation barrier separates primary and secondary grounds
+- Digital I/O through isolator U9 to header J6 (3.3 V logic)

@@ -16,6 +16,11 @@ import { SourceComparisonReview } from "./components/source-comparison/SourceCom
 import { SourceComparisonWorkbench } from "./components/source-comparison/SourceComparisonWorkbench";
 import { DiscrepancyReport } from "./components/source-comparison/DiscrepancyReport";
 import { IngestionMonitor } from "./components/source-comparison/IngestionMonitor";
+import { ComparisonSettings } from "./components/source-comparison/ComparisonSettings";
+import { TpiMonitor } from "./components/tpi/TpiMonitor";
+import { TpiReviewList } from "./components/tpi/TpiReviewList";
+import { TpiReviewWorkbench } from "./components/tpi/TpiReviewWorkbench";
+import { TpiFinalList } from "./components/tpi/TpiFinalList";
 
 function App() {
   return (
@@ -41,7 +46,13 @@ function App() {
         <Route path="/source-comparison/review" element={<SourceComparisonReview />} />
         <Route path="/source-comparison/review/:id" element={<SourceComparisonWorkbench />} />
         <Route path="/source-comparison/monitor" element={<IngestionMonitor />} />
+        <Route path="/source-comparison/settings" element={<ComparisonSettings />} />
         <Route path="/source-comparison" element={<Navigate to="/source-comparison/report" replace />} />
+        <Route path="/tpi/monitor" element={<TpiMonitor />} />
+        <Route path="/tpi/review" element={<TpiReviewList />} />
+        <Route path="/tpi/review/:pcbaId" element={<TpiReviewWorkbench />} />
+        <Route path="/tpi/final" element={<TpiFinalList />} />
+        <Route path="/tpi" element={<Navigate to="/tpi/monitor" replace />} />
       </Route>
     </Routes>
   );

@@ -1,0 +1,12 @@
+TEST DATA — upload sample for pcba-tpi-generation (PCBA-778-100200-050, RF Power Amplifier Module)
+[CONFIRM] Visual-input format unconfirmed (CAD export / PDF / image). This .txt
+netlist-style stand-in lets the pipeline run; ingestion detects and reports the
+detected format rather than assuming one. Clearly a placeholder.
+
+Circuit diagram (text netlist stand-in) — PCBA 778-100200-050 (RF Power Amplifier Module)
+- J1 (RF IN, SMA) -> C1 DC-block 100 pF -> input match network L1/C2 -> gate of U7
+- J3 (28 VDC bias) -> ferrite bead FB1 -> RF choke L3 -> drain of U7
+- U7 GaN HEMT power stage -> output match network L2/C4 -> C5 DC-block -> J2 (RF OUT, SMA)
+- Gate bias: 28 VDC -> U2 LDO -> R-divider R1/R2 -> gate of U7 (Vgs set point)
+- TP4 thermocouple pad bonded to U7 flange for case-temperature monitoring
+- D1 reverse-polarity protection diode across J3 bias input

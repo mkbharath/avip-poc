@@ -294,6 +294,16 @@ export type SCProvenance = "exact-match" | "numeric-threshold" | "llm" | "llm-un
 
 export type SCReviewState = "pending" | "confirmed" | "dismissed";
 
+// Human-readable context for a part number, resolved from the parts table by
+// the backend. Null when the part number is not present in that table; any
+// individual field can also be null when unknown.
+export interface SCPartContext {
+  description: string | null;
+  revision: string | null;
+  material: string | null;
+  supplier: string | null;
+}
+
 // Helper type for a single source's value. The backend returns `values` as an
 // object keyed by source (see SCValues below), not an array of these; this type
 // is retained for convenience when iterating a source/value pair.
@@ -318,6 +328,9 @@ export interface SCDiscrepancy {
   reviewer: string | null;
   reviewer_note: string | null;
   decided_at: string | null;
+  // Human-readable part context resolved from the parts table; null when the
+  // part number is not in that table.
+  part_context?: SCPartContext | null;
 }
 
 // A part/lot GROUP of pending discrepancies, as returned by the grouped review
@@ -359,6 +372,22 @@ export interface SCReportRow {
   field_type: SCFieldType;
   values: SCValues;
   provenance: SCProvenance;
+  // Present when the report is viewed with an explicit review_state filter
+  // (opt-in). Omitted on the default confirmed-only report.
+  review_state?: SCReviewState;
+  // Human-readable part context resolved from the parts table; null when the
+  // part number is not in that table.
+  part_context?: SCPartContext | null;
+}
+
+// A single supplier rollup row from the confirmed-only discrepancy report,
+// grouped by the supplier joined from the parts table (via part_context).
+// Rows whose part has no supplier are grouped under "(unknown)".
+export interface SCSupplierSummaryRow {
+  supplier: string;
+  discrepancy_count: number;
+  part_count: number;
+  provenance_counts: Record<string, number>;
 }
 
 export interface SCReportHeader {
@@ -369,7 +398,7 @@ export interface SCReportHeader {
 export interface SCAssumption {
   key: string;
   label: string;
-  status: "assumed" | "unresolved";
+  status: "assumed" | "confirmed" | "unresolved";
   value: string | null;
 }
 
@@ -389,4 +418,173 @@ export interface SCRejectedRecord {
   raw_payload: unknown;
   reason: string;
   created_at: string;
+}
+
+// ===== Source Comparison: Threshold Configuration =====
+
+// Per-field default configuration: whether the field is in scope for
+// comparison and the numeric threshold used for numeric fields (null when not
+// applicable, e.g. non-numeric fields or when no threshold is set).
+export interface SCFieldConfig {
+  field_name: string;
+  type: SCFieldType;
+  in_scope: boolean;
+  threshold: number | null;
+}
+
+// A part-number-specific override of a field's numeric threshold.
+export interface SCThresholdOverride {
+  id?: string;
+  part_number: string;
+  field_name: string;
+  threshold: number;
+  updated_at?: string;
+}
+
+// A single audit-log entry describing a configuration change.
+export interface SCConfigAuditRow {
+  id: string;
+  change_type:
+    | "field_default"
+    | "part_override_set"
+    | "part_override_delete"
+    | "field_scope";
+  field_name: string | null;
+  part_number: string | null;
+  old_value: string | null;
+  new_value: string | null;
+  changed_by: string;
+  changed_at: string;
+  note: string | null;
+}
+
+// The full comparison configuration: the set of per-field defaults.
+export interface SCComparisonConfig {
+  fields: SCFieldConfig[];
+}
+
+// Paginated envelope for the configuration audit log.
+export interface SCConfigAuditPage {
+  data: SCConfigAuditRow[];
+  total_count: number;
+  limit: number;
+  offset: number;
+}
+
+// ===== PCBA TPI Generation =====
+
+// Per-input ingestion status: successfully ingested, or flagged for manual
+// annotation when a parse/extraction failure occurred (Req 1.2, 1.4).
+export type TpiInputStatus = "ingested" | "flagged_for_manual_annotation";
+
+// The four input kinds per PCBA. Text kinds (testing/operating procedure) use
+// text extraction; visual kinds (circuit diagram/drawing) use the multimodal
+// path.
+export type TpiInputType =
+  | "testing_procedure"
+  | "operating_procedure"
+  | "circuit_diagram"
+  | "drawing";
+
+// Review lifecycle of a generated draft (Req 4.x).
+export type TpiReviewState = "drafted" | "in_review" | "finalized";
+
+// Pipeline status of a PCBA that drives the status badge (Req 6.9).
+export type TpiPcbaStatus = "ingesting" | "drafted" | "in_review" | "finalized";
+
+// One persisted input row for a PCBA. `detected_format` is reported rather than
+// assumed for visual inputs (Req 1.3, [CONFIRM]); `raw_ref` is the stored
+// file/blob reference.
+export interface TpiInput {
+  id: string;
+  pcba_id: string;
+  input_type: TpiInputType;
+  filename: string;
+  detected_format: string | null;
+  status: TpiInputStatus;
+  raw_ref: string;
+  // Web-servable `/static` URL for a previewable visual input image (circuit
+  // diagram / drawing) whose stored file is a raster image under a mounted
+  // static root; null for text inputs, non-image formats, or files not under a
+  // static root (Part B — image preview in the review workbench).
+  preview_url: string | null;
+  // Cleaned, truncated text excerpt of a TEXT input's stored procedure file
+  // (testing_procedure / operating_procedure) so the reviewer can see the
+  // actual source content; null for visual inputs (which use `preview_url`
+  // instead), in-memory refs, or unreadable files.
+  text_excerpt: string | null;
+}
+
+// A mapped/generated TPI section carrying source-input provenance and an
+// `incomplete` marker for sections derived from flagged inputs (Req 3.3, 3.4).
+export interface TpiSection {
+  key: string;
+  title: string;
+  content: string;
+  source_input_ids: string[];
+  incomplete: boolean;
+}
+
+// A generated draft TPI: the ordered sections plus the template/provider used.
+// `template_kind` is the client template when confirmed, else the placeholder
+// (Req 5.2 vs 5.3).
+export interface DraftTpi {
+  pcba_id: string;
+  template_kind: string;
+  provider: string;
+  review_state: TpiReviewState;
+  sections: TpiSection[];
+}
+
+// A PCBA summary row for the monitor list. `review_state`/`template_kind` are
+// null until a draft has been generated.
+export interface TpiPcbaRow {
+  pcba_id: string;
+  status: TpiPcbaStatus;
+  created_at: string;
+  review_state: TpiReviewState | null;
+  template_kind: string | null;
+}
+
+// Full PCBA detail: its inputs and the current draft (null before processing).
+export interface TpiPcbaDetail {
+  pcba_id: string;
+  status: TpiPcbaStatus;
+  created_at: string;
+  inputs: TpiInput[];
+  draft: DraftTpi | null;
+}
+
+// A single review-audit entry: who finalized, when, and what changed (Req 4.4).
+export interface TpiAuditRow {
+  id: string;
+  pcba_id: string;
+  reviewer: string;
+  action: string;
+  changes: Record<string, unknown>;
+  decided_at: string;
+}
+
+// A surfaced `[CONFIRM]` marker for the status banner (Req 6.9); never a hidden
+// default.
+export interface TpiConfirmItem {
+  key: string;
+  label: string;
+  detail: string;
+}
+
+// Pipeline/config status: PCBA counts by status, the active LLM provider, and
+// any unresolved `[CONFIRM]` items.
+export interface TpiStatus {
+  pcba_status_counts: Record<string, number>;
+  total_pcbas: number;
+  llm_provider: string;
+  confirm_items: TpiConfirmItem[];
+}
+
+// Request shape for a single input in the ingest call (POST /tpi/pcbas/{id}/inputs).
+export interface TpiInputRef {
+  input_type: string;
+  filename: string;
+  path?: string | null;
 }

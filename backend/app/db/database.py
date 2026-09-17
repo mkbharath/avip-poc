@@ -215,6 +215,109 @@ CREATE INDEX IF NOT EXISTS idx_sc_disc_group ON sc_discrepancies(group_id);
 CREATE INDEX IF NOT EXISTS idx_sc_disc_state ON sc_discrepancies(review_state);
 CREATE INDEX IF NOT EXISTS idx_sc_disc_key ON sc_discrepancies(part_number, lot_number);
 CREATE INDEX IF NOT EXISTS idx_sc_audit_disc ON sc_review_audit(discrepancy_id);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Configurable numeric thresholds — feature: avip-source-comparison
+-- Runtime-editable thresholds persisted across restart, with a global
+-- per-FIELD default (in sc_comparison_config.fields JSON) PLUS an optional
+-- per-PART override here, and a fully append-only audit of every change.
+-- Conventions match the sc_* tables above: TEXT uuid PKs, ISO TEXT
+-- timestamps, JSON-in-TEXT columns, foreign_keys=ON.
+-- ─────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS sc_threshold_overrides (
+    id TEXT PRIMARY KEY,
+    part_number TEXT NOT NULL,
+    field_name TEXT NOT NULL,
+    threshold REAL NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE (part_number, field_name)    -- one override per (part, field): idempotent upsert
+);
+
+CREATE TABLE IF NOT EXISTS sc_config_audit (
+    id TEXT PRIMARY KEY,
+    change_type TEXT NOT NULL,          -- field_default | part_override_set | part_override_delete | field_scope
+    field_name TEXT,
+    part_number TEXT,                   -- nullable: field_default / field_scope changes are part-agnostic
+    old_value TEXT,
+    new_value TEXT,
+    changed_by TEXT NOT NULL,
+    changed_at TEXT NOT NULL,
+    note TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_sc_threshold_overrides_part ON sc_threshold_overrides(part_number);
+CREATE INDEX IF NOT EXISTS idx_sc_config_audit_changed_at ON sc_config_audit(changed_at);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- PCBA TPI Generation — feature: pcba-tpi-generation
+-- New tpi_* tables appended additively; existing tables/seed logic untouched
+-- (Req 9.2). Conventions match the sc_* tables above: TEXT uuid PKs, ISO TEXT
+-- timestamps, JSON-in-TEXT columns, foreign_keys=ON (set in get_db).
+-- Pipeline: ingestion -> extraction -> mapping/generation -> review -> final.
+-- ─────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS tpi_pcbas (
+    id TEXT PRIMARY KEY,
+    pcba_id TEXT NOT NULL UNIQUE,       -- external/business id for the sample PCBA
+    status TEXT NOT NULL DEFAULT 'ingesting',  -- ingesting | drafted | in_review | finalized
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tpi_inputs (
+    id TEXT PRIMARY KEY,
+    pcba_id TEXT NOT NULL,              -- FK tpi_pcbas.pcba_id (business id)
+    input_type TEXT NOT NULL,           -- testing_procedure | operating_procedure | circuit_diagram | drawing
+    filename TEXT NOT NULL,
+    detected_format TEXT,               -- e.g. pdf | png | cad [CONFIRM]; null until detected
+    status TEXT NOT NULL,               -- ingested | flagged_for_manual_annotation (Req 1.4)
+    raw_ref TEXT NOT NULL,              -- stored file/blob reference
+    FOREIGN KEY (pcba_id) REFERENCES tpi_pcbas(pcba_id)
+);
+
+CREATE TABLE IF NOT EXISTS tpi_extractions (
+    id TEXT PRIMARY KEY,
+    input_id TEXT NOT NULL,             -- FK tpi_inputs.id
+    content_json TEXT NOT NULL DEFAULT '{}',  -- JSON: structured extracted content
+    status TEXT NOT NULL,               -- ingested | flagged_for_manual_annotation
+    provider TEXT NOT NULL DEFAULT 'mock',    -- mock | openai | ...
+    FOREIGN KEY (input_id) REFERENCES tpi_inputs(id)
+);
+
+CREATE TABLE IF NOT EXISTS tpi_sections (
+    id TEXT PRIMARY KEY,
+    pcba_id TEXT NOT NULL,              -- FK tpi_pcbas.pcba_id (business id)
+    key TEXT NOT NULL,                  -- e.g. test_steps | expected_results | equipment
+    title TEXT NOT NULL,
+    content TEXT NOT NULL DEFAULT '',
+    source_input_ids TEXT NOT NULL DEFAULT '[]',  -- JSON list of tpi_inputs.id (provenance, Req 3.3)
+    incomplete INTEGER NOT NULL DEFAULT 0,        -- 0/1: true if a source input was flagged (Req 3.4)
+    FOREIGN KEY (pcba_id) REFERENCES tpi_pcbas(pcba_id)
+);
+
+CREATE TABLE IF NOT EXISTS tpi_drafts (
+    pcba_id TEXT PRIMARY KEY,           -- FK tpi_pcbas.pcba_id (one draft per PCBA)
+    template_kind TEXT NOT NULL DEFAULT 'placeholder',  -- client | placeholder [CONFIRM]
+    provider TEXT NOT NULL DEFAULT 'mock',
+    review_state TEXT NOT NULL DEFAULT 'drafted',        -- drafted | in_review | finalized
+    FOREIGN KEY (pcba_id) REFERENCES tpi_pcbas(pcba_id)
+);
+
+CREATE TABLE IF NOT EXISTS tpi_review_audit (
+    id TEXT PRIMARY KEY,
+    pcba_id TEXT NOT NULL,              -- FK tpi_pcbas.pcba_id
+    reviewer TEXT NOT NULL,
+    action TEXT NOT NULL,               -- e.g. finalize | correct
+    changes_json TEXT NOT NULL DEFAULT '{}',  -- JSON: what changed (who/when captured by reviewer/decided_at)
+    decided_at TEXT NOT NULL,
+    FOREIGN KEY (pcba_id) REFERENCES tpi_pcbas(pcba_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tpi_inputs_pcba ON tpi_inputs(pcba_id);
+CREATE INDEX IF NOT EXISTS idx_tpi_extractions_input ON tpi_extractions(input_id);
+CREATE INDEX IF NOT EXISTS idx_tpi_sections_pcba ON tpi_sections(pcba_id);
+CREATE INDEX IF NOT EXISTS idx_tpi_drafts_state ON tpi_drafts(review_state);
+CREATE INDEX IF NOT EXISTS idx_tpi_review_audit_pcba ON tpi_review_audit(pcba_id);
 """
 
 

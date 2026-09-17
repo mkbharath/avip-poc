@@ -20,6 +20,7 @@ from app.routers import (
     parts,
     review,
     source_comparison,
+    tpi,
 )
 from app.services import ingestion
 from app.services.sc_config import comparison_config, validate_assumptions
@@ -147,6 +148,7 @@ app.include_router(certificates.router, prefix="/api/v1", tags=["Certificates"])
 app.include_router(demo.router, prefix="/api/v1", tags=["Demo"])
 app.include_router(ai.router, prefix="/api/v1", tags=["AI"])
 app.include_router(source_comparison.router, prefix="/api/v1", tags=["Source Comparison"])
+app.include_router(tpi.router, prefix="/api/v1", tags=["TPI Generation"])
 
 # Serve demo label images for OCR feature (must mount before broader /static)
 labels_dir = settings.demo_data_dir / "labels"
@@ -157,6 +159,19 @@ if labels_dir.exists():
 demo_images_dir = settings.demo_data_dir / "images"
 if demo_images_dir.exists():
     app.mount("/static/demo-images", StaticFiles(directory=str(demo_images_dir)), name="demo-images")
+
+# Serve the PCBA TPI sample fixtures (circuit diagrams / drawings) so the review
+# workbench can preview the SAMPLE PCBAs' images too. These live under
+# backend/sample_data/tpi (NOT under data_dir), so they get their own mount;
+# tpi.py's preview_url logic maps such refs to /static/tpi-samples/<relpath>.
+# Must mount before the broader /static below (more specific path first).
+tpi_samples_dir = Path(__file__).resolve().parents[1] / "sample_data" / "tpi"
+if tpi_samples_dir.exists():
+    app.mount(
+        "/static/tpi-samples",
+        StaticFiles(directory=str(tpi_samples_dir)),
+        name="tpi-samples",
+    )
 
 # Static files for images, heatmaps, certificates
 settings.data_dir.mkdir(parents=True, exist_ok=True)

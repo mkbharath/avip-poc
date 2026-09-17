@@ -1,0 +1,9 @@
+FIXTURE PENDING REAL CLIENT SAMPLES — pcba-tpi-generation. Placeholder only.
+[CONFIRM] Visual-input format unconfirmed (CAD export / PDF / image). This .txt
+stand-in lets the pipeline run; ingestion detects and reports the format.
+
+Circuit diagram (text stand-in) — PCBA 444-027654-002 (ESC Controller Board)
+- J1 power input -> buck regulator U1 -> 3.3 V rail
+- 3.3 V rail -> MCU U2 (I2C master, addr controller)
+- EN1 -> U2 GPIO enable -> status LED D3
+- J4 I2C bus -> sensor U5 @ 0x48

@@ -23,6 +23,13 @@ class Settings(BaseModel):
     openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
     openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o")
 
+    # PCBA TPI Generation multimodal provider — selects which provider drives
+    # extraction + drafting for the TPI pipeline. Mirrors the AVIP_VISION_LLM /
+    # OPENAI_* env pattern above. Values: "mock" (default, deterministic, no
+    # network/API key) or "openai". A per-request override is also supported on
+    # the process endpoint; this is the configured default.
+    tpi_llm_provider: str = os.getenv("AVIP_TPI_LLM_PROVIDER", "mock")
+
     # Source-comparison simulator — feeds the LAIR/FAIR/SHQ pipeline with a
     # continuous stream of simulated records. Enabled by default for the demo
     # env; tests and production can disable it (AVIP_SC_SIMULATOR=false) to

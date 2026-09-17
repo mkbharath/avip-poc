@@ -1,0 +1,9 @@
+FIXTURE PENDING REAL CLIENT SAMPLES — pcba-tpi-generation. Placeholder only.
+[CONFIRM] Visual-input format unconfirmed (CAD export / PDF / image). This .txt
+stand-in lets the pipeline run; ingestion detects and reports the format.
+
+Mechanical drawing (text stand-in) — PCBA 444-027654-003 (RF Driver Board)
+- Board outline 90 mm x 70 mm, 1.6 mm FR-4, RF ground pour both sides
+- Shield can footprint over gain stage (35 mm x 25 mm)
+- Connectors: J2 (power, bottom), RFin/RFout SMA edge launches
+- Mounting: 4x M3 corners

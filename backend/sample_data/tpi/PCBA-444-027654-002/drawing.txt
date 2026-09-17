@@ -1,0 +1,9 @@
+FIXTURE PENDING REAL CLIENT SAMPLES — pcba-tpi-generation. Placeholder only.
+[CONFIRM] Visual-input format unconfirmed (CAD export / PDF / image). This .txt
+stand-in lets the pipeline run; ingestion detects and reports the format.
+
+Mechanical drawing (text stand-in) — PCBA 444-027654-002 (ESC Controller Board)
+- Board outline 100 mm x 80 mm, 1.6 mm FR-4
+- Mounting holes: 4x M3 at corners, 5 mm inset
+- Connectors: J1 (edge, left), J4 (top-right)
+- Keepout: 3 mm around board edge

@@ -1,0 +1,12 @@
+TEST DATA — upload sample for pcba-tpi-generation (PCBA-778-100200-050, RF Power Amplifier Module)
+[CONFIRM] Visual-input format unconfirmed (CAD export / PDF / image). This .txt
+stand-in describes the mechanical drawing; ingestion detects and reports the
+detected format rather than assuming one. Clearly a placeholder.
+
+Mechanical drawing (text stand-in) — PCBA 778-100200-050 (RF Power Amplifier Module)
+- Board outline: 60.0 mm x 40.0 mm, 4-layer FR4 with 0.20 mm copper on RF layer.
+- Mounting: four M3 clearance holes, one at each corner, 3.5 mm from each edge.
+- Heatsink interface: 12 mm x 12 mm exposed pad under U7 with thermal vias.
+- Connectors: J1 and J2 edge-launch SMA on the 60 mm sides; J3 keyed 2-pin bias.
+- Keep-out: 5 mm RF keep-out zone around J1/J2 traces, no ground stitching inside.
+- Silkscreen: board id "778-100200-050" and RF-flow arrow near J1 -> J2.

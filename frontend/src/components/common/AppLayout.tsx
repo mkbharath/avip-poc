@@ -10,6 +10,9 @@ import {
   FlaskConical,
   GitCompare,
   Activity,
+  SlidersHorizontal,
+  FileStack,
+  FileCheck,
   ChevronRight,
 } from "lucide-react";
 import {
@@ -51,9 +54,18 @@ const NAV_GROUPS = [
   {
     label: "Source Comparison",
     items: [
-      { label: "Discrepancy Report", to: "/source-comparison/report", icon: GitCompare },
-      { label: "Review", to: "/source-comparison/review", icon: ClipboardCheck },
       { label: "Ingestion Monitor", to: "/source-comparison/monitor", icon: Activity },
+      { label: "Review", to: "/source-comparison/review", icon: ClipboardCheck },
+      { label: "Discrepancy Report", to: "/source-comparison/report", icon: GitCompare },
+      { label: "Comparison Settings", to: "/source-comparison/settings", icon: SlidersHorizontal },
+    ],
+  },
+  {
+    label: "TPI Generation",
+    items: [
+      { label: "TPI Monitor", to: "/tpi/monitor", icon: FileStack },
+      { label: "Review", to: "/tpi/review", icon: ClipboardCheck },
+      { label: "Final TPIs", to: "/tpi/final", icon: FileCheck },
     ],
   },
   {
@@ -193,5 +205,10 @@ function getPageTitle(path: string): string {
   if (path.startsWith("/source-comparison/review/")) return "Review Discrepancy";
   if (path === "/source-comparison/review") return "Source Comparison Review";
   if (path === "/source-comparison/monitor") return "Ingestion Monitor";
+  if (path === "/source-comparison/settings") return "Comparison Settings";
+  if (path === "/tpi/monitor") return "TPI Monitor";
+  if (path.startsWith("/tpi/review/")) return "TPI Review Workbench";
+  if (path === "/tpi/review") return "TPI Review";
+  if (path === "/tpi/final") return "Final TPIs";
   return "AVIP";
 }

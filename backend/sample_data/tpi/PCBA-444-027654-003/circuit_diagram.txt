@@ -1,0 +1,9 @@
+FIXTURE PENDING REAL CLIENT SAMPLES — pcba-tpi-generation. Placeholder only.
+[CONFIRM] Visual-input format unconfirmed (CAD export / PDF / image). This .txt
+stand-in lets the pipeline run; ingestion detects and reports the format.
+
+Circuit diagram (text stand-in) — PCBA 444-027654-003 (RF Driver Board)
+- J2 12 V input -> LDO U3 -> 8.0 V bias rail
+- RFin -> input match -> gain stage Q1 -> output match -> RFout
+- SW1 enable -> bias switch controlling Q1
+- Directional coupler taps forward/reflected to test points TP1/TP2

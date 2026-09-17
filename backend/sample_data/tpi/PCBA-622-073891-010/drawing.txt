@@ -1,0 +1,9 @@
+FIXTURE PENDING REAL CLIENT SAMPLES — pcba-tpi-generation. Placeholder only.
+[CONFIRM] Visual-input format unconfirmed (CAD export / PDF / image). This .txt
+stand-in lets the pipeline run; ingestion detects and reports the format.
+
+Mechanical drawing (text stand-in) — PCBA 622-073891-010 (Sensor Interface Breakout Board)
+- Board outline 80 mm x 60 mm, 1.6 mm FR-4
+- Isolation slot routed under the barrier (creepage per spec)
+- Connectors: J3 (power), analog input header (left), J6 digital (right)
+- Mounting: 4x M2.5 corners

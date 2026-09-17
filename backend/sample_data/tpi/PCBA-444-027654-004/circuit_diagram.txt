@@ -1,0 +1,9 @@
+FIXTURE PENDING REAL CLIENT SAMPLES — pcba-tpi-generation. Placeholder only.
+[CONFIRM] Visual-input format unconfirmed (CAD export / PDF / image). This .txt
+stand-in lets the pipeline run; ingestion detects and reports the format.
+
+Circuit diagram (text stand-in) — PCBA 444-027654-004 (Power Distribution Board)
+- J5 48 V input -> input fuse F1 -> buck U6 (12 V) and buck U7 (5 V)
+- Each output: e-fuse with current limit + latch on overcurrent
+- Fault flags OR'd to status header J7
+- Sequencing controller U8 enables outputs in order

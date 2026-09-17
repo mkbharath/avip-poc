@@ -1,0 +1,9 @@
+FIXTURE PENDING REAL CLIENT SAMPLES — pcba-tpi-generation. Placeholder only.
+[CONFIRM] Visual-input format unconfirmed (CAD export / PDF / image). This .txt
+stand-in lets the pipeline run; ingestion detects and reports the format.
+
+Mechanical drawing (text stand-in) — PCBA 444-027654-004 (Power Distribution Board)
+- Board outline 120 mm x 90 mm, 2.0 mm FR-4, 2 oz copper
+- Bus bar mounting pads along top edge (J5)
+- Output terminal blocks along bottom edge
+- Mounting: 6x M3 (4 corners + 2 mid-edge)

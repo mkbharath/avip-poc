@@ -1,26 +1,55 @@
+# On-prem production compose for the AVIP portal (single-node pilot).
+#
+# Brings up two containers on one Linux host:
+#   * avip-api      — FastAPI backend (SQLite persisted in the avip-data volume)
+#   * avip-frontend — React build served by nginx, proxying /api and /static to
+#                     the backend (see frontend/nginx.conf)
+#
+# Secrets/config are read from a local `.env.prod` file (NOT committed). Copy
+# `.env.prod.example` to `.env.prod` and fill in values before `up`.
+# See DEPLOYMENT.md for the full runbook.
+
 services:
   avip-api:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    image: avip-api:latest
     container_name: avip-api
     restart: unless-stopped
-    ports:
-      - "8001:8000"
+    expose:
+      - "8000"                     # internal only; frontend nginx proxies to it
     volumes:
-      - avip-data:/app/data
-      - ./backend/demo_data:/app/demo_data
-      - ./backend/ai_models:/app/ai_models
+      - avip-data:/app/data        # SQLite DB + tpi_uploads/ (persistent)
+      - ./backend/demo_data:/app/demo_data:ro
+      - ./backend/ai_models:/app/ai_models:ro
+      # Mount sample fixtures read-only so they can be refreshed without a
+      # rebuild. They are also baked into the image (Dockerfile) as a fallback.
+      - ./backend/sample_data:/app/sample_data:ro
     environment:
+      - AVIP_ENV=demo
       - AVIP_DATA_DIR=/app/data
       - AVIP_DEMO_DATA_DIR=/app/demo_data
       - AVIP_MODELS_DIR=/app/ai_models
+      # Source-comparison simulator OFF by default in prod (unbounded feed).
+      - AVIP_SC_SIMULATOR=${AVIP_SC_SIMULATOR:-false}
+      # TPI multimodal provider: 'mock' (default, no network) or 'openai'.
+      - AVIP_TPI_LLM_PROVIDER=${AVIP_TPI_LLM_PROVIDER:-mock}
+      # Vision LLM for the existing inspection feature (optional).
+      - AVIP_VISION_LLM=${AVIP_VISION_LLM:-false}
+      # OpenAI credentials — only needed if a provider is set to 'openai'.
+      # Left blank keeps everything on the deterministic mock (no outbound net).
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
+    env_file:
+      - path: ./.env.prod
+        required: false
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s
     networks:
       - avip-net
 
@@ -28,10 +57,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
+    image: avip-frontend:latest
     container_name: avip-frontend
     restart: unless-stopped
     ports:
-      - "5174:80"
+      # Host port 8080 → nginx :80. Change the left side to suit the host.
+      - "${AVIP_HTTP_PORT:-8080}:80"
     depends_on:
       avip-api:
         condition: service_healthy

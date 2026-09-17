@@ -26,6 +26,8 @@ backend/data/
 # Environment
 .env
 .env.local
+.env.prod
+.env.*.local
 
 # ONNX models (large binary files - regenerate with scripts)
 backend/ai_models/patchcore/model.onnx
